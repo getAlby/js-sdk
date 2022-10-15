@@ -1,5 +1,4 @@
-import fetch from "node-fetch";
-import type { RequestInfo, RequestInit, Response, Headers } from "node-fetch";
+import fetch from 'cross-fetch';
 import { buildQueryString } from "./utils";
 import {
   AuthClient,
@@ -40,12 +39,12 @@ class AlbyResponseError extends Error {
   status: number;
   statusText: string;
   headers: Record<string, any>;
-  error: Record<string, any>;
+  error: any; // todo: typeable?
   constructor(
     status: number,
     statusText: string,
     headers: Headers,
-    error: Record<string, any>
+    error: any
   ) {
     super();
     this.status = status;
@@ -84,7 +83,6 @@ export async function request({
       },
       method,
       body: isPost ? JSON.stringify(request_body) : undefined,
-      timeout: 120000,
       ...options,
     },
     max_retries
@@ -101,9 +99,9 @@ export async function request({
   return response;
 }
 
-export async function rest<T = Record<string, any>>(
+export async function rest<T = any>(
   args: RequestOptions
 ): Promise<T> {
   const response = await request(args);
-  return response.json();
+  return response.json() as any;
 }
