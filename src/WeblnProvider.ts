@@ -138,9 +138,11 @@ export class WebLNProvider {
       );
       let processingCode = false;
       window.addEventListener('message', async (message) => {
+        console.log(message);
         const data = message.data;
         if (data && data.type === 'alby:oauth:success' && message.origin === `${document.location.protocol}//${document.location.host}` && !processingCode) {
           processingCode = true; // make sure we request the access token only once
+          console.info("Processing OAuth code response");
           const code = data.payload.code;
           try {
             await this.auth.requestAccessToken(code);
@@ -155,7 +157,7 @@ export class WebLNProvider {
             reject({ enabled: false });
           }
         }
-      }, {once : true});
+      });
     });
   }
 }
