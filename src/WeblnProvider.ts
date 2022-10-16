@@ -16,12 +16,14 @@ export class WebLNProvider {
   auth: OAuthClient;
   oauth: boolean;
   subscribers: Record<string, (payload: any) => void>;
+  isExecuting: boolean;
 
   constructor(options: { auth: OAuthClient }) {
     this.auth = options.auth;
     this.client = new Client(options.auth);
     this.oauth = true;
     this.subscribers = {};
+    this.isExecuting = false;
   }
 
   on(name: string, callback: () => void) {
@@ -32,6 +34,92 @@ export class WebLNProvider {
     const callback = this.subscribers[name];
     if (callback) {
       callback(payload);
+    }
+  }
+
+  async enable() {
+    if (this.isExecuting) { return; }
+    if (this.auth.token?.access_token) {
+      return { enabled: true };
+    }
+    if (isBrowser()) {
+      try {
+        this.isExecuting = true;
+        const result = await this.openAuthorization();
+      } finally {
+        this.isExecuting = false;
+      }
+    } else {
+      throw new Error("Missing access token");
+    }
+  }
+
+  async sendPayment(invoice: string) {
+    if (this.isExecuting) { return; }
+    try {
+      this.isExecuting = true;
+      const result = await this.client.sendPayment({ invoice });
+      if (result.error) {
+        throw new Error(result.message);
+      }
+      this.notify('sendPayment', result);
+      return {
+        preimage: result.payment_preimage
+      }
+    } catch(error) {
+      let message = 'Unknown Error'
+      if (error instanceof Error) message = error.message
+      throw new Error(message);
+    } finally {
+      this.isExecuting = false;
+    }
+  }
+
+  async keysend(params: KeysendRequestParams) {
+    if (this.isExecuting) { return; }
+    try {
+      this.isExecuting = true;
+      const result = await this.client.keysend(params);
+      if (result.error) {
+        throw new Error(result.message);
+      }
+      this.notify('keysend', result);
+      return {
+        preimage: result.payment_preimage
+      }
+    } catch(error) {
+      let message = 'Unknown Error'
+      if (error instanceof Error) message = error.message
+      throw new Error(message);
+    } finally {
+      this.isExecuting = false;
+    }
+  }
+
+  async getInfo() {
+    return {
+      alias: "Alby"
+    };
+  }
+
+  async makeInvoice(params: RequestInvoiceArgs) {
+    if (this.isExecuting) { return; }
+    try {
+      this.isExecuting = true;
+      const result = await this.client.createInvoice({
+        amount: parseInt(params.amount.toString()),
+        description: params.defaultMemo
+      });
+      this.notify('makeInvoice', result);
+      return {
+        paymentRequest: result.payment_request
+      }
+    } catch(error) {
+      let message = 'Unknown Error'
+      if (error instanceof Error) message = error.message
+      throw new Error(message);
+    } finally {
+      this.isExecuting = false;
     }
   }
 
@@ -48,9 +136,11 @@ export class WebLNProvider {
         `${document.title} - WebLN enable`,
         `height=${height},width=${width},top=${top},left=${left}`
       );
+      let processingCode = false;
       window.addEventListener('message', async (message) => {
         const data = message.data;
-        if (data && data.type === 'alby:oauth:success' && message.origin === `${document.location.protocol}//${document.location.host}`) {
+        if (data && data.type === 'alby:oauth:success' && message.origin === `${document.location.protocol}//${document.location.host}` && !processingCode) {
+          processingCode = true; // make sure we request the access token only once
           const code = data.payload.code;
           try {
             await this.auth.requestAccessToken(code);
@@ -65,70 +155,7 @@ export class WebLNProvider {
             reject({ enabled: false });
           }
         }
-      });
+      }, {once : true});
     });
-  }
-
-
-  async enable() {
-    if (this.auth.token?.access_token) {
-      return { enabled: true };
-    }
-    if (isBrowser()) {
-      return this.openAuthorization();
-    } else {
-      throw new Error("Missing access token");
-    }
-  }
-
-  async sendPayment(invoice: string) {
-    try {
-      const result = await this.client.sendPayment({ invoice });
-      if (result.error) {
-        throw new Error(result.message);
-      }
-      this.notify('sendPayment', result);
-      return {
-        preimage: result.payment_preimage
-      }
-    } catch(error) {
-      let message = 'Unknown Error'
-      if (error instanceof Error) message = error.message
-      throw new Error(message);
-    }
-  }
-
-  async keysend(params: KeysendRequestParams) {
-    try {
-      const result = await this.client.keysend(params);
-      if (result.error) {
-        throw new Error(result.message);
-      }
-      this.notify('keysend', result);
-      return {
-        preimage: result.payment_preimage
-      }
-    } catch(error) {
-      let message = 'Unknown Error'
-      if (error instanceof Error) message = error.message
-      throw new Error(message);
-    }
-  }
-
-  async getInfo() {
-    return {
-      alias: "Alby"
-    };
-  }
-
-  async makeInvoice(params: RequestInvoiceArgs) {
-    const result = await this.client.createInvoice({
-      amount: parseInt(params.amount.toString()),
-      description: params.defaultMemo
-    });
-    this.notify('makeInvoice', result);
-    return {
-      paymentRequest: result.payment_request
-    }
   }
 }
