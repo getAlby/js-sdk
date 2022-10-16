@@ -1,5 +1,7 @@
-import { auth, Client } from "../dist/index.js";
-import express from "express";
+const Alby = require("../dist/index.cjs");
+const Client = Alby.Client;
+const auth = Alby.auth;
+const express = require("express");
 
 const app = express();
 

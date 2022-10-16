@@ -36,12 +36,12 @@ function processTokenResponse(token: GetTokenResponse): Token {
 
 export class OAuth2User implements OAuthClient {
   token?: Token;
-  #options: OAuth2UserOptions;
-  #code_verifier?: string;
-  #code_challenge?: string;
+  options: OAuth2UserOptions;
+  code_verifier?: string;
+  code_challenge?: string;
   constructor(options: OAuth2UserOptions) {
     const { token, ...defaultOptions } = options;
-    this.#options = {client_secret: '', ...defaultOptions};
+    this.options = {client_secret: '', ...defaultOptions};
     this.token = token;
   }
 
@@ -50,7 +50,7 @@ export class OAuth2User implements OAuthClient {
    */
   async refreshAccessToken(): Promise<{ token: Token }> {
     const refresh_token = this.token?.refresh_token;
-    const { client_id, client_secret, request_options } = this.#options;
+    const { client_id, client_secret, request_options } = this.options;
     if (!client_id) {
       throw new Error("client_id is required");
     }
@@ -94,8 +94,8 @@ export class OAuth2User implements OAuthClient {
    */
   async requestAccessToken(code?: string): Promise<{ token: Token }> {
     const { client_id, client_secret, callback, request_options } =
-      this.#options;
-    const code_verifier = this.#code_verifier;
+      this.options;
+    const code_verifier = this.code_verifier;
     if (!client_id) {
       throw new Error("client_id is required");
     }
@@ -128,18 +128,18 @@ export class OAuth2User implements OAuthClient {
   }
 
   generateAuthURL(options: GenerateAuthUrlOptions): string {
-    const { client_id, callback, scopes } = this.#options;
+    const { client_id, callback, scopes } = this.options;
     if (!callback) throw new Error("callback required");
     if (!scopes) throw new Error("scopes required");
     if (options.code_challenge_method === "S256") {
       const code_verifier = CryptoJS.lib.WordArray.random(64);
-      this.#code_verifier = code_verifier.toString();
-      this.#code_challenge = sha256(this.#code_verifier).toString(Base64).replace(/\+/g, '-').replace(/\//g, '_').replace(/\=+$/, '')
+      this.code_verifier = code_verifier.toString();
+      this.code_challenge = sha256(this.code_verifier).toString(Base64).replace(/\+/g, '-').replace(/\//g, '_').replace(/\=+$/, '')
     } else {
-      this.#code_challenge = options.code_challenge;
-      this.#code_verifier = options.code_challenge;
+      this.code_challenge = options.code_challenge;
+      this.code_verifier = options.code_challenge;
     }
-    const code_challenge = this.#code_challenge;
+    const code_challenge = this.code_challenge;
     const url = new URL(AUTHORIZE_URL);
     url.search = buildQueryString({
       ...options,

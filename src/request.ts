@@ -49,7 +49,7 @@ class AlbyResponseError extends Error {
     super();
     this.status = status;
     this.statusText = statusText;
-    this.headers = Object.fromEntries(headers);
+    this.headers = headers;
     this.error = error;
   }
 }

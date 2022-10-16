@@ -9,15 +9,15 @@ import { OAuth2Bearer } from "./auth";
 
 
 export class Client {
-  #auth: AuthClient;
-  #defaultRequestOptions?: Partial<RequestOptions>;
+  auth: AuthClient;
+  defaultRequestOptions?: Partial<RequestOptions>;
 
   constructor(
     auth: string | AuthClient,
     requestOptions?: Partial<RequestOptions>
     ) {
-      this.#auth = typeof auth === "string" ? new OAuth2Bearer(auth) : auth;
-      this.#defaultRequestOptions = {
+      this.auth = typeof auth === "string" ? new OAuth2Bearer(auth) : auth;
+      this.defaultRequestOptions = {
         ...requestOptions,
         headers: {
           "User-Agent": "alby-api",
@@ -28,8 +28,8 @@ export class Client {
 
   accountBalance(params: {}, request_options?: Partial<RequestOptions>) {
     return rest({
-      auth: this.#auth,
-      ...this.#defaultRequestOptions,
+      auth: this.auth,
+      ...this.defaultRequestOptions,
       ...request_options,
       endpoint: `/balance`,
       params,
@@ -39,8 +39,8 @@ export class Client {
 
   accountSummary(params: {}, request_options?: Partial<RequestOptions>) {
     return rest({
-      auth: this.#auth,
-      ...this.#defaultRequestOptions,
+      auth: this.auth,
+      ...this.defaultRequestOptions,
       ...request_options,
       endpoint: `/user/summary`,
       params,
@@ -51,8 +51,8 @@ export class Client {
 
   accountValue4Value(params: {}, request_options?: Partial<RequestOptions>) {
     return rest({
-      auth: this.#auth,
-      ...this.#defaultRequestOptions,
+      auth: this.auth,
+      ...this.defaultRequestOptions,
       ...request_options,
       endpoint: `/user/value4value`,
       params,
@@ -62,8 +62,8 @@ export class Client {
 
   incomingInvoices(params: {}, request_options?: Partial<RequestOptions>) {
     return rest({
-      auth: this.#auth,
-      ...this.#defaultRequestOptions,
+      auth: this.auth,
+      ...this.defaultRequestOptions,
       ...request_options,
       endpoint: `/invoices/incoming`,
       params,
@@ -73,8 +73,8 @@ export class Client {
 
   outgoingInvoices(params: {}, request_options?: Partial<RequestOptions>) {
     return rest({
-      auth: this.#auth,
-      ...this.#defaultRequestOptions,
+      auth: this.auth,
+      ...this.defaultRequestOptions,
       ...request_options,
       endpoint: `/invoices/outgoing`,
       params,
@@ -84,8 +84,8 @@ export class Client {
 
   getInvoice(paymentHash: string, request_options?: Partial<RequestOptions>) {
     return rest({
-      auth: this.#auth,
-      ...this.#defaultRequestOptions,
+      auth: this.auth,
+      ...this.defaultRequestOptions,
       ...request_options,
       endpoint: `/invoices/${paymentHash}`,
       method: "GET",
@@ -94,8 +94,8 @@ export class Client {
 
   createInvoice(invoice: InvoiceRequestParams, request_options?: Partial<RequestOptions>) {
     return rest({
-      auth: this.#auth,
-      ...this.#defaultRequestOptions,
+      auth: this.auth,
+      ...this.defaultRequestOptions,
       ...request_options,
       endpoint: `/invoices`,
       request_body: invoice,
@@ -105,8 +105,8 @@ export class Client {
 
   keysend(keysend: KeysendRequestParams, request_options?: Partial<RequestOptions>) {
     return rest({
-      auth: this.#auth,
-      ...this.#defaultRequestOptions,
+      auth: this.auth,
+      ...this.defaultRequestOptions,
       ...request_options,
       endpoint: `/payments/keysend`,
       request_body: keysend,
@@ -116,8 +116,8 @@ export class Client {
 
   sendPayment(params: SendPaymentRequestParams, request_options?: Partial<RequestOptions>) {
     return rest({
-      auth: this.#auth,
-      ...this.#defaultRequestOptions,
+      auth: this.auth,
+      ...this.defaultRequestOptions,
       ...request_options,
       endpoint: `/payments/bolt11`,
       request_body: params,

@@ -1,20 +1,31 @@
 {
   "name": "alby-js-sdk",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Alby OAuth2 Client",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "type": "module",
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "tsc",
+    "build": "tsup",
     "prebuild": "yarn clean",
-    "generate": "ts-node scripts/generate.ts",
     "prepublishOnly": "yarn test",
-    "build:watch": "tsc --watch",
     "test": "echo tests are missing",
     "clean": "rm -rf dist"
+  },
+  "tsup": {
+    "entry": [
+      "src/index.ts"
+    ],
+    "splitting": false,
+    "sourcemap": true,
+    "dts": true,
+    "format": [
+      "esm",
+      "cjs"
+    ]
   },
   "dependencies": {
     "cross-fetch": "^3.1.5",
@@ -23,7 +34,9 @@
   "devDependencies": {
     "@types/crypto-js": "^4.1.1",
     "@types/node": "^18.11.0",
-    "express": "^4.18.2"
+    "express": "^4.18.2",
+    "tsup": "^6.2.3",
+    "typescript": "^4.8.4"
   },
   "engines": {
     "node": ">=14"
