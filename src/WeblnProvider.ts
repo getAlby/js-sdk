@@ -38,8 +38,8 @@ export class WebLNProvider {
         if (data && data.type === 'alby:oauth:success' && message.origin === `${document.location.protocol}//${document.location.host}`) {
           const code = data.payload.code;
           try {
-            this.auth.requestAccessToken(code);
-            this.client = new Client(this.auth);
+            await this.auth.requestAccessToken(code);
+            this.client = new Client(this.auth); // just to make sure we got a client with the correct auth and not the access token
             if (popup) {
               popup.close();
             }
