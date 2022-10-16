@@ -1,18 +1,18 @@
 {
   "compilerOptions": {
-    "target": "es2020",
-    "declaration": true,
-    "esModuleInterop": true,
-    "outDir": "./dist",
-    "rootDir": "./src",
     "strict": true,
-    "lib": [
-      "es2020", "DOM"
-    ],
-    "module": "es2020",
-    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "checkJs": true,
+    "allowJs": true,
+    "declarationMap": true,
+    "declaration": true,
+    "allowSyntheticDefaultImports": true,
+    "target": "es2020",
+    "rootDir": "./src",
     "sourceMap": true
   },
   "include": ["src/**/*"],
-  "exclude": ["examples/*", "scripts/*"]
+  "exclude": ["examples/*", "scripts/*", "node_modules"]
 }

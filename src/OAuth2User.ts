@@ -1,6 +1,4 @@
-import sha256 from 'crypto-js/sha256';
 import CryptoJS from 'crypto-js';
-import Base64 from 'crypto-js/enc-base64';
 import { buildQueryString, basicAuthHeader } from "./utils";
 import { OAuthClient, AuthHeader, GetTokenResponse, Token, GenerateAuthUrlOptions } from "./types";
 import { RequestOptions, rest } from "./request";
@@ -134,7 +132,7 @@ export class OAuth2User implements OAuthClient {
     if (options.code_challenge_method === "S256") {
       const code_verifier = CryptoJS.lib.WordArray.random(64);
       this.code_verifier = code_verifier.toString();
-      this.code_challenge = sha256(this.code_verifier).toString(Base64).replace(/\+/g, '-').replace(/\//g, '_').replace(/\=+$/, '')
+      this.code_challenge = CryptoJS.SHA256(this.code_verifier).toString(CryptoJS.enc.Base64).replace(/\+/g, '-').replace(/\//g, '_').replace(/\=+$/, '')
     } else {
       this.code_challenge = options.code_challenge;
       this.code_verifier = options.code_challenge;
