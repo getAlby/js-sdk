@@ -14,10 +14,25 @@ const isBrowser = () => typeof window !== "undefined" && typeof window.document 
 export class WebLNProvider {
   client: Client;
   auth: OAuthClient;
+  oauth: boolean;
+  subscribers: Record<string, (payload: any) => void>;
 
-  constructor(auth: OAuthClient) {
-    this.auth = auth;
-    this.client = new Client(auth);
+  constructor(options: { auth: OAuthClient }) {
+    this.auth = options.auth;
+    this.client = new Client(options.auth);
+    this.oauth = true;
+    this.subscribers = {};
+  }
+
+  on(name: string, callback: () => void) {
+    this.subscribers[name] = callback;
+  }
+
+  notify(name: string, payload?: any) {
+    const callback = this.subscribers[name];
+    if (callback) {
+      callback(payload);
+    }
   }
 
   openAuthorization() {
@@ -43,6 +58,7 @@ export class WebLNProvider {
             if (popup) {
               popup.close();
             }
+            this.notify('enable');
             resolve({ enabled: true });
           } catch(e) {
             console.error(e);
@@ -71,6 +87,7 @@ export class WebLNProvider {
       if (result.error) {
         throw new Error(result.message);
       }
+      this.notify('sendPayment', result);
       return {
         preimage: result.payment_preimage
       }
@@ -87,6 +104,7 @@ export class WebLNProvider {
       if (result.error) {
         throw new Error(result.message);
       }
+      this.notify('keysend', result);
       return {
         preimage: result.payment_preimage
       }
@@ -108,6 +126,7 @@ export class WebLNProvider {
       amount: parseInt(params.amount.toString()),
       description: params.defaultMemo
     });
+    this.notify('makeInvoice', result);
     return {
       paymentRequest: result.payment_request
     }
