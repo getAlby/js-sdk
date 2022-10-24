@@ -125,17 +125,22 @@ export class OAuth2User implements OAuthClient {
     return { token };
   }
 
-  generateAuthURL(options: GenerateAuthUrlOptions): string {
+  generateAuthURL(options?: GenerateAuthUrlOptions): string {
+    if (!options) { options = {}; }
+    console.log(options);
     const { client_id, callback, scopes } = this.options;
     if (!callback) throw new Error("callback required");
     if (!scopes) throw new Error("scopes required");
+    let code_challenge_method;
     if (options.code_challenge_method === "S256") {
       const code_verifier = CryptoJS.lib.WordArray.random(64);
       this.code_verifier = code_verifier.toString();
       this.code_challenge = CryptoJS.SHA256(this.code_verifier).toString(CryptoJS.enc.Base64).replace(/\+/g, '-').replace(/\//g, '_').replace(/\=+$/, '')
-    } else {
+      code_challenge_method = "S256";
+    } else if (options.code_challenge_method === "plain" && options.code_challenge) {
       this.code_challenge = options.code_challenge;
       this.code_verifier = options.code_challenge;
+      code_challenge_method = "plain";
     }
     const code_challenge = this.code_challenge;
     const url = new URL(AUTHORIZE_URL);
@@ -145,7 +150,7 @@ export class OAuth2User implements OAuthClient {
       scope: scopes.join(" "),
       response_type: "code",
       redirect_uri: callback,
-      code_challenge_method: options.code_challenge_method || "plain",
+      code_challenge_method,
       code_challenge,
     });
     return url.toString();

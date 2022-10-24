@@ -21,7 +21,7 @@ export class Client {
       this.defaultRequestOptions = {
         ...requestOptions,
         headers: {
-          "User-Agent": "alby-api",
+          "User-Agent": "alby-js-api",
           ...requestOptions?.headers,
         },
       };

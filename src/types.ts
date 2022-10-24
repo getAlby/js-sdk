@@ -25,6 +25,10 @@ export interface Token extends Omit<GetTokenResponse, "expires_in"> {
 
 export type GenerateAuthUrlOptions =
   | {
+      code_challenge_method?: string;
+      code_challenge?: string;
+    }
+  | {
       /** A random string you provide to verify against CSRF attacks.  The length of this string can be up to 500 characters. */
       state?: string;
       /** Specifies the method you are using to make a request (S256 OR plain). */
