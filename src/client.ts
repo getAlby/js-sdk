@@ -4,7 +4,8 @@ import {
   InvoiceRequestParams,
   KeysendRequestParams,
   SendPaymentRequestParams,
-  SendBoostagramRequestParams
+  SendBoostagramRequestParams,
+  SendToAlbyRequestParams
 } from "./types";
 import { OAuth2Bearer } from "./auth";
 
@@ -149,5 +150,25 @@ export class Client {
       method: "POST",
     });
   }
+
+  sendToAlbyAccount(args: SendToAlbyRequestParams, request_options?: Partial<RequestOptions>) {
+    const params = {
+      destination: "030a58b8653d32b99200a2334cfe913e51dc7d155aa0116c176657a4f1722677a3",
+      customRecords: {
+        "696969": args.account,
+      },
+      amount: args.amount,
+      memo: args.memo,
+    };
+    return rest({
+      auth: this.auth,
+      ...this.defaultRequestOptions,
+      ...request_options,
+      endpoint: `/payments/keysend`,
+      request_body: params,
+      method: "POST",
+    });
+  }
+
 
 }

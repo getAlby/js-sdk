@@ -111,3 +111,10 @@ export type SendBoostagramRequestParams = {
   amount: number,
 }
 
+
+export type SendToAlbyRequestParams = {
+  account: string;
+  amount: number;
+  memo?: string;
+}
+
