@@ -88,6 +88,8 @@ await client.keysend({
 
 ### Send a boostagram
 
+refer also to the boostagram spec: https://github.com/lightning/blips/blob/master/blip-0010.md
+
 ```js
 const token = loadTokenForUser(); // {access_token: string, refresh_token: string, expires_at: number}
 const authClient = new auth.OAuth2User({
