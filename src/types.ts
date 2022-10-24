@@ -96,3 +96,14 @@ export type SendPaymentRequestParams = {
   invoice: string,
   amount?: number,
 }
+
+export type SendBoostagramRequestParams = {
+  recipient: {
+    address: string,
+    customKey?: string,
+    customValue?: string,
+  },
+  boostagram: unknown,
+  amount: number,
+}
+

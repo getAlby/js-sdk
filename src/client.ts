@@ -3,7 +3,8 @@ import {
   AuthClient,
   InvoiceRequestParams,
   KeysendRequestParams,
-  SendPaymentRequestParams
+  SendPaymentRequestParams,
+  SendBoostagramRequestParams
 } from "./types";
 import { OAuth2Bearer } from "./auth";
 
@@ -120,6 +121,30 @@ export class Client {
       ...this.defaultRequestOptions,
       ...request_options,
       endpoint: `/payments/bolt11`,
+      request_body: params,
+      method: "POST",
+    });
+  }
+
+  sendBoostagram(boostagramParams: SendBoostagramRequestParams, request_options?: Partial<RequestOptions>) {
+    const customRecords: Record<string, string> = {};
+    if (boostagramParams.recipient.customKey && boostagramParams.recipient.customValue) {
+      customRecords[boostagramParams.recipient.customKey] =  boostagramParams.recipient.customValue;
+    }
+    // https://github.com/lightning/blips/blob/master/blip-0010.md
+    customRecords['7629169'] = JSON.stringify(boostagramParams.boostagram);
+
+    const params = {
+      destination: boostagramParams.recipient.address,
+      amount: boostagramParams.amount,
+      customRecords: customRecords,
+    };
+
+    return rest({
+      auth: this.auth,
+      ...this.defaultRequestOptions,
+      ...request_options,
+      endpoint: `/payments/keysend`,
       request_body: params,
       method: "POST",
     });
