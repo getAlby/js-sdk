@@ -24,28 +24,17 @@ await authClient.requestAccessToken(code);
 console.log(authClient.token);
 const client = new Client(authClient);
 
-// use an array if you want to send multiple boostagrams with one call
-const response = await client.sendBoostagram([{
-  recipient: {
-    address: '030a58b8653d32b99200a2334cfe913e51dc7d155aa0116c176657a4f1722677a3',
-    customKey: '696969',
-    customValue: 'bNVHj0WZ0aLPPAesnn9M'
+const response = client.keysend([
+  {
+    amount: 10,
+    destination: '03006fcf3312dae8d068ea297f58e2bd00ec1ffe214b793eda46966b6294a53ce6',
+    customRecords: { "34349334": 'I love amboss' }
   },
-  amount: 10,
-  // spec: https://github.com/lightning/blips/blob/master/blip-0010.md
-  boostagram: {
-    "app_name": "Alby SDK Demo",
-    "value_msat_total": 49960, // TOTAL Number of millisats for the payment (all splits together, before fees. The actual number someone entered in their player, for numerology purposes.)
-    "value_msat": 2121, // Number of millisats for this split payment
-    "url": "https://feeds.buzzsprout.com/xxx.rss",
-    "podcast": "Podcast title",
-    "action": "boost",
-    "episode": "The episode title",
-    "episode_guid": "Buzzsprout-xxx",
-    "ts": 574,
-    "name": "Podcaster - the recipient name",
-    "sender_name": "Satoshi - the sender/listener name"
+  {
+    amount: 11,
+    destination: '03006fcf3312dae8d068ea297f58e2bd00ec1ffe214b793eda46966b6294a53ce6',
+    customRecords: { "34349334": 'I love amboss' }
   }
-}]);
+]);
 
 console.log(JSON.stringify(response));
