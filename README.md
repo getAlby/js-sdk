@@ -140,6 +140,31 @@ await client.keysend({
 });
 ```
 
+### Send multiple boostagrams
+You often want to send a boostagram for multiple splits. You can do this with one API call. Simply pass in an array of boostagrams. See example above.
+
+```js
+const response = await client.sendBoostagram([boostagram1, boostagram2, boostagram3]);
+
+console.log(response.keysends);
+```
+`response.keysends` is an array of objects that either has an `error` key if a payment faild or the `keysend` key if everything succeeded.
+
+```json
+{
+  "keysends":[
+    {
+      "keysend": { "amount":10, "fee":0, "destination":"xx","payment_preimage":"xx","payment_hash":"xx"}
+    },
+    {
+      "keysend":{"amount":10,"fee":0,"destination":"xxx","payment_preimage":"xxx","payment_hash":"xxx"}
+    }
+  ]
+}
+```
+
+
+
 ## Full usage examples
 
 You can find examples in the [examples/](examples/) directory.
