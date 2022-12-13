@@ -102,6 +102,7 @@ const authClient = new auth.OAuth2User({
 const client = new Client(authClient);
 // the authClient will automatically refresh the access token if expired using the refresh token
 
+// pass in an array if you want to send multiple boostagrams with one call
 await client.sendBoostagram({
   recipient: {
     address: '030a58b8653d32b99200a2334cfe913e51dc7d155aa0116c176657a4f1722677a3',
@@ -128,6 +129,7 @@ await client.sendBoostagram({
 
 // or manually through the keysend:
 
+// pass in an array if you want to do multiple keysend payments with one call
 await client.keysend({
   destination: nodekey,
   amount: 10,
