@@ -7,6 +7,7 @@ import {
   SendBoostagramRequestParams,
   SendToAlbyRequestParams
 } from "./types";
+import { keysendParamsFromBoostagram } from "./helpers";
 import { OAuth2Bearer } from "./auth";
 
 
@@ -17,16 +18,16 @@ export class Client {
   constructor(
     auth: string | AuthClient,
     requestOptions?: Partial<RequestOptions>
-    ) {
-      this.auth = typeof auth === "string" ? new OAuth2Bearer(auth) : auth;
-      this.defaultRequestOptions = {
-        ...requestOptions,
-        headers: {
-          "User-Agent": "alby-js-api",
-          ...requestOptions?.headers,
-        },
-      };
-    }
+  ) {
+    this.auth = typeof auth === "string" ? new OAuth2Bearer(auth) : auth;
+    this.defaultRequestOptions = {
+      ...requestOptions,
+      headers: {
+        "User-Agent": "alby-js-api",
+        ...requestOptions?.headers,
+      },
+    };
+  }
 
   accountBalance(params: {}, request_options?: Partial<RequestOptions>) {
     return rest({
@@ -105,13 +106,21 @@ export class Client {
     });
   }
 
-  keysend(keysend: KeysendRequestParams, request_options?: Partial<RequestOptions>) {
+  keysend(args: KeysendRequestParams | KeysendRequestParams[], request_options?: Partial<RequestOptions>) {
+    let endpoint, request_body;
+    if (Array.isArray(args)) {
+      endpoint = "/payments/keysend/multi";
+      request_body = { keysends: args };
+    } else {
+      endpoint = "/payments/keysend";
+      request_body = args;
+    }
     return rest({
       auth: this.auth,
       ...this.defaultRequestOptions,
       ...request_options,
-      endpoint: `/payments/keysend`,
-      request_body: keysend,
+      endpoint,
+      request_body,
       method: "POST",
     });
   }
@@ -127,26 +136,23 @@ export class Client {
     });
   }
 
-  sendBoostagram(boostagramParams: SendBoostagramRequestParams, request_options?: Partial<RequestOptions>) {
-    const customRecords: Record<string, string> = {};
-    if (boostagramParams.recipient.customKey && boostagramParams.recipient.customValue) {
-      customRecords[boostagramParams.recipient.customKey] =  boostagramParams.recipient.customValue;
+  sendBoostagram(args: SendBoostagramRequestParams | SendBoostagramRequestParams[], request_options?: Partial<RequestOptions>) {
+    let endpoint, request_body;
+    if (Array.isArray(args)) {
+      endpoint = "/payments/keysend/multi";
+      const keysends = args.map((b) => keysendParamsFromBoostagram(b));
+      request_body = { keysends };
+    } else {
+      endpoint = "/payments/keysend";
+      request_body = keysendParamsFromBoostagram(args);
     }
-    // https://github.com/lightning/blips/blob/master/blip-0010.md
-    customRecords['7629169'] = JSON.stringify(boostagramParams.boostagram);
-
-    const params = {
-      destination: boostagramParams.recipient.address,
-      amount: boostagramParams.amount,
-      customRecords: customRecords,
-    };
 
     return rest({
       auth: this.auth,
       ...this.defaultRequestOptions,
       ...request_options,
-      endpoint: `/payments/keysend`,
-      request_body: params,
+      endpoint,
+      request_body,
       method: "POST",
     });
   }
