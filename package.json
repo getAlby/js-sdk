@@ -4,7 +4,7 @@
   "description": "Alby OAuth2 Client",
   "type": "module",
   "source": "src/index.ts",
-  "main": "./dist/index.cjs",
+  "main": "./dist/index.umd.js",
   "module": "./dist/index.module.js",
   "unpkg": "./dist/index.umd.js",
   "types": "./dist/index.d.ts",
