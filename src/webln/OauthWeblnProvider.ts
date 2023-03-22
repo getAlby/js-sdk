@@ -1,8 +1,8 @@
-import { Client } from './client';
+import { Client } from '../client';
 import {
   OAuthClient,
   KeysendRequestParams,
-} from "./types";
+} from "../types";
 
 interface RequestInvoiceArgs {
   amount: string | number;
@@ -11,7 +11,7 @@ interface RequestInvoiceArgs {
 
 const isBrowser = () => typeof window !== "undefined" && typeof window.document !== "undefined";
 
-export class WebLNProvider {
+export class OauthWeblnProvider {
   client: Client;
   auth: OAuthClient;
   oauth: boolean;
@@ -66,7 +66,7 @@ export class WebLNProvider {
       return {
         preimage: result.payment_preimage
       }
-    } catch(error) {
+    } catch (error) {
       let message = 'Unknown Error'
       if (error instanceof Error) message = error.message
       throw new Error(message);
@@ -87,7 +87,7 @@ export class WebLNProvider {
       return {
         preimage: result.payment_preimage
       }
-    } catch(error) {
+    } catch (error) {
       let message = 'Unknown Error'
       if (error instanceof Error) message = error.message
       throw new Error(message);
@@ -114,7 +114,7 @@ export class WebLNProvider {
       return {
         paymentRequest: result.payment_request
       }
-    } catch(error) {
+    } catch (error) {
       let message = 'Unknown Error'
       if (error instanceof Error) message = error.message
       throw new Error(message);
@@ -151,7 +151,7 @@ export class WebLNProvider {
             }
             this.notify('enable');
             resolve({ enabled: true });
-          } catch(e) {
+          } catch (e) {
             console.error(e);
             reject({ enabled: false });
           }
