@@ -62,7 +62,7 @@ export class NostrWebLNProvider {
       return Promise.resolve();
     }
     this.relay.on('connect', () => {
-      console.debug(`connected to ${this.relay.url}`);
+      //console.debug(`connected to ${this.relay.url}`);
       this.connected = true;
     })
     await this.relay.connect();
@@ -115,14 +115,14 @@ export class NostrWebLNProvider {
       let pub = this.relay.publish(event);
 
       function publishTimeout() {
-        console.error(`Publish timeout: event ${event.id}`);
+        //console.error(`Publish timeout: event ${event.id}`);
         reject('Publish timeout');
       }
       let publishTimeoutCheck = setTimeout(publishTimeout, 2000);
 
       // @ts-ignore
       pub.on('failed', (reason) => {
-        console.debug(`failed to publish to ${this.relay.url}: ${reason}`)
+        //console.debug(`failed to publish to ${this.relay.url}: ${reason}`)
         clearTimeout(publishTimeoutCheck)
         reject(`Failed to publish request: ${reason}`);
       });
@@ -132,7 +132,7 @@ export class NostrWebLNProvider {
         clearTimeout(publishTimeoutCheck);
 
         function replyTimeout() {
-          console.error(`Reply timeout: event ${event.id} `);
+          //console.error(`Reply timeout: event ${event.id} `);
           reject('reply timeout');
         }
         let replyTimeoutCheck = setTimeout(replyTimeout, 60000);
