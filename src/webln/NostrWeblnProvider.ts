@@ -6,7 +6,25 @@ import {
   getPublicKey,
   nip19,
   Relay,
+  Event,
+  UnsignedEvent
 } from 'nostr-tools';
+
+const DEFAULT_OPTIONS = {
+  relayUrl: 'wss://relay.damus.io',
+  walletPubkey: '69effe7b49a6dd5cf525bd0905917a5005ffe480b58eeb8e861418cf3ae760d9' // Alby
+};
+
+interface Nostr {
+  signEvent: (event: UnsignedEvent) => Promise<Event>;
+  nip04: {
+    decrypt: (pubkey: string, content: string) => Promise<string>;
+    encrypt: (pubkey: string, content: string) => Promise<string>;
+  };
+}
+declare global {
+  var nostr: Nostr | undefined;
+}
 
 export class NostrWebLNProvider {
   relay: Relay;
@@ -14,15 +32,18 @@ export class NostrWebLNProvider {
   privateKey: string | undefined;
   walletPubkey: string;
   subscribers: Record<string, (payload: any) => void>;
+  connected: boolean;
 
   constructor(options: { relayUrl: string, privateKey?: string, walletPubkey: string }) {
+    options = { ...DEFAULT_OPTIONS, ...options };
     this.relayUrl = options.relayUrl;
     this.relay = relayInit(this.relayUrl);
     if (options.privateKey) {
-      this.privateKey = nip19.decode(options.privateKey).data as string;
+      this.privateKey = (options.privateKey.toLowerCase().startsWith('nsec') ? nip19.decode(options.privateKey).data : options.privateKey) as string;
     }
-    this.walletPubkey = nip19.decode(options.walletPubkey).data as string;
+    this.walletPubkey = (options.walletPubkey.toLowerCase().startsWith('npub') ? nip19.decode(options.walletPubkey).data : options.walletPubkey) as string;
     this.subscribers = {};
+    this.connected = false;
   }
 
   on(name: string, callback: () => void) {
@@ -37,17 +58,19 @@ export class NostrWebLNProvider {
   }
 
   async enable() {
+    if (this.connected) {
+      return Promise.resolve();
+    }
     this.relay.on('connect', () => {
-      console.log(`connected to ${this.relay.url}`)
+      console.debug(`connected to ${this.relay.url}`);
+      this.connected = true;
     })
     await this.relay.connect();
   }
 
   async encrypt(pubkey: string, content: string) {
     let encrypted;
-    // @ts-ignore
-    if (globalThis.nostr as unknown && !this.privateKey) {
-      // @ts-ignore
+    if (globalThis.nostr && !this.privateKey) {
       encrypted = await globalThis.nostr.nip04.encrypt(pubkey, content);
     } else if (this.privateKey) {
       encrypted = await nip04.encrypt(this.privateKey, pubkey, content);
@@ -59,9 +82,7 @@ export class NostrWebLNProvider {
 
   async decrypt(pubkey: string, content: string) {
     let decrypted;
-    // @ts-ignore
-    if (globalThis.nostr as unknown && !this.privateKey) {
-      // @ts-ignore
+    if (globalThis.nostr && !this.privateKey) {
       decrypted = await globalThis.nostr.nip04.decrypt(pubkey, content);
     } else if (this.privateKey) {
       decrypted = await nip04.decrypt(this.privateKey, pubkey, content);
@@ -81,9 +102,7 @@ export class NostrWebLNProvider {
         content: encryptedInvoice,
       };
 
-      // @ts-ignore
       if (globalThis.nostr && !this.privateKey) {
-        // @ts-ignore
         event = await globalThis.nostr.signEvent(event);
       } else if (this.privateKey) {
         event.pubkey = getPublicKey(this.privateKey)
@@ -109,7 +128,7 @@ export class NostrWebLNProvider {
       });
 
       pub.on('ok', () => {
-        console.debug(`Event ${event.id} for ${invoice} published`);
+        //console.debug(`Event ${event.id} for ${invoice} published`);
         clearTimeout(publishTimeoutCheck);
 
         function replyTimeout() {
@@ -127,7 +146,7 @@ export class NostrWebLNProvider {
           }
         ]);
         sub.on('event', async (event) => {
-          console.log(`Received reply event: `, event);
+          //console.log(`Received reply event: `, event);
           clearTimeout(replyTimeoutCheck);
           sub.unsub();
           const decryptedContent = await this.decrypt(this.walletPubkey, event.content);
