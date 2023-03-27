@@ -39,7 +39,6 @@ export class NostrWebLNProvider {
   privateKey: string | undefined;
   walletPubkey: string;
   subscribers: Record<string, (payload: any) => void>;
-  connected: boolean;
 
   static parseWalletConnectUrl(walletConnectUrl: string) {
     walletConnectUrl = walletConnectUrl.replace('nostrwalletconnect://', 'http://'); // makes it possible to parse with URL in the different environments (browser/node/...)
@@ -70,7 +69,6 @@ export class NostrWebLNProvider {
     }
     this.walletPubkey = (_options.walletPubkey.toLowerCase().startsWith('npub') ? nip19.decode(_options.walletPubkey).data : _options.walletPubkey) as string;
     this.subscribers = {};
-    this.connected = false;
   }
 
   on(name: string, callback: () => void) {
@@ -84,14 +82,14 @@ export class NostrWebLNProvider {
     }
   }
 
+  get connected() {
+    return this.relay.status === 1;
+  }
+
   async enable() {
     if (this.connected) {
       return Promise.resolve();
     }
-    this.relay.on('connect', () => {
-      //console.debug(`connected to ${this.relay.url}`);
-      this.connected = true;
-    })
     await this.relay.connect();
   }
 
