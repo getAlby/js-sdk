@@ -26,7 +26,7 @@ The `NostrWebLNProvider` exposes the [WebLN](webln.guide/) sendPayment interface
 * `nostrWalletConnectUrl`: the full Nostr Wallet Connect URL as defined by the [spec](https://github.com/getAlby/nips/blob/master/47.md)
 * `relayUrl`: the URL of the Nostr relay to be used (e.g. wss://nostr-relay.getalby.com)
 * `walletPubkey`: the pubkey of the Nostr Wallet Connect app
-* `privateKey`: the private key to sign the message (if not available window.nostr will be used)
+* `secret`: the secret key to sign the request event (if not available window.nostr will be used)
 
 
 #### For Node.js 

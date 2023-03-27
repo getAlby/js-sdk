@@ -29,14 +29,14 @@ declare global {
 interface NostrWebLNOptions {
   relayUrl: string;
   walletPubkey: string;
-  privateKey?: string;
+  secret?: string;
 }
 
 
 export class NostrWebLNProvider {
   relay: Relay;
   relayUrl: string;
-  privateKey: string | undefined;
+  secret: string | undefined;
   walletPubkey: string;
   subscribers: Record<string, (payload: any) => void>;
 
@@ -45,17 +45,17 @@ export class NostrWebLNProvider {
     const url = new URL(walletConnectUrl);
     const options = {} as NostrWebLNOptions;
     options.walletPubkey = url.host;
-    const privateKey = url.searchParams.get('secret');
+    const secret = url.searchParams.get('secret');
     const relayUrl = url.searchParams.get('relay');
-    if (privateKey) {
-      options.privateKey = privateKey;
+    if (secret) {
+      options.secret = secret;
     }
     if (relayUrl) {
       options.relayUrl = relayUrl;
     }
     return options;
   }
-  constructor(options: { relayUrl?: string, privateKey?: string, walletPubkey?: string, nostrWalletConnectUrl?: string }) {
+  constructor(options: { relayUrl?: string, secret?: string, walletPubkey?: string, nostrWalletConnectUrl?: string }) {
     if (options && options.nostrWalletConnectUrl) {
       options = {
         ...NostrWebLNProvider.parseWalletConnectUrl(options.nostrWalletConnectUrl), ...options
@@ -64,8 +64,8 @@ export class NostrWebLNProvider {
     const _options = { ...DEFAULT_OPTIONS, ...options } as NostrWebLNOptions;
     this.relayUrl = _options.relayUrl;
     this.relay = relayInit(this.relayUrl);
-    if (_options.privateKey) {
-      this.privateKey = (_options.privateKey.toLowerCase().startsWith('nsec') ? nip19.decode(_options.privateKey).data : _options.privateKey) as string;
+    if (_options.secret) {
+      this.secret = (_options.secret.toLowerCase().startsWith('nsec') ? nip19.decode(_options.secret).data : _options.secret) as string;
     }
     this.walletPubkey = (_options.walletPubkey.toLowerCase().startsWith('npub') ? nip19.decode(_options.walletPubkey).data : _options.walletPubkey) as string;
     this.subscribers = {};
@@ -99,24 +99,24 @@ export class NostrWebLNProvider {
 
   async encrypt(pubkey: string, content: string) {
     let encrypted;
-    if (globalThis.nostr && !this.privateKey) {
+    if (globalThis.nostr && !this.secret) {
       encrypted = await globalThis.nostr.nip04.encrypt(pubkey, content);
-    } else if (this.privateKey) {
-      encrypted = await nip04.encrypt(this.privateKey, pubkey, content);
+    } else if (this.secret) {
+      encrypted = await nip04.encrypt(this.secret, pubkey, content);
     } else {
-      throw new Error("Missing private key");
+      throw new Error("Missing secret key");
     }
     return encrypted;
   }
 
   async decrypt(pubkey: string, content: string) {
     let decrypted;
-    if (globalThis.nostr && !this.privateKey) {
+    if (globalThis.nostr && !this.secret) {
       decrypted = await globalThis.nostr.nip04.decrypt(pubkey, content);
-    } else if (this.privateKey) {
-      decrypted = await nip04.decrypt(this.privateKey, pubkey, content);
+    } else if (this.secret) {
+      decrypted = await nip04.decrypt(this.secret, pubkey, content);
     } else {
-      throw new Error("Missing private key");
+      throw new Error("Missing secret key");
     }
     return decrypted;
   }
@@ -131,14 +131,14 @@ export class NostrWebLNProvider {
         content: encryptedInvoice,
       };
 
-      if (globalThis.nostr && !this.privateKey) {
+      if (globalThis.nostr && !this.secret) {
         event = await globalThis.nostr.signEvent(event);
-      } else if (this.privateKey) {
-        event.pubkey = getPublicKey(this.privateKey)
+      } else if (this.secret) {
+        event.pubkey = getPublicKey(this.secret)
         event.id = getEventHash(event)
-        event.sig = signEvent(event, this.privateKey)
+        event.sig = signEvent(event, this.secret)
       } else {
-        throw new Error("Missing private key");
+        throw new Error("Missing secret key");
       }
 
       let pub = this.relay.publish(event);
