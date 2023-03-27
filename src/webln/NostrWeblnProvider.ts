@@ -42,9 +42,10 @@ export class NostrWebLNProvider {
   connected: boolean;
 
   static parseWalletConnectUrl(walletConnectUrl: string) {
+    walletConnectUrl = walletConnectUrl.replace('nostrwalletconnect://', 'http://'); // makes it possible to parse with URL in the different environments (browser/node/...)
     const url = new URL(walletConnectUrl);
     const options = {} as NostrWebLNOptions;
-    options.walletPubkey = url.pathname.replace('//', '');
+    options.walletPubkey = url.host;
     const privateKey = url.searchParams.get('secret');
     const relayUrl = url.searchParams.get('relay');
     if (privateKey) {
