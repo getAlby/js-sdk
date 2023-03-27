@@ -2,8 +2,7 @@
 
 ## Introduction
 
-This JavaScript SDK for the Alby OAuth2 Wallet API.
-
+This JavaScript SDK for the Alby OAuth2 Wallet API and the Nostr Wallet Connect API.
 
 ## Installing
 
@@ -11,7 +10,45 @@ This JavaScript SDK for the Alby OAuth2 Wallet API.
 npm install alby-js-sdk
 ```
 
-## API Documentation
+## Nostr Wallet Connect Documentation
+
+Nostr Wallet Connect is an open protocol enabling applications to interact with bitcoin lightning wallets. It allows users to connect their existing wallets to your application allowing developers to easily integrate bitcoin lightning functionality.
+
+The Alby JS SDK allows you to easily integrate Nostr Wallet Connect into any JavaScript based application. 
+
+The `NostrWebLNProvider` exposes the [WebLN](webln.guide/) sendPayment interface to execute lightning payments through Nostr Wallet Connect.
+
+(note: in the future more WebLN functions will be added to Nostr Wallet Connect)
+
+
+### NostrWebLNProvider Options
+
+* `nostrWalletConnectUrl`: the full Nostr Wallet Connect URL as defined by the [spec](https://github.com/getAlby/nips/blob/master/47.md)
+* `relayUrl`: the URL of the Nostr relay to be used (e.g. wss://nostr-relay.getalby.com)
+* `walletPubkey`: the pubkey of the Nostr Wallet Connect app
+* `privateKey`: the private key to sign the message (if not available window.nostr will be used)
+
+### Example
+
+#### Defaults
+```js
+import { NostrWebLNProvider } from 'alby-js-sdk';
+
+const webln = new NostrWebLNProvider(); // use defaults (will use window.nostr to sign the request)
+const response = webln.sendPayment(invoice);
+console.log(response.preimage);
+```
+
+#### Use a custom, user provided Nostr Wallet Connect URL
+```js
+import { NostrWebLNProvider } from 'alby-js-sdk';
+
+const webln = new NostrWebLNProvider({ nostrWalletConnectUrl: 'nostrwalletconnect://69effe7b49a6dd5cf525bd0905917a5005ffe480b58eeb8e861418cf3ae760d9?relay=wss://nostr.bitcoiner.social&secret=c60320b3ecb6c15557510d1518ef41194e9f9337c82621ddef3f979f668bfebd'); // use defaults
+const response = webln.sendPayment(invoice);
+console.log(response.preimage);
+```
+
+## OAuth API Documentation
 
 Please have a look a the Alby OAuth2 Wallet API:
 
