@@ -28,6 +28,25 @@ The `NostrWebLNProvider` exposes the [WebLN](webln.guide/) sendPayment interface
 * `walletPubkey`: the pubkey of the Nostr Wallet Connect app
 * `privateKey`: the private key to sign the message (if not available window.nostr will be used)
 
+
+#### For Node.js 
+
+To use this on Node.js you first must install `websocket-polyfill` and import it:
+
+```js
+import 'websocket-polyfill';
+// or: require('websocket-polyfill');
+```
+
+if you get an `crypto is not defined` error you have to import it first:
+
+```js
+import * as crypto from 'node:crypto';
+global.crypto = crypto;
+//or: global.crypto = require('crypto');
+```
+
+
 ### Examples
 
 #### Defaults
@@ -35,8 +54,11 @@ The `NostrWebLNProvider` exposes the [WebLN](webln.guide/) sendPayment interface
 import { NostrWebLNProvider } from 'alby-js-sdk';
 
 const webln = new NostrWebLNProvider(); // use defaults (will use window.nostr to sign the request)
-const response = webln.sendPayment(invoice);
+await webln.enable(); // connect to the relay
+const response = await webln.sendPayment(invoice);
 console.log(response.preimage);
+
+webln.close(); // close the websocket connection
 ```
 
 #### Use a custom, user provided Nostr Wallet Connect URL
@@ -44,8 +66,11 @@ console.log(response.preimage);
 import { NostrWebLNProvider } from 'alby-js-sdk';
 
 const webln = new NostrWebLNProvider({ nostrWalletConnectUrl: 'nostrwalletconnect://69effe7b49a6dd5cf525bd0905917a5005ffe480b58eeb8e861418cf3ae760d9?relay=wss://nostr.bitcoiner.social&secret=c60320b3ecb6c15557510d1518ef41194e9f9337c82621ddef3f979f668bfebd'); // use defaults
-const response = webln.sendPayment(invoice);
+await webln.enable(); // connect to the relay
+const response = await webln.sendPayment(invoice);
 console.log(response.preimage);
+
+webln.close(); // close the websocket connection
 ```
 
 ## OAuth API Documentation
