@@ -145,7 +145,7 @@ export class NostrWebLNProvider {
         //console.error(`Publish timeout: event ${event.id}`);
         reject('Publish timeout');
       }
-      let publishTimeoutCheck = setTimeout(publishTimeout, 2000);
+      let publishTimeoutCheck = setTimeout(publishTimeout, 3000);
 
       // @ts-ignore
       pub.on('failed', (reason) => {
