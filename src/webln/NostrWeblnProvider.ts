@@ -56,7 +56,7 @@ export class NostrWebLNProvider {
     return options;
   }
   constructor(options: { relayUrl?: string, privateKey?: string, walletPubkey?: string, nostrWalletConnectUrl?: string }) {
-    if (options.nostrWalletConnectUrl) {
+    if (options && options.nostrWalletConnectUrl) {
       options = {
         ...NostrWebLNProvider.parseWalletConnectUrl(options.nostrWalletConnectUrl), ...options
       };
