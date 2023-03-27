@@ -95,6 +95,10 @@ export class NostrWebLNProvider {
     await this.relay.connect();
   }
 
+  close() {
+    return this.relay.close();
+  }
+
   async encrypt(pubkey: string, content: string) {
     let encrypted;
     if (globalThis.nostr && !this.privateKey) {
