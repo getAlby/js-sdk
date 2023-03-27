@@ -1,5 +1,5 @@
 import * as repl from 'node:repl';
-import { auth, Client } from "./dist/index.module.js";
+import { auth, Client, webln } from "./dist/index.module.js";
 
 const authClient = new auth.OAuth2User({
   client_id: process.env.CLIENT_ID,
@@ -21,5 +21,6 @@ console.log('use `authClient` and `alby` (the client)');
 
 
 const r = repl.start('> ');
+r.context.webln = webln;
 r.context.authClient = authClient;
 r.context.alby = new Client(authClient);
