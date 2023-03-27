@@ -1,4 +1,4 @@
-# Alby OAuth2 Wallet API SDK
+# Alby JS SDK
 
 ## Introduction
 
