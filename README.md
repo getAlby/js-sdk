@@ -28,7 +28,7 @@ The `NostrWebLNProvider` exposes the [WebLN](webln.guide/) sendPayment interface
 * `walletPubkey`: the pubkey of the Nostr Wallet Connect app
 * `privateKey`: the private key to sign the message (if not available window.nostr will be used)
 
-### Example
+### Examples
 
 #### Defaults
 ```js
@@ -55,9 +55,9 @@ Please have a look a the Alby OAuth2 Wallet API:
 [https://guides.getalby.com/alby-wallet-api/reference/getting-started](https://guides.getalby.com/alby-wallet-api/reference/getting-started)
 
 
-## Examples
+### Examples
 
-### Full OAuth Authentication flow
+#### Full OAuth Authentication flow
 
 ```js
 const authClient = new auth.OAuth2User({
@@ -84,7 +84,7 @@ const client = new Client(authClient);
 const result = await client.accountBalance();
 ```
 
-### Initialize a client from existing token details
+#### Initialize a client from existing token details
 
 ```js
 const token = loadTokenForUser(); // {access_token: string, refresh_token: string, expires_at: number}
@@ -100,7 +100,7 @@ const client = new Client(authClient);
 const result = await client.createInvoice({amount: 1000});
 ```
 
-### Sending payments
+#### Sending payments
 
 ```js
 const token = loadTokenForUser(); // {access_token: string, refresh_token: string, expires_at: number}
@@ -123,7 +123,7 @@ await client.keysend({
 });
 ```
 
-### Send a boostagram
+#### Send a boostagram
 
 refer also to the boostagram spec: https://github.com/lightning/blips/blob/master/blip-0010.md
 
@@ -177,7 +177,7 @@ await client.keysend({
 });
 ```
 
-### Send multiple boostagrams
+#### Send multiple boostagrams
 You often want to send a boostagram for multiple splits. You can do this with one API call. Simply pass in an array of boostagrams. See example above.
 
 ```js
@@ -199,7 +199,6 @@ console.log(response.keysends);
   ]
 }
 ```
-
 
 
 ## Full usage examples
