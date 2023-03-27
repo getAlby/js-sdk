@@ -26,6 +26,13 @@ declare global {
   var nostr: Nostr | undefined;
 }
 
+interface NostrWebLNOptions {
+  relayUrl: string;
+  walletPubkey: string;
+  privateKey?: string;
+}
+
+
 export class NostrWebLNProvider {
   relay: Relay;
   relayUrl: string;
@@ -34,14 +41,33 @@ export class NostrWebLNProvider {
   subscribers: Record<string, (payload: any) => void>;
   connected: boolean;
 
-  constructor(options: { relayUrl: string, privateKey?: string, walletPubkey: string }) {
-    options = { ...DEFAULT_OPTIONS, ...options };
-    this.relayUrl = options.relayUrl;
-    this.relay = relayInit(this.relayUrl);
-    if (options.privateKey) {
-      this.privateKey = (options.privateKey.toLowerCase().startsWith('nsec') ? nip19.decode(options.privateKey).data : options.privateKey) as string;
+  static parseWalletConnectUrl(walletConnectUrl: string) {
+    const url = new URL(walletConnectUrl);
+    const options = {} as NostrWebLNOptions;
+    options.walletPubkey = url.pathname.replace('//', '');
+    const privateKey = url.searchParams.get('secret');
+    const relayUrl = url.searchParams.get('relay');
+    if (privateKey) {
+      options.privateKey = privateKey;
     }
-    this.walletPubkey = (options.walletPubkey.toLowerCase().startsWith('npub') ? nip19.decode(options.walletPubkey).data : options.walletPubkey) as string;
+    if (relayUrl) {
+      options.relayUrl = relayUrl;
+    }
+    return options;
+  }
+  constructor(options: { relayUrl?: string, privateKey?: string, walletPubkey?: string, nostrWalletConnectUrl?: string }) {
+    if (options.nostrWalletConnectUrl) {
+      options = {
+        ...NostrWebLNProvider.parseWalletConnectUrl(options.nostrWalletConnectUrl), ...options
+      };
+    }
+    const _options = { ...DEFAULT_OPTIONS, ...options } as NostrWebLNOptions;
+    this.relayUrl = _options.relayUrl;
+    this.relay = relayInit(this.relayUrl);
+    if (_options.privateKey) {
+      this.privateKey = (_options.privateKey.toLowerCase().startsWith('nsec') ? nip19.decode(_options.privateKey).data : _options.privateKey) as string;
+    }
+    this.walletPubkey = (_options.walletPubkey.toLowerCase().startsWith('npub') ? nip19.decode(_options.walletPubkey).data : _options.walletPubkey) as string;
     this.subscribers = {};
     this.connected = false;
   }
