@@ -5,6 +5,8 @@ import {
   getEventHash,
   getPublicKey,
   nip19,
+  generatePrivateKey,
+  getPublicKey,
   Relay,
   Event,
   UnsignedEvent
@@ -55,6 +57,12 @@ export class NostrWebLNProvider {
     }
     return options;
   }
+
+  static withNewSecret(options: { relayUrl?: string, secret?: string, walletPubkey?: string, nostrWalletConnectUrl?: string }) {
+    options.secret = generatePrivateKey();
+    return new NostrWebLNProvider(options);
+  }
+
   constructor(options: { relayUrl?: string, secret?: string, walletPubkey?: string, nostrWalletConnectUrl?: string }) {
     if (options && options.nostrWalletConnectUrl) {
       options = {
@@ -80,6 +88,18 @@ export class NostrWebLNProvider {
     if (callback) {
       callback(payload);
     }
+  }
+
+  getNostrWalletConnectUrl(includeSecret = false) {
+    let url = `nostrwalletconnect://${this.walletPubkey}?relay=${this.relayUrl}&pubkey=${this.pubkey}`;
+    if (includeSecret) {
+      url = `${url}&secret=${this.secret}`;
+    }
+    return url;
+  }
+
+  get nostrWalletConnectUrl() {
+    return this.getNostrWalletConnectUrl();
   }
 
   get connected() {
