@@ -3,7 +3,6 @@ import {
   relayInit,
   signEvent,
   getEventHash,
-  getPublicKey,
   nip19,
   generatePrivateKey,
   getPublicKey,
@@ -58,7 +57,7 @@ export class NostrWebLNProvider {
     return options;
   }
 
-  static withNewSecret(options: { relayUrl?: string, secret?: string, walletPubkey?: string, nostrWalletConnectUrl?: string }) {
+  static withNewSecret(options: { relayUrl?: string, secret?: string, walletPubkey?: string, nostrWalletConnectUrl?: string } = {}) {
     options.secret = generatePrivateKey();
     return new NostrWebLNProvider(options);
   }
