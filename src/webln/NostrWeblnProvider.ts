@@ -106,6 +106,24 @@ export class NostrWebLNProvider {
     return this.relay.status === 1;
   }
 
+  get publicKey() {
+    if (!this.secret) {
+      throw new Error("Missing secret key");
+    }
+    return getPublicKey(this.secret);
+  }
+
+  signEvent(event: Event) {
+    if (!this.secret) {
+      throw new Error("Missing secret key");
+    }
+    return signEvent(event, this.secret)
+  }
+
+  getEventHash(event: Event) {
+    return getEventHash(event);
+  }
+
   async enable() {
     if (this.connected) {
       return Promise.resolve();
@@ -154,9 +172,9 @@ export class NostrWebLNProvider {
       if (globalThis.nostr && !this.secret) {
         event = await globalThis.nostr.signEvent(event);
       } else if (this.secret) {
-        event.pubkey = getPublicKey(this.secret)
-        event.id = getEventHash(event)
-        event.sig = signEvent(event, this.secret)
+        event.pubkey = this.publicKey;
+        event.id = this.getEventHash(event);
+        event.sig = this.signEvent(event);
       } else {
         throw new Error("Missing secret key");
       }
