@@ -91,7 +91,7 @@ export class NostrWebLNProvider {
   }
 
   getNostrWalletConnectUrl(includeSecret = false) {
-    let url = `nostrwalletconnect://${this.walletPubkey}?relay=${this.relayUrl}&pubkey=${this.pubkey}`;
+    let url = `nostrwalletconnect://${this.walletPubkey}?relay=${this.relayUrl}&pubkey=${this.publicKey}`;
     if (includeSecret) {
       url = `${url}&secret=${this.secret}`;
     }
