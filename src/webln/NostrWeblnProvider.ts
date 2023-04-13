@@ -214,7 +214,7 @@ export class NostrWebLNProvider {
   }
   private checkConnected() {
     if (!this.connected) {
-      throw new Error("please call enable() and wait for the promise to resolve before calling this function")
+      throw new Error("please call enable() and await the promise before calling this function")
     }
   }
 }
