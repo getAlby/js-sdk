@@ -172,6 +172,7 @@ export class NostrWebLNProvider {
       ]);
 
       function replyTimeout() {
+        sub.unsub();
         //console.error(`Reply timeout: event ${event.id} `);
         reject(`reply timeout: event ${event.id}`);
       }
