@@ -140,6 +140,8 @@ export class NostrWebLNProvider {
   }
 
   sendPayment(invoice: string) {
+    this.checkConnected();
+
     return new Promise(async (resolve, reject) => {
       const encryptedInvoice = await this.encrypt(this.walletPubkey, invoice);
       let event: any = {
@@ -209,5 +211,10 @@ export class NostrWebLNProvider {
         clearTimeout(publishTimeoutCheck);
       });
     });
+  }
+  private checkConnected() {
+    if (!this.connected) {
+      throw new Error("please call enable() and wait for the promise to resolve before calling this function")
+    }
   }
 }
