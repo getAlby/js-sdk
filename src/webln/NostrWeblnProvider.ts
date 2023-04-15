@@ -16,6 +16,10 @@ const DEFAULT_OPTIONS = {
   walletPubkey: '69effe7b49a6dd5cf525bd0905917a5005ffe480b58eeb8e861418cf3ae760d9' // Alby
 };
 
+const NWC_URLS = {
+  alby: "https://nwc.getalby.com"
+}
+
 interface Nostr {
   signEvent: (event: UnsignedEvent) => Promise<Event>;
   nip04: {
@@ -224,6 +228,39 @@ export class NostrWebLNProvider {
             reject({ error: decryptedContent });
           }
         });
+      });
+    });
+  }
+
+  initNWC(provider: string, options: { name: string, returnTo?: string }) {
+    const height = 600;
+    const width = 400;
+    const top = window.outerHeight / 2 + window.screenY - height / 2;
+    const left = window.outerWidth / 2 + window.screenX - width / 2;
+    // @ts-ignore for my TS love :)
+    const url = new URL(NWC_URLS[provider]);
+    url.searchParams.set('c', options.name);
+    url.searchParams.set('p', this.publicKey);
+    url.searchParams.set('url', document.location.origin);
+    if (options.returnTo) {
+      url.searchParams.set('returnTo', options.returnTo);
+    }
+    return new Promise((resolve) => {
+      const popup = window.open(
+        url.toString(),
+        `${document.title} - Wallet Connect`,
+        `height=${height},width=${width},top=${top},left=${left}`
+      );
+      let processingResponse = false; // make sure we request the access token only once
+      window.addEventListener('message', async (message) => {
+        const data = message.data;
+        if (data && data.type === 'nwc:success' && message.origin === `${url.protocol}//${url.host}` && !processingResponse) {
+          processingResponse = true; // make sure we request the access token only once
+          if (popup) {
+            popup.close(); // close the popup
+          }
+          resolve(data);
+        }
       });
     });
   }
