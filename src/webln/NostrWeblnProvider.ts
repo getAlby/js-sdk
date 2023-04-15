@@ -163,6 +163,8 @@ export class NostrWebLNProvider {
   }
 
   sendPayment(invoice: string) {
+    this.checkConnected();
+
     return new Promise(async (resolve, reject) => {
       const encryptedInvoice = await this.encrypt(this.walletPubkey, invoice);
       let event: any = {
@@ -182,16 +184,47 @@ export class NostrWebLNProvider {
         throw new Error("Missing secret key");
       }
 
+      // subscribe to NIP_47_SUCCESS_RESPONSE_KIND and NIP_47_ERROR_RESPONSE_KIND
+      // that reference the request event (NIP_47_REQUEST_KIND)
+      let sub = this.relay.sub([
+        {
+          kinds: [23195, 23196],
+          authors: [this.walletPubkey],
+          "#e": [event.id],
+        }
+      ]);
+
+      function replyTimeout() {
+        sub.unsub();
+        //console.error(`Reply timeout: event ${event.id} `);
+        reject(`reply timeout: event ${event.id}`);
+      }
+
+      let replyTimeoutCheck = setTimeout(replyTimeout, 60000);
+
+      sub.on('event', async (event) => {
+        //console.log(`Received reply event: `, event);
+        clearTimeout(replyTimeoutCheck);
+        sub.unsub();
+        const decryptedContent = await this.decrypt(this.walletPubkey, event.content);
+        // @ts-ignore // event is still unknown in nostr-tools
+        if (event.kind == 23195) {
+          resolve({ preimage: decryptedContent });
+          this.notify('sendPayment', event.content);
+        } else {
+          reject({ error: decryptedContent });
+        }
+      });
+
       let pub = this.relay.publish(event);
 
       function publishTimeout() {
         //console.error(`Publish timeout: event ${event.id}`);
-        reject('Publish timeout');
+        reject(`Publish timeout: event ${event.id}`);
       }
-      let publishTimeoutCheck = setTimeout(publishTimeout, 3000);
+      let publishTimeoutCheck = setTimeout(publishTimeout, 5000);
 
-      // @ts-ignore
-      pub.on('failed', (reason) => {
+      pub.on('failed', (reason: unknown) => {
         //console.debug(`failed to publish to ${this.relay.url}: ${reason}`)
         clearTimeout(publishTimeoutCheck)
         reject(`Failed to publish request: ${reason}`);
@@ -200,34 +233,6 @@ export class NostrWebLNProvider {
       pub.on('ok', () => {
         //console.debug(`Event ${event.id} for ${invoice} published`);
         clearTimeout(publishTimeoutCheck);
-
-        function replyTimeout() {
-          //console.error(`Reply timeout: event ${event.id} `);
-          reject('reply timeout');
-        }
-        let replyTimeoutCheck = setTimeout(replyTimeout, 60000);
-
-        if (!this.relay) { return; } // mainly for TS
-        let sub = this.relay.sub([
-          {
-            kinds: [23195, 23196],
-            authors: [this.walletPubkey],
-            "#e": [event.id],
-          }
-        ]);
-        sub.on('event', async (event) => {
-          //console.log(`Received reply event: `, event);
-          clearTimeout(replyTimeoutCheck);
-          sub.unsub();
-          const decryptedContent = await this.decrypt(this.walletPubkey, event.content);
-          // @ts-ignore // event is still unknown in nostr-tools
-          if (event.kind == 23195) {
-            resolve({ preimage: decryptedContent });
-            this.notify('sendPayment', event.content);
-          } else {
-            reject({ error: decryptedContent });
-          }
-        });
       });
     });
   }
@@ -263,5 +268,11 @@ export class NostrWebLNProvider {
         }
       });
     });
+  }
+
+  private checkConnected() {
+    if (!this.connected) {
+      throw new Error("please call enable() and await the promise before calling this function")
+    }
   }
 }
