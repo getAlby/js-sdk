@@ -238,15 +238,16 @@ export class NostrWebLNProvider {
     });
   }
 
-  initNWC(provider: string, options: { name: string, returnTo?: string }) {
+  initNWC(providerNameOrUrl: string, options: { name: string, returnTo?: string }) {
     const height = 600;
     const width = 400;
     const top = window.outerHeight / 2 + window.screenY - height / 2;
     const left = window.outerWidth / 2 + window.screenX - width / 2;
     // @ts-ignore for my TS love :)
-    const url = new URL(NWC_URLS[provider]);
+    const urlStr = NWC_URLS[providerNameOrUrl] || providerNameOrUrl;
+    const url = new URL(urlStr);
     url.searchParams.set('c', options.name);
-    url.searchParams.set('p', this.publicKey);
+    url.searchParams.set('pubkey', this.publicKey);
     url.searchParams.set('url', document.location.origin);
     if (options.returnTo) {
       url.searchParams.set('returnTo', options.returnTo);
