@@ -257,17 +257,17 @@ export class NostrWebLNProvider {
         `${document.title} - Wallet Connect`,
         `height=${height},width=${width},top=${top},left=${left}`
       );
-      let processingResponse = false; // make sure we request the access token only once
-      window.addEventListener('message', async (message) => {
+      const onMessage = (message: { data: any, origin: string }) => {
         const data = message.data;
-        if (data && data.type === 'nwc:success' && message.origin === `${url.protocol}//${url.host}` && !processingResponse) {
-          processingResponse = true; // make sure we request the access token only once
+        if (data && data.type === 'nwc:success' && message.origin === `${url.protocol}//${url.host}`) {
+          window.removeEventListener('message', onMessage);
           if (popup) {
             popup.close(); // close the popup
           }
           resolve(data);
         }
-      });
+      };
+      window.addEventListener('message', onMessage);
     });
   }
 
