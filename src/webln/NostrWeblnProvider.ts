@@ -17,8 +17,8 @@ const DEFAULT_OPTIONS = {
 };
 
 const NWC_URLS = {
-  alby: "https://nwc.getalby.com"
-}
+  alby: "https://nwc.getalby.com/apps/new"
+};
 
 interface Nostr {
   signEvent: (event: UnsignedEvent) => Promise<Event>;
@@ -26,16 +26,17 @@ interface Nostr {
     decrypt: (pubkey: string, content: string) => Promise<string>;
     encrypt: (pubkey: string, content: string) => Promise<string>;
   };
-}
+};
+
 declare global {
   var nostr: Nostr | undefined;
-}
+};
 
 interface NostrWebLNOptions {
   relayUrl: string;
   walletPubkey: string;
   secret?: string;
-}
+};
 
 
 export class NostrWebLNProvider {
