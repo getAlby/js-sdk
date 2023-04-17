@@ -12,7 +12,7 @@ import {
 } from 'nostr-tools';
 
 const DEFAULT_OPTIONS = {
-  relayUrl: 'wss://relay.damus.io',
+  relayUrl: "wss://relay.getalby.com/v1",
   walletPubkey: '69effe7b49a6dd5cf525bd0905917a5005ffe480b58eeb8e861418cf3ae760d9' // Alby
 };
 
