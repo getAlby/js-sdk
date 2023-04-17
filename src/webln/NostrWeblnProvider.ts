@@ -243,8 +243,8 @@ export class NostrWebLNProvider {
     const width = 400;
     const top = window.outerHeight / 2 + window.screenY - height / 2;
     const left = window.outerWidth / 2 + window.screenX - width / 2;
-    // @ts-ignore for my TS love :)
-    const urlStr = NWC_URLS[providerNameOrUrl] || providerNameOrUrl;
+    
+    const urlStr = NWC_URLS[providerNameOrUrl as keyof typeof NWC_URLS] || providerNameOrUrl;
     const url = new URL(urlStr);
     url.searchParams.set('c', options.name);
     url.searchParams.set('pubkey', this.publicKey);
