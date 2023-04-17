@@ -20,7 +20,6 @@ The `NostrWebLNProvider` exposes the [WebLN](webln.guide/) sendPayment interface
 
 (note: in the future more WebLN functions will be added to Nostr Wallet Connect)
 
-
 ### NostrWebLNProvider Options
 
 * `nostrWalletConnectUrl`: the full Nostr Wallet Connect URL as defined by the [spec](https://github.com/getAlby/nips/blob/master/47.md)
@@ -71,6 +70,22 @@ const response = await webln.sendPayment(invoice);
 console.log(response.preimage);
 
 webln.close(); // close the websocket connection
+```
+
+#### Generate a new NWC connect url
+```js
+const webln = webln.NostrWebLNProvider.withNewSecret({
+  walletPubkey: process.env.NEXT_PUBLIC_NWC_WALLET_PUBKEY,
+});
+await webln.initNWC("alby", {
+  name: `My app name`,
+});
+
+// ... enable and send a payment
+
+// if you want to get the connect url with the secret:
+// const nostrWalletConnectUrl nwc.getNostrWalletConnectUrl(true)
+
 ```
 
 ## OAuth API Documentation
