@@ -252,22 +252,34 @@ export class NostrWebLNProvider {
     if (options.returnTo) {
       url.searchParams.set('returnTo', options.returnTo);
     }
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       const popup = window.open(
         url.toString(),
         `${document.title} - Wallet Connect`,
         `height=${height},width=${width},top=${top},left=${left}`
       );
+      if (!popup) { reject(); return; } // only for TS?
+
+      const checkForPopup = () => {
+        if (popup && popup.closed) {
+          reject();
+          clearInterval(popupChecker);
+          window.removeEventListener('message', onMessage);
+        }
+      };
+
       const onMessage = (message: { data: any, origin: string }) => {
         const data = message.data;
         if (data && data.type === 'nwc:success' && message.origin === `${url.protocol}//${url.host}`) {
+          resolve(data);
+          clearInterval(popupChecker);
           window.removeEventListener('message', onMessage);
           if (popup) {
             popup.close(); // close the popup
           }
-          resolve(data);
         }
       };
+      const popupChecker = setInterval(checkForPopup, 500);
       window.addEventListener('message', onMessage);
     });
   }
