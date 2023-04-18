@@ -62,18 +62,19 @@ export class NostrWebLNProvider {
     return options;
   }
 
-  static withNewSecret(options: { relayUrl?: string, secret?: string, walletPubkey?: string, nostrWalletConnectUrl?: string } = {}) {
+  static withNewSecret(options?: ConstructorParameters<typeof NostrWebLNProvider>[0]) {
+    options = options || {};
     options.secret = generatePrivateKey();
     return new NostrWebLNProvider(options);
   }
 
-  constructor(options: { relayUrl?: string, secret?: string, walletPubkey?: string, nostrWalletConnectUrl?: string }) {
+  constructor(options?: { relayUrl?: string, secret?: string, walletPubkey?: string, nostrWalletConnectUrl?: string }) {
     if (options && options.nostrWalletConnectUrl) {
       options = {
         ...NostrWebLNProvider.parseWalletConnectUrl(options.nostrWalletConnectUrl), ...options
       };
     }
-    const _options = { ...DEFAULT_OPTIONS, ...options } as NostrWebLNOptions;
+    const _options = { ...DEFAULT_OPTIONS, ...(options || {}) } as NostrWebLNOptions;
     this.relayUrl = _options.relayUrl;
     this.relay = relayInit(this.relayUrl);
     if (_options.secret) {
