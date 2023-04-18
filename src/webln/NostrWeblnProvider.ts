@@ -3,16 +3,21 @@ import {
   relayInit,
   signEvent,
   getEventHash,
-  getPublicKey,
   nip19,
+  generatePrivateKey,
+  getPublicKey,
   Relay,
   Event,
   UnsignedEvent
 } from 'nostr-tools';
 
 const DEFAULT_OPTIONS = {
-  relayUrl: 'wss://relay.damus.io',
+  relayUrl: "wss://relay.getalby.com/v1",
   walletPubkey: '69effe7b49a6dd5cf525bd0905917a5005ffe480b58eeb8e861418cf3ae760d9' // Alby
+};
+
+const NWC_URLS = {
+  alby: "https://nwc.getalby.com/apps/new"
 };
 
 interface Nostr {
@@ -21,16 +26,17 @@ interface Nostr {
     decrypt: (pubkey: string, content: string) => Promise<string>;
     encrypt: (pubkey: string, content: string) => Promise<string>;
   };
-}
+};
+
 declare global {
   var nostr: Nostr | undefined;
-}
+};
 
 interface NostrWebLNOptions {
   relayUrl: string;
   walletPubkey: string;
   secret?: string;
-}
+};
 
 
 export class NostrWebLNProvider {
@@ -55,13 +61,20 @@ export class NostrWebLNProvider {
     }
     return options;
   }
-  constructor(options: { relayUrl?: string, secret?: string, walletPubkey?: string, nostrWalletConnectUrl?: string }) {
+
+  static withNewSecret(options?: ConstructorParameters<typeof NostrWebLNProvider>[0]) {
+    options = options || {};
+    options.secret = generatePrivateKey();
+    return new NostrWebLNProvider(options);
+  }
+
+  constructor(options?: { relayUrl?: string, secret?: string, walletPubkey?: string, nostrWalletConnectUrl?: string }) {
     if (options && options.nostrWalletConnectUrl) {
       options = {
         ...NostrWebLNProvider.parseWalletConnectUrl(options.nostrWalletConnectUrl), ...options
       };
     }
-    const _options = { ...DEFAULT_OPTIONS, ...options } as NostrWebLNOptions;
+    const _options = { ...DEFAULT_OPTIONS, ...(options || {}) } as NostrWebLNOptions;
     this.relayUrl = _options.relayUrl;
     this.relay = relayInit(this.relayUrl);
     if (_options.secret) {
@@ -80,6 +93,18 @@ export class NostrWebLNProvider {
     if (callback) {
       callback(payload);
     }
+  }
+
+  getNostrWalletConnectUrl(includeSecret = false) {
+    let url = `nostrwalletconnect://${this.walletPubkey}?relay=${this.relayUrl}&pubkey=${this.publicKey}`;
+    if (includeSecret) {
+      url = `${url}&secret=${this.secret}`;
+    }
+    return url;
+  }
+
+  get nostrWalletConnectUrl() {
+    return this.getNostrWalletConnectUrl();
   }
 
   get connected() {
@@ -213,6 +238,53 @@ export class NostrWebLNProvider {
       });
     });
   }
+
+  initNWC(providerNameOrUrl: string, options: { name: string, returnTo?: string }) {
+    const height = 600;
+    const width = 400;
+    const top = window.outerHeight / 2 + window.screenY - height / 2;
+    const left = window.outerWidth / 2 + window.screenX - width / 2;
+    
+    const urlStr = NWC_URLS[providerNameOrUrl as keyof typeof NWC_URLS] || providerNameOrUrl;
+    const url = new URL(urlStr);
+    url.searchParams.set('c', options.name);
+    url.searchParams.set('pubkey', this.publicKey);
+    url.searchParams.set('url', document.location.origin);
+    if (options.returnTo) {
+      url.searchParams.set('returnTo', options.returnTo);
+    }
+    return new Promise((resolve, reject) => {
+      const popup = window.open(
+        url.toString(),
+        `${document.title} - Wallet Connect`,
+        `height=${height},width=${width},top=${top},left=${left}`
+      );
+      if (!popup) { reject(); return; } // only for TS?
+
+      const checkForPopup = () => {
+        if (popup && popup.closed) {
+          reject();
+          clearInterval(popupChecker);
+          window.removeEventListener('message', onMessage);
+        }
+      };
+
+      const onMessage = (message: { data: any, origin: string }) => {
+        const data = message.data;
+        if (data && data.type === 'nwc:success' && message.origin === `${url.protocol}//${url.host}`) {
+          resolve(data);
+          clearInterval(popupChecker);
+          window.removeEventListener('message', onMessage);
+          if (popup) {
+            popup.close(); // close the popup
+          }
+        }
+      };
+      const popupChecker = setInterval(checkForPopup, 500);
+      window.addEventListener('message', onMessage);
+    });
+  }
+
   private checkConnected() {
     if (!this.connected) {
       throw new Error("please call enable() and await the promise before calling this function")
