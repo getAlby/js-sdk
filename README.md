@@ -74,9 +74,7 @@ webln.close(); // close the websocket connection
 
 #### Generate a new NWC connect url
 ```js
-const webln = webln.NostrWebLNProvider.withNewSecret({
-  walletPubkey: process.env.NEXT_PUBLIC_NWC_WALLET_PUBKEY,
-});
+const webln = webln.NostrWebLNProvider.withNewSecret({});
 await webln.initNWC("alby", {
   name: `My app name`,
 });
