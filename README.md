@@ -52,7 +52,7 @@ global.crypto = crypto;
 ```js
 import { NostrWebLNProvider } from 'alby-js-sdk';
 
-const webln = new NostrWebLNProvider(); // use defaults (will use window.nostr to sign the request)
+const webln = new NostrWebLNProvider(); // use defaults (connects to Alby's relay, will use window.nostr to sign the request)
 await webln.enable(); // connect to the relay
 const response = await webln.sendPayment(invoice);
 console.log(response.preimage);
@@ -72,9 +72,10 @@ console.log(response.preimage);
 webln.close(); // close the websocket connection
 ```
 
-#### Generate a new NWC connect url
+#### Generate a new NWC connect url using a locally-generated secret
 ```js
-const webln = webln.NostrWebLNProvider.withNewSecret({});
+// same options can be provided to .withNewSecret() as creating a new NostrWebLNProvider()
+const webln = webln.NostrWebLNProvider.withNewSecret();
 await webln.initNWC("alby", {
   name: `My app name`,
 });
