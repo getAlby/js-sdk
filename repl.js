@@ -1,5 +1,11 @@
 import * as repl from 'node:repl';
 import { auth, Client, webln } from "./dist/index.module.js";
+import 'websocket-polyfill';
+try {
+  globalThis.crypto = await import('node:crypto');
+} catch (err) {
+  console.error('crypto not found!');
+}
 
 const authClient = new auth.OAuth2User({
   client_id: process.env.CLIENT_ID,

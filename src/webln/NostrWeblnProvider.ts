@@ -47,7 +47,7 @@ export class NostrWebLNProvider {
   subscribers: Record<string, (payload: any) => void>;
 
   static parseWalletConnectUrl(walletConnectUrl: string) {
-    walletConnectUrl = walletConnectUrl.replace('nostrwalletconnect://', 'http://'); // makes it possible to parse with URL in the different environments (browser/node/...)
+    walletConnectUrl = walletConnectUrl.replace('nostr+walletconnect://', 'http://'); // makes it possible to parse with URL in the different environments (browser/node/...)
     const url = new URL(walletConnectUrl);
     const options = {} as NostrWebLNOptions;
     options.walletPubkey = url.host;
@@ -82,6 +82,11 @@ export class NostrWebLNProvider {
     }
     this.walletPubkey = (_options.walletPubkey.toLowerCase().startsWith('npub') ? nip19.decode(_options.walletPubkey).data : _options.walletPubkey) as string;
     this.subscribers = {};
+
+    // @ts-ignore
+    if(globalThis.WebSocket === undefined) {
+      console.error("WebSocket is undefined. Make sure to `import websocket-polyfill` for nodejs environments");
+    }
   }
 
   on(name: string, callback: () => void) {
@@ -96,7 +101,7 @@ export class NostrWebLNProvider {
   }
 
   getNostrWalletConnectUrl(includeSecret = false) {
-    let url = `nostrwalletconnect://${this.walletPubkey}?relay=${this.relayUrl}&pubkey=${this.publicKey}`;
+    let url = `nostr+walletconnect://${this.walletPubkey}?relay=${this.relayUrl}&pubkey=${this.publicKey}`;
     if (includeSecret) {
       url = `${url}&secret=${this.secret}`;
     }
@@ -141,26 +146,18 @@ export class NostrWebLNProvider {
   }
 
   async encrypt(pubkey: string, content: string) {
-    let encrypted;
-    if (globalThis.nostr && !this.secret) {
-      encrypted = await globalThis.nostr.nip04.encrypt(pubkey, content);
-    } else if (this.secret) {
-      encrypted = await nip04.encrypt(this.secret, pubkey, content);
-    } else {
-      throw new Error("Missing secret key");
+    if (!this.secret) {
+      throw new Error('Missing secret');
     }
+    const encrypted = await nip04.encrypt(this.secret, pubkey, content);
     return encrypted;
   }
 
   async decrypt(pubkey: string, content: string) {
-    let decrypted;
-    if (globalThis.nostr && !this.secret) {
-      decrypted = await globalThis.nostr.nip04.decrypt(pubkey, content);
-    } else if (this.secret) {
-      decrypted = await nip04.decrypt(this.secret, pubkey, content);
-    } else {
-      throw new Error("Missing secret key");
+    if (!this.secret) {
+      throw new Error('Missing secret');
     }
+    const decrypted = await nip04.decrypt(this.secret, pubkey, content);
     return decrypted;
   }
 
@@ -168,23 +165,23 @@ export class NostrWebLNProvider {
     this.checkConnected();
 
     return new Promise(async (resolve, reject) => {
-      const encryptedInvoice = await this.encrypt(this.walletPubkey, invoice);
+      const command = {
+        "method": "pay_invoice",
+        "params": {
+          "invoice": invoice
+        }
+      };
+      const encryptedCommand = await this.encrypt(this.walletPubkey, JSON.stringify(command));
       let event: any = {
         kind: 23194,
         created_at: Math.floor(Date.now() / 1000),
         tags: [['p', this.walletPubkey]],
-        content: encryptedInvoice,
+        content: encryptedCommand,
       };
 
-      if (globalThis.nostr && !this.secret) {
-        event = await globalThis.nostr.signEvent(event);
-      } else if (this.secret) {
-        event.pubkey = this.publicKey;
-        event.id = this.getEventHash(event);
-        event.sig = this.signEvent(event);
-      } else {
-        throw new Error("Missing secret key");
-      }
+      event.pubkey = this.publicKey;
+      event.id = this.getEventHash(event);
+      event.sig = this.signEvent(event);
 
       // subscribe to NIP_47_SUCCESS_RESPONSE_KIND and NIP_47_ERROR_RESPONSE_KIND
       // that reference the request event (NIP_47_REQUEST_KIND)
@@ -209,12 +206,13 @@ export class NostrWebLNProvider {
         clearTimeout(replyTimeoutCheck);
         sub.unsub();
         const decryptedContent = await this.decrypt(this.walletPubkey, event.content);
+        const response = JSON.parse(decryptedContent);
         // @ts-ignore // event is still unknown in nostr-tools
-        if (event.kind == 23195) {
-          resolve({ preimage: decryptedContent });
+        if (event.kind == 23195 && response.result?.preimage) {
+          resolve({ preimage: response.result.preimage });
           this.notify('sendPayment', event.content);
         } else {
-          reject({ error: decryptedContent });
+          reject({ error: response.error?.message });
         }
       });
 
@@ -222,14 +220,14 @@ export class NostrWebLNProvider {
 
       function publishTimeout() {
         //console.error(`Publish timeout: event ${event.id}`);
-        reject(`Publish timeout: event ${event.id}`);
+        reject({ error: `Publish timeout: event ${event.id}` });
       }
       let publishTimeoutCheck = setTimeout(publishTimeout, 5000);
 
       pub.on('failed', (reason: unknown) => {
         //console.debug(`failed to publish to ${this.relay.url}: ${reason}`)
         clearTimeout(publishTimeoutCheck)
-        reject(`Failed to publish request: ${reason}`);
+        reject({ error: `Failed to publish request: ${reason}` });
       });
 
       pub.on('ok', () => {
@@ -239,20 +237,25 @@ export class NostrWebLNProvider {
     });
   }
 
-  initNWC(providerNameOrUrl: string, options: { name: string, returnTo?: string }) {
+  getInitUrl(providerNameOrUrl: string = "alby", options: { name?: string, returnTo?: string }) {
+    const urlStr = NWC_URLS[providerNameOrUrl as keyof typeof NWC_URLS] || providerNameOrUrl;
+    const name = options?.name || providerNameOrUrl;
+    const url = new URL(urlStr);
+    url.searchParams.set('c', name);
+    url.searchParams.set('pubkey', this.publicKey);
+    if (options?.returnTo) {
+      url.searchParams.set('returnTo', options.returnTo);
+    }
+    return url;
+  }
+
+  initNWC(providerNameOrUrl: string = "alby", options: { name?: string, returnTo?: string }) {
+    const url = this.getInitUrl(providerNameOrUrl, options);
     const height = 600;
     const width = 400;
     const top = window.outerHeight / 2 + window.screenY - height / 2;
     const left = window.outerWidth / 2 + window.screenX - width / 2;
-    
-    const urlStr = NWC_URLS[providerNameOrUrl as keyof typeof NWC_URLS] || providerNameOrUrl;
-    const url = new URL(urlStr);
-    url.searchParams.set('c', options.name);
-    url.searchParams.set('pubkey', this.publicKey);
-    url.searchParams.set('url', document.location.origin);
-    if (options.returnTo) {
-      url.searchParams.set('returnTo', options.returnTo);
-    }
+
     return new Promise((resolve, reject) => {
       const popup = window.open(
         url.toString(),
