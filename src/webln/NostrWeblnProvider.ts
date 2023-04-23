@@ -187,7 +187,7 @@ export class NostrWebLNProvider {
       // that reference the request event (NIP_47_REQUEST_KIND)
       let sub = this.relay.sub([
         {
-          kinds: [23195, 23196],
+          kinds: [23195],
           authors: [this.walletPubkey],
           "#e": [event.id],
         }
