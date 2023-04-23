@@ -150,6 +150,17 @@ export class NostrWebLNProvider {
     return decrypted;
   }
 
+  // WebLN compatible response
+  // TODO: use NIP-47 get_info call
+  async getInfo() {
+    return {
+      methods: ["getInfo", "sendPayment"],
+      node: {},
+      supports: ["lightning"],
+      version: "NWC"
+    }
+  }
+
   sendPayment(invoice: string) {
     this.checkConnected();
 
