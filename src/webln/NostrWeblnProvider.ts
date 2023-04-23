@@ -212,7 +212,7 @@ export class NostrWebLNProvider {
           resolve({ preimage: response.result.preimage });
           this.notify('sendPayment', event.content);
         } else {
-          reject({ error: response.error?.message });
+          reject({ error: response.error?.message, code: response.error?.code });
         }
       });
 
