@@ -206,7 +206,13 @@ export class NostrWebLNProvider {
         clearTimeout(replyTimeoutCheck);
         sub.unsub();
         const decryptedContent = await this.decrypt(this.walletPubkey, event.content);
-        const response = JSON.parse(decryptedContent);
+        let response;
+        try {
+          response = JSON.parse(decryptedContent);
+        } catch(e) {
+          reject({ error: "invalid response", code: "INTERNAL" });
+          return;
+        }
         // @ts-ignore // event is still unknown in nostr-tools
         if (event.kind == 23195 && response.result?.preimage) {
           resolve({ preimage: response.result.preimage });
