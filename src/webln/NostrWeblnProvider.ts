@@ -11,39 +11,27 @@ import {
   UnsignedEvent
 } from 'nostr-tools';
 
-const DEFAULT_OPTIONS = {
-  relayUrl: "wss://relay.getalby.com/v1",
-  walletPubkey: '69effe7b49a6dd5cf525bd0905917a5005ffe480b58eeb8e861418cf3ae760d9' // Alby
-};
-
-const NWC_URLS = {
-  alby: "https://nwc.getalby.com/apps/new"
-};
-
-interface Nostr {
-  signEvent: (event: UnsignedEvent) => Promise<Event>;
-  nip04: {
-    decrypt: (pubkey: string, content: string) => Promise<string>;
-    encrypt: (pubkey: string, content: string) => Promise<string>;
-  };
-};
-
-declare global {
-  var nostr: Nostr | undefined;
+const NWCs: Record<string,NostrWebLNOptions> = {
+  alby: {
+    connectUrl: "https://nwc.getalby.com/apps/new",
+    relayUrl: "wss://relay.getalby.com/v1",
+    walletPubkey: '69effe7b49a6dd5cf525bd0905917a5005ffe480b58eeb8e861418cf3ae760d9'
+  }
 };
 
 interface NostrWebLNOptions {
+  connectUrl?: string; // the URL to the NWC interface for the user to confirm the session
   relayUrl: string;
   walletPubkey: string;
   secret?: string;
 };
-
 
 export class NostrWebLNProvider {
   relay: Relay;
   relayUrl: string;
   secret: string | undefined;
   walletPubkey: string;
+  options: NostrWebLNOptions;
   subscribers: Record<string, (payload: any) => void>;
 
   static parseWalletConnectUrl(walletConnectUrl: string) {
@@ -68,19 +56,20 @@ export class NostrWebLNProvider {
     return new NostrWebLNProvider(options);
   }
 
-  constructor(options?: { relayUrl?: string, secret?: string, walletPubkey?: string, nostrWalletConnectUrl?: string }) {
+  constructor(options?: { providerName?: string, connectUrl?: string, relayUrl?: string, secret?: string, walletPubkey?: string, nostrWalletConnectUrl?: string }) {
     if (options && options.nostrWalletConnectUrl) {
       options = {
         ...NostrWebLNProvider.parseWalletConnectUrl(options.nostrWalletConnectUrl), ...options
       };
     }
-    const _options = { ...DEFAULT_OPTIONS, ...(options || {}) } as NostrWebLNOptions;
-    this.relayUrl = _options.relayUrl;
+    const providerOptions = NWCs[options?.providerName || 'alby'] as NostrWebLNOptions;
+    this.options = { ...providerOptions, ...(options || {}) } as NostrWebLNOptions;
+    this.relayUrl = this.options.relayUrl;
     this.relay = relayInit(this.relayUrl);
-    if (_options.secret) {
-      this.secret = (_options.secret.toLowerCase().startsWith('nsec') ? nip19.decode(_options.secret).data : _options.secret) as string;
+    if (this.options.secret) {
+      this.secret = (this.options.secret.toLowerCase().startsWith('nsec') ? nip19.decode(this.options.secret).data : this.options.secret) as string;
     }
-    this.walletPubkey = (_options.walletPubkey.toLowerCase().startsWith('npub') ? nip19.decode(_options.walletPubkey).data : _options.walletPubkey) as string;
+    this.walletPubkey = (this.options.walletPubkey.toLowerCase().startsWith('npub') ? nip19.decode(this.options.walletPubkey).data : this.options.walletPubkey) as string;
     this.subscribers = {};
 
     // @ts-ignore
@@ -237,11 +226,14 @@ export class NostrWebLNProvider {
     });
   }
 
-  getInitUrl(providerNameOrUrl: string = "alby", options: { name?: string, returnTo?: string }) {
-    const urlStr = NWC_URLS[providerNameOrUrl as keyof typeof NWC_URLS] || providerNameOrUrl;
-    const name = options?.name || providerNameOrUrl;
-    const url = new URL(urlStr);
-    url.searchParams.set('c', name);
+  getConnectUrl(options: { name?: string, returnTo?: string }) {
+    if (!this.options.connectUrl) {
+      throw new Error("Missing connectUrl option");
+    }
+    const url = new URL(this.options.connectUrl);
+    if (options?.name) {
+      url.searchParams.set('c', options?.name);
+    }
     url.searchParams.set('pubkey', this.publicKey);
     if (options?.returnTo) {
       url.searchParams.set('returnTo', options.returnTo);
@@ -249,8 +241,13 @@ export class NostrWebLNProvider {
     return url;
   }
 
-  initNWC(providerNameOrUrl: string = "alby", options: { name?: string, returnTo?: string }) {
-    const url = this.getInitUrl(providerNameOrUrl, options);
+  initNWC(options: { name?: string, returnTo?: string } = {}) {
+    // here we assume an browser context and window/document is available
+    // we set the location.host as a default name if none is given
+    if (!options.name) {
+      options.name = document.location.host;
+    }
+    const url = this.getConnectUrl(options);
     const height = 600;
     const width = 400;
     const top = window.outerHeight / 2 + window.screenY - height / 2;
