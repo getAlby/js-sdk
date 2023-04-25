@@ -20,7 +20,7 @@ The `NostrWebLNProvider` exposes the [WebLN](webln.guide/) sendPayment interface
 
 (note: in the future more WebLN functions will be added to Nostr Wallet Connect)
 
-### NostrWebLNProvider Options
+### NostrWebLNProvider (aliased as NWC) Options
 
 * `providerName`: name of the provider to load the default options. currently `alby` (default)
 * `nostrWalletConnectUrl`: full Nostr Wallet Connect URL as defined by the [spec](https://github.com/getAlby/nips/blob/master/47.md)
@@ -29,12 +29,29 @@ The `NostrWebLNProvider` exposes the [WebLN](webln.guide/) sendPayment interface
 * `secret`: secret key to sign the request event (if not available window.nostr will be used)
 * `authorizationUrl`: URL to the NWC interface for the user to and the app connection
 
-#### Example
+### Quick start example
 
 ```js
-const nwc = new NostrWebLNProvider({ nostrWalletConnectUrl: loadNWCUrl });
-await nwc.enable(); // connect to the relay
+import { webln } from "alby-js-sdk";
+const nwc = new webln.NostrWebLNProvider({ nostrWalletConnectUrl: loadNWCUrl });
+// or use the short version 
+const nwc = new webln.NWC({ nostrWalletConnectUrl: loadNWCUrl });
+
+// connect to the relay
+await nwc.enable();
+
+// now you can send payments by passing in the invoice
 const response = nwc.sendPayment(invoice);
+
+```
+You can use NWC as a webln compatible object in your web app:
+```js
+// you can set the window.webln object to use the universal API to send payments:
+if (!window.webln) {
+  // prompt the user to connect to NWC
+  window.webln = new webln.NostrWebLNProvider({ nostrWalletConnectUrl: loadNWCUrl })
+  // now use any webln code
+}
 ```
 
 ### NostrWebLNProvider Functions
