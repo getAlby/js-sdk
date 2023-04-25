@@ -13,14 +13,14 @@ import {
 
 const NWCs: Record<string,NostrWebLNOptions> = {
   alby: {
-    connectUrl: "https://nwc.getalby.com/apps/new",
+    authorizationUrl: "https://nwc.getalby.com/apps/new",
     relayUrl: "wss://relay.getalby.com/v1",
     walletPubkey: '69effe7b49a6dd5cf525bd0905917a5005ffe480b58eeb8e861418cf3ae760d9'
   }
 };
 
 interface NostrWebLNOptions {
-  connectUrl?: string; // the URL to the NWC interface for the user to confirm the session
+  authorizationUrl?: string; // the URL to the NWC interface for the user to confirm the session
   relayUrl: string;
   walletPubkey: string;
   secret?: string;
@@ -56,7 +56,7 @@ export class NostrWebLNProvider {
     return new NostrWebLNProvider(options);
   }
 
-  constructor(options?: { providerName?: string, connectUrl?: string, relayUrl?: string, secret?: string, walletPubkey?: string, nostrWalletConnectUrl?: string }) {
+  constructor(options?: { providerName?: string, authorizationUrl?: string, relayUrl?: string, secret?: string, walletPubkey?: string, nostrWalletConnectUrl?: string }) {
     if (options && options.nostrWalletConnectUrl) {
       options = {
         ...NostrWebLNProvider.parseWalletConnectUrl(options.nostrWalletConnectUrl), ...options
@@ -243,17 +243,17 @@ export class NostrWebLNProvider {
     });
   }
 
-  getConnectUrl(options: { name?: string, returnTo?: string }) {
-    if (!this.options.connectUrl) {
-      throw new Error("Missing connectUrl option");
+  getAuthorizationUrl(options: { name?: string, returnTo?: string }) {
+    if (!this.options.authorizationUrl) {
+      throw new Error("Missing authorizationUrl option");
     }
-    const url = new URL(this.options.connectUrl);
+    const url = new URL(this.options.authorizationUrl);
     if (options?.name) {
       url.searchParams.set('c', options?.name);
     }
     url.searchParams.set('pubkey', this.publicKey);
     if (options?.returnTo) {
-      url.searchParams.set('returnTo', options.returnTo);
+      url.searchParams.set('return_to', options.returnTo);
     }
     return url;
   }
@@ -264,7 +264,7 @@ export class NostrWebLNProvider {
     if (!options.name) {
       options.name = document.location.host;
     }
-    const url = this.getConnectUrl(options);
+    const url = this.getAuthorizationUrl(options);
     const height = 600;
     const width = 400;
     const top = window.outerHeight / 2 + window.screenY - height / 2;
