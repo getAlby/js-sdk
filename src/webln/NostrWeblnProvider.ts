@@ -35,7 +35,7 @@ export class NostrWebLNProvider {
   subscribers: Record<string, (payload: any) => void>;
 
   static parseWalletConnectUrl(walletConnectUrl: string) {
-    walletConnectUrl = walletConnectUrl.replace('nostr+walletconnect://', 'http://'); // makes it possible to parse with URL in the different environments (browser/node/...)
+    walletConnectUrl = walletConnectUrl.replace('nostr+walletconnect://', 'http://').replace('nostr+walletconnect://', 'http://'); // makes it possible to parse with URL in the different environments (browser/node/...)
     const url = new URL(walletConnectUrl);
     const options = {} as NostrWebLNOptions;
     options.walletPubkey = url.host;
