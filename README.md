@@ -14,7 +14,7 @@ npm install alby-js-sdk
 
 Nostr Wallet Connect is an open protocol enabling applications to interact with bitcoin lightning wallets. It allows users to connect their existing wallets to your application allowing developers to easily integrate bitcoin lightning functionality.
 
-The Alby JS SDK allows you to easily integrate Nostr Wallet Connect into any JavaScript based application. 
+The Alby JS SDK allows you to easily integrate Nostr Wallet Connect into any JavaScript based application.
 
 The `NostrWebLNProvider` exposes the [WebLN](webln.guide/) sendPayment interface to execute lightning payments through Nostr Wallet Connect.
 
@@ -22,13 +22,15 @@ The `NostrWebLNProvider` exposes the [WebLN](webln.guide/) sendPayment interface
 
 ### NostrWebLNProvider Options
 
-* `nostrWalletConnectUrl`: the full Nostr Wallet Connect URL as defined by the [spec](https://github.com/getAlby/nips/blob/master/47.md)
-* `relayUrl`: the URL of the Nostr relay to be used (e.g. wss://nostr-relay.getalby.com)
-* `walletPubkey`: the pubkey of the Nostr Wallet Connect app
-* `secret`: the secret key to sign the request event (if not available window.nostr will be used)
+* `providerName`: name of the provider to load the default options. currently `alby` (default)
+* `nostrWalletConnectUrl`: full Nostr Wallet Connect URL as defined by the [spec](https://github.com/getAlby/nips/blob/master/47.md)
+* `relayUrl`: URL of the Nostr relay to be used (e.g. wss://nostr-relay.getalby.com)
+* `walletPubkey`: pubkey of the Nostr Wallet Connect app
+* `secret`: secret key to sign the request event (if not available window.nostr will be used)
+* `connectUrl`: URL to the NWC interface for the user to and the app connection
 
 
-#### For Node.js 
+#### For Node.js
 
 To use this on Node.js you first must install `websocket-polyfill` and import it:
 
