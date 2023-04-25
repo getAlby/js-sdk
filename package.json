@@ -1,6 +1,6 @@
 {
   "name": "alby-js-sdk",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "description": "Alby OAuth2 Client",
   "type": "module",
   "source": "src/index.ts",
