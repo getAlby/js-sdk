@@ -41,7 +41,7 @@ const nwc = new webln.NWC({ nostrWalletConnectUrl: loadNWCUrl });
 await nwc.enable();
 
 // now you can send payments by passing in the invoice
-const response = nwc.sendPayment(invoice);
+const response = await nwc.sendPayment(invoice);
 
 ```
 You can use NWC as a webln compatible object in your web app:
@@ -69,7 +69,7 @@ await nwc.initNWC();
 
 #### sendPayment(invice: string)
 Takes a bolt11 invoice and calls the NWC `pay_invoice` function. 
-It returns an object with the preimage or an error
+It returns a promise object that is resolved with an object with the preimage or is rejected with an error
 
 ##### Example
 
