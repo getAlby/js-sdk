@@ -308,3 +308,5 @@ export class NostrWebLNProvider {
     }
   }
 }
+
+export const NWC = NostrWebLNProvider;
