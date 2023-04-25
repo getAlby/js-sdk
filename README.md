@@ -27,7 +27,66 @@ The `NostrWebLNProvider` exposes the [WebLN](webln.guide/) sendPayment interface
 * `relayUrl`: URL of the Nostr relay to be used (e.g. wss://nostr-relay.getalby.com)
 * `walletPubkey`: pubkey of the Nostr Wallet Connect app
 * `secret`: secret key to sign the request event (if not available window.nostr will be used)
-* `connectUrl`: URL to the NWC interface for the user to and the app connection
+* `authorizationUrl`: URL to the NWC interface for the user to and the app connection
+
+#### Example
+
+```js
+const nwc = new NostrWebLNProvider({ nostrWalletConnectUrl: loadNWCUrl });
+await nwc.enable(); // connect to the relay
+const response = nwc.sendPayment(invoice);
+```
+
+### NostrWebLNProvider Functions
+The goal of the Nostr Wallet Connect provider is to be API compatible with [webln](https://www.webln.guide/). Currently not all methods are supported and only `sendPayment` is specified.
+
+#### `static withNewSecret()`
+Initialized a new `NostrWebLNProvider` instance but generates a new random secret. The pubkey of that secret then needs to be authorized by the user (this can be initiated by redirecting the user to the `getAuthorizationUrl()` URL or calling `initNWC()` to open an authorization popup.
+
+##### Example
+
+```js
+const nwc = NostrWebLNProvider.withNewSecret();
+await nwc.initNWC();
+```
+
+#### sendPayment(invice: string)
+Takes a bolt11 invoice and calls the NWC `pay_invoice` function. 
+It returns an object with the preimage or an error
+
+##### Example
+
+```js
+const nwc = new NostrWebLNProvider({ nostrWalletConnectUrl: loadNWCUrl });
+await nwc.enable();
+const response = await nwc.sendPayment(invoice);
+console.log(response);
+```
+
+#### getNostrWalletConnectUrl()
+Returns the `nostr+walletconnect://` URL which includes all the connection information (`walletPubkey`, `relayUrl`, `secret`)
+This can be used to get and persist the string for later use.
+
+#### initNWC() 
+Opens a new window prompt with the `getAuthorizationUrl()` (the user's NWC UI) to ask the user to authorize the app connection. 
+The promise resolves when the connection is authorized and the popup sends a `nwc:success` message or rejects when the prompt is closed. 
+
+```js
+const nwc = NostrWebLNProvider.withNewSecret();
+try {
+  await nwc.initNWC();
+} catch(e) {
+  console.warn("Prompt closed");
+}
+await nwc.enable();
+const response = await nwc.sendPayment(invoice);
+// ! always check the response 
+if (response.preimage) { 
+  console.info("payment successful");
+} else {
+  console.error(response);
+}
+```
 
 
 #### For Node.js
@@ -78,6 +137,14 @@ webln.close(); // close the websocket connection
 ```js
 // same options can be provided to .withNewSecret() as creating a new NostrWebLNProvider()
 const webln = webln.NostrWebLNProvider.withNewSecret();
+
+// get the connect URL to the interface where the user has to enable the connection
+webln.getConnectUrl({ name: `My app name` });
+// an optional return_to parameter can be passed in 
+webln.getConnectUrl({ name: `My app name`, returnTo: document.location.toString() });
+
+// or use the `initNWC` helper which opens a popup to initiate the connection flow.
+// the promise resolves once the NWC app returned.
 await webln.initNWC("alby", {
   name: `My app name`,
 });
