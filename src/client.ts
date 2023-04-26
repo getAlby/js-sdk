@@ -51,6 +51,16 @@ export class Client {
     });
   }
 
+  accountInformation(params: {}, request_options?: Partial<RequestOptions>) {
+    return rest({
+      auth: this.auth,
+      ...this.defaultRequestOptions,
+      ...request_options,
+      endpoint: `/user/me`,
+      params,
+      method: "GET",
+    });
+  }
 
   accountValue4Value(params: {}, request_options?: Partial<RequestOptions>) {
     return rest({
