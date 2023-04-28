@@ -96,12 +96,14 @@ try {
   console.warn("Prompt closed");
 }
 await nwc.enable();
-const response = await nwc.sendPayment(invoice);
-// ! always check the response 
-if (response.preimage) { 
-  console.info("payment successful");
-} else {
-  console.error(response);
+let response;
+try {
+  response = await nwc.sendPayment(invoice);
+  // if success then the response.preimage will be only
+  console.info(`payment successful, the preimage is ${response.preimage}`);
+}
+catch (e) {
+  console.error(e.error || e);
 }
 ```
 
