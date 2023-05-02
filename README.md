@@ -84,14 +84,15 @@ console.log(response);
 Returns the `nostr+walletconnect://` URL which includes all the connection information (`walletPubkey`, `relayUrl`, `secret`)
 This can be used to get and persist the string for later use.
 
-#### initNWC() 
+#### initNWC({name: string}) 
 Opens a new window prompt with the `getAuthorizationUrl()` (the user's NWC UI) to ask the user to authorize the app connection. 
 The promise resolves when the connection is authorized and the popup sends a `nwc:success` message or rejects when the prompt is closed. 
+Pass a `name` to the NWC provider describing the application. 
 
 ```js
 const nwc = NostrWebLNProvider.withNewSecret();
 try {
-  await nwc.initNWC();
+  await nwc.initNWC({name: 'ACME app' );
 } catch(e) {
   console.warn("Prompt closed");
 }
