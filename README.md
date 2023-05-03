@@ -33,7 +33,7 @@ The `NostrWebLNProvider` exposes the [WebLN](webln.guide/) sendPayment interface
 
 ```js
 import { webln } from "alby-js-sdk";
-const nwc = new webln.NostrWebLNProvider({ nostrWalletConnectUrl: loadNWCUrl });
+const nwc = new webln.NostrWebLNProvider({ nostrWalletConnectUrl: loadNWCUrl() }); // loadNWCUrl is some function to get the NWC URL from some (encrypted) storage
 // or use the short version 
 const nwc = new webln.NWC({ nostrWalletConnectUrl: loadNWCUrl });
 
