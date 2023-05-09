@@ -34,7 +34,7 @@ The `NostrWebLNProvider` exposes the [WebLN](webln.guide/) sendPayment interface
 ```js
 import { webln } from "alby-js-sdk";
 const nwc = new webln.NostrWebLNProvider({ nostrWalletConnectUrl: loadNWCUrl() }); // loadNWCUrl is some function to get the NWC URL from some (encrypted) storage
-// or use the short version 
+// or use the short version
 const nwc = new webln.NWC({ nostrWalletConnectUrl: loadNWCUrl });
 
 // connect to the relay
@@ -68,7 +68,7 @@ await nwc.initNWC();
 ```
 
 #### sendPayment(invice: string)
-Takes a bolt11 invoice and calls the NWC `pay_invoice` function. 
+Takes a bolt11 invoice and calls the NWC `pay_invoice` function.
 It returns a promise object that is resolved with an object with the preimage or is rejected with an error
 
 ##### Example
@@ -84,10 +84,10 @@ console.log(response);
 Returns the `nostr+walletconnect://` URL which includes all the connection information (`walletPubkey`, `relayUrl`, `secret`)
 This can be used to get and persist the string for later use.
 
-#### initNWC({name: string}) 
-Opens a new window prompt with the `getAuthorizationUrl()` (the user's NWC UI) to ask the user to authorize the app connection. 
-The promise resolves when the connection is authorized and the popup sends a `nwc:success` message or rejects when the prompt is closed. 
-Pass a `name` to the NWC provider describing the application. 
+#### initNWC({name: string})
+Opens a new window prompt with the `getAuthorizationUrl()` (the user's NWC UI) to ask the user to authorize the app connection.
+The promise resolves when the connection is authorized and the popup sends a `nwc:success` message or rejects when the prompt is closed.
+Pass a `name` to the NWC provider describing the application.
 
 ```js
 const nwc = NostrWebLNProvider.withNewSecret();
@@ -160,7 +160,7 @@ const webln = webln.NostrWebLNProvider.withNewSecret();
 
 // get the connect URL to the interface where the user has to enable the connection
 webln.getConnectUrl({ name: `My app name` });
-// an optional return_to parameter can be passed in 
+// an optional return_to parameter can be passed in
 webln.getConnectUrl({ name: `My app name`, returnTo: document.location.toString() });
 
 // or use the `initNWC` helper which opens a popup to initiate the connection flow.
@@ -181,6 +181,24 @@ await webln.initNWC("alby", {
 Please have a look a the Alby OAuth2 Wallet API:
 
 [https://guides.getalby.com/alby-wallet-api/reference/getting-started](https://guides.getalby.com/alby-wallet-api/reference/getting-started)
+
+
+### Avalilable methods
+
+* accountBalance
+* accountSummary
+* accountInformation
+* accountValue4Value
+* incomingInvoices
+* outgoingInvoices
+* getInvoice
+* createInvoice
+* keysend
+* sendPayment
+* sendBoostagram
+* sendToAlbyAccount
+* createWebhookEndpoint
+* deleteWebhookEndpoint
 
 
 ### Examples
