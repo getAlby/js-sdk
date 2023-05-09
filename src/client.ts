@@ -1,6 +1,7 @@
 import { rest, RequestOptions } from "./request";
 import {
   AuthClient,
+  CreateWebhookEndpointParams,
   InvoiceRequestParams,
   KeysendRequestParams,
   SendPaymentRequestParams,
@@ -186,5 +187,25 @@ export class Client {
     });
   }
 
+  createWebhookEndpoint(params: CreateWebhookEndpointParams, request_options?: Partial<RequestOptions>) {
+    return rest({
+      auth: this.auth,
+      ...this.defaultRequestOptions,
+      ...request_options,
+      endpoint: `/webhook_endpoints`,
+      request_body: params,
+      method: "POST",
+    });
+  }
+
+  deleteWebhookEndpoint(id: string, request_options?: Partial<RequestOptions>) {
+    return rest({
+      auth: this.auth,
+      ...this.defaultRequestOptions,
+      ...request_options,
+      endpoint: `/webhook_endpoints/${id}`,
+      method: "DELETE",
+    });
+  }
 
 }

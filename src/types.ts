@@ -118,3 +118,7 @@ export type SendToAlbyRequestParams = {
   memo?: string;
 }
 
+export type CreateWebhookEndpointParams = {
+  url: string;
+  filter_types: string[];
+}
