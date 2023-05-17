@@ -196,7 +196,7 @@ export class NostrWebLNProvider {
       function replyTimeout() {
         sub.unsub();
         //console.error(`Reply timeout: event ${event.id} `);
-        reject(`reply timeout: event ${event.id}`);
+        reject({error: `reply timeout: event ${event.id}`, code: "INTERNAL"});
       }
 
       let replyTimeoutCheck = setTimeout(replyTimeout, 60000);
