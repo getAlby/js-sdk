@@ -346,6 +346,9 @@ console.log(response.keysends);
 }
 ```
 
+## fetch
+This library relies on a global fetch object which will only work in newer browsers and versions of node. You can manually install a global fetch option or polyfill if needed.
+
 
 ## Full usage examples
 
