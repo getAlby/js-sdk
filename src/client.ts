@@ -6,7 +6,9 @@ import {
   KeysendRequestParams,
   SendPaymentRequestParams,
   SendBoostagramRequestParams,
-  SendToAlbyRequestParams
+  SendToAlbyRequestParams,
+  CreateWebhookEndpointResponse,
+  BaseWebhookEndpointResponse
 } from "./types";
 import { keysendParamsFromBoostagram } from "./helpers";
 import { OAuth2Bearer } from "./auth";
@@ -187,7 +189,7 @@ export class Client {
     });
   }
 
-  createWebhookEndpoint(params: CreateWebhookEndpointParams, request_options?: Partial<RequestOptions>) {
+  createWebhookEndpoint(params: CreateWebhookEndpointParams, request_options?: Partial<RequestOptions>): Promise<CreateWebhookEndpointResponse> {
     return rest({
       auth: this.auth,
       ...this.defaultRequestOptions,
@@ -198,7 +200,7 @@ export class Client {
     });
   }
 
-  deleteWebhookEndpoint(id: string, request_options?: Partial<RequestOptions>) {
+  deleteWebhookEndpoint(id: string, request_options?: Partial<RequestOptions>): Promise<BaseWebhookEndpointResponse>  {
     return rest({
       auth: this.auth,
       ...this.defaultRequestOptions,
