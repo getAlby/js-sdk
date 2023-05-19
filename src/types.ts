@@ -156,7 +156,7 @@ export type Invoice = {
     boost_link?: string;
     url?: string;
     guid?: string;
-  };
+  } & Record<string, unknown>;
   comment?: string;
   created_at: string;
   creation_date: number;
@@ -180,4 +180,9 @@ export type Invoice = {
   state: string;
   type: string;
   value: number;
-};
+  metadata?: {
+    // TODO: add typings
+    payer_data?: unknown;
+    zap_request?: unknown;
+  }
+} & Record<string, unknown>;
