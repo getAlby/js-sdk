@@ -10,6 +10,7 @@ export interface RequestOptions extends Omit<RequestInit, "body"> {
   auth?: AuthClient;
   endpoint: string;
   params?: Record<string, any>;
+  user_agent?: string;
   request_body?: Record<string, any>;
   method?: string;
   max_retries?: number;
@@ -62,6 +63,7 @@ export async function request({
   method,
   max_retries,
   base_url = BASE_URL,
+  user_agent,
   headers,
   ...options
 }: RequestOptions): Promise<Response> {
@@ -77,6 +79,9 @@ export async function request({
       headers: {
         ...(isPost
           ? { "Content-Type": "application/json; charset=utf-8" }
+          : undefined),
+        ...(user_agent
+          ? { "User-Agent": user_agent }
           : undefined),
         ...authHeader,
         ...headers,
