@@ -81,7 +81,7 @@ export async function request({
           ? { "Content-Type": "application/json; charset=utf-8" }
           : undefined),
         ...(user_agent
-          ? { "User-Agent": user_agent }
+          ? { "User-Agent": user_agent, "X-User-Agent": user_agent }
           : undefined),
         ...authHeader,
         ...headers,
