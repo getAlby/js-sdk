@@ -124,8 +124,8 @@ import 'websocket-polyfill';
 if you get an `crypto is not defined` error you have to import it first:
 
 ```js
-import * as crypto from 'node:crypto';
-global.crypto = crypto;
+import * as crypto from 'crypto'; // or 'node:crypto'
+globalThis.crypto = crypto as any;
 //or: global.crypto = require('crypto');
 ```
 
