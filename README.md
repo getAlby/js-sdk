@@ -10,6 +10,9 @@ This JavaScript SDK for the Alby OAuth2 Wallet API and the Nostr Wallet Connect 
 npm install alby-js-sdk
 ```
 
+## Alby developer guide
+Read the [Alby developer guide](https://guides.getalby.com/overall-guide/alby-for-developers/getting-started) to better understand how Alby packages and APIs can be used to power your app.
+
 ## Nostr Wallet Connect Documentation
 
 Nostr Wallet Connect is an open protocol enabling applications to interact with bitcoin lightning wallets. It allows users to connect their existing wallets to your application allowing developers to easily integrate bitcoin lightning functionality.
