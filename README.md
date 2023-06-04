@@ -10,6 +10,8 @@ This JavaScript SDK for the Alby OAuth2 Wallet API and the Nostr Wallet Connect 
 npm install alby-js-sdk
 ```
 
+**This library relies on a global fetch() function which will work in browsers and node v18.x or newer.** (In older versions you have to use a polyfill.)
+
 ## Nostr Wallet Connect Documentation
 
 Nostr Wallet Connect is an open protocol enabling applications to interact with bitcoin lightning wallets. It allows users to connect their existing wallets to your application allowing developers to easily integrate bitcoin lightning functionality.
@@ -346,8 +348,8 @@ console.log(response.keysends);
 }
 ```
 
-## fetch
-This library relies on a global fetch object which will only work in newer browsers and versions of node. You can manually install a global fetch option or polyfill if needed.
+## fetch() dependency
+This library relies on a global `fetch()` function which will only work in browsers and node v18.x or newer. In older versions you can manually install a global fetch option or polyfill if needed.
 
 For example:
 ```js
