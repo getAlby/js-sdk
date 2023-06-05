@@ -80,9 +80,10 @@ export async function request({
         ...(isPost
           ? { "Content-Type": "application/json; charset=utf-8" }
           : undefined),
-        ...(user_agent
-          ? { "User-Agent": user_agent, "X-User-Agent": user_agent }
-          : undefined),
+        ...{
+          "User-Agent": user_agent ?? "alby-js-api",
+          "X-User-Agent": user_agent ?? "alby-js-api"
+        },
         ...authHeader,
         ...headers,
       },
