@@ -9,6 +9,7 @@ export interface RequestOptions extends Omit<RequestInit, "body"> {
   auth?: AuthClient;
   endpoint: string;
   params?: Record<string, any>;
+  user_agent?: string;
   request_body?: Record<string, any>;
   method?: string;
   max_retries?: number;
@@ -61,6 +62,7 @@ export async function request({
   method,
   max_retries,
   base_url = BASE_URL,
+  user_agent,
   headers,
   ...options
 }: RequestOptions): Promise<Response> {
@@ -79,6 +81,10 @@ export async function request({
           : undefined),
         ...authHeader,
         ...headers,
+        ...{
+          "User-Agent": user_agent ?? "alby-js-api",
+          "X-User-Agent": user_agent ?? "alby-js-api"
+        },
       },
       method,
       body: isPost ? JSON.stringify(request_body) : undefined,

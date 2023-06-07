@@ -19,6 +19,7 @@ export interface OAuth2UserOptions {
   callback: string;
   scopes: OAuth2Scopes[];
   request_options?: Partial<RequestOptions>;
+  user_agent: string;
   token?: Token;
 }
 
@@ -48,7 +49,7 @@ export class OAuth2User implements OAuthClient {
    */
   async refreshAccessToken(): Promise<{ token: Token }> {
     const refresh_token = this.token?.refresh_token;
-    const { client_id, client_secret, request_options } = this.options;
+    const { client_id, client_secret, request_options, user_agent } = this.options;
     if (!client_id) {
       throw new Error("client_id is required");
     }
@@ -63,6 +64,7 @@ export class OAuth2User implements OAuthClient {
         grant_type: "refresh_token",
         refresh_token,
       },
+      user_agent,
       method: "POST",
       headers: {
         ...request_options?.headers,
@@ -91,7 +93,7 @@ export class OAuth2User implements OAuthClient {
    * Request an access token
    */
   async requestAccessToken(code?: string): Promise<{ token: Token }> {
-    const { client_id, client_secret, callback, request_options } =
+    const { client_id, client_secret, callback, request_options, user_agent } =
       this.options;
     const code_verifier = this.code_verifier;
     if (!client_id) {
@@ -111,6 +113,7 @@ export class OAuth2User implements OAuthClient {
       ...request_options,
       endpoint: `/oauth/token`,
       params,
+      user_agent,
       method: "POST",
       headers: {
         ...request_options?.headers,

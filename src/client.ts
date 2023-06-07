@@ -25,10 +25,7 @@ export class Client {
     this.auth = typeof auth === "string" ? new OAuth2Bearer(auth) : auth;
     this.defaultRequestOptions = {
       ...requestOptions,
-      headers: {
-        "User-Agent": "alby-js-api",
-        ...requestOptions?.headers,
-      },
+      user_agent: requestOptions?.user_agent
     };
   }
 
