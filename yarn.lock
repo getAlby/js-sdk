@@ -1185,6 +1185,11 @@
   dependencies:
     "@types/node" "*"
 
+"@webbtc/webln-types@^1.0.11":
+  version "1.0.11"
+  resolved "https://registry.yarnpkg.com/@webbtc/webln-types/-/webln-types-1.0.11.tgz#9b925725bfc6cc5ac7dce6dd6741652feb60dd76"
+  integrity sha512-IxIV3XVVS/888+ipnQ6XvVW4W5RFD1Dw3cQe8PWlEn9BT7U6TTIFXxS6ZidRc2i0vQlixJLe1jDD/BARbjywyQ==
+
 accepts@~1.3.8:
   version "1.3.8"
   resolved "https://registry.yarnpkg.com/accepts/-/accepts-1.3.8.tgz#0bf0be125b67014adcb0b0921e62db7bffe16b2e"

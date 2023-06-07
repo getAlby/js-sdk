@@ -130,8 +130,8 @@ import 'websocket-polyfill';
 if you get an `crypto is not defined` error you have to import it first:
 
 ```js
-import * as crypto from 'node:crypto';
-global.crypto = crypto;
+import * as crypto from 'crypto'; // or 'node:crypto'
+globalThis.crypto = crypto as any;
 //or: global.crypto = require('crypto');
 ```
 
@@ -381,6 +381,7 @@ We are happy to help, please contact us or create an issue.
 * [Telegram group](https://t.me/getAlby)
 * support at getalby.com
 * [bitcoin.design](https://bitcoin.design/) Slack community [#lightning-browser-extension](https://bitcoindesign.slack.com/archives/C02591ADXM2)
+* Read the [Alby developer guide](https://guides.getalby.com/overall-guide/alby-for-developers/getting-started) to better understand how Alby packages and APIs can be used to power your app.
 
 
 ## Thanks

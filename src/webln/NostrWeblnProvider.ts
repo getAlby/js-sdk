@@ -10,6 +10,8 @@ import {
   Event,
   UnsignedEvent
 } from 'nostr-tools';
+import { KeysendArgs, RequestInvoiceArgs, RequestInvoiceResponse, RequestMethod, SendPaymentResponse, SignMessageResponse, WebLNNode, WebLNProvider } from "@webbtc/webln-types";
+import { GetInfoResponse } from '@webbtc/webln-types';
 
 const NWCs: Record<string,NostrWebLNOptions> = {
   alby: {
@@ -26,7 +28,7 @@ interface NostrWebLNOptions {
   secret?: string;
 };
 
-export class NostrWebLNProvider {
+export class NostrWebLNProvider implements WebLNProvider {
   relay: Relay;
   relayUrl: string;
   secret: string | undefined;
@@ -112,7 +114,7 @@ export class NostrWebLNProvider {
     return getPublicKey(this.secret);
   }
 
-  signEvent(event: Event) {
+  signEvent(event: UnsignedEvent) {
     if (!this.secret) {
       throw new Error("Missing secret key");
     }
@@ -152,10 +154,10 @@ export class NostrWebLNProvider {
 
   // WebLN compatible response
   // TODO: use NIP-47 get_info call
-  async getInfo() {
+  async getInfo(): Promise<GetInfoResponse> {
     return {
       methods: ["getInfo", "sendPayment"],
-      node: {},
+      node: {} as WebLNNode,
       supports: ["lightning"],
       version: "NWC"
     }
@@ -164,7 +166,7 @@ export class NostrWebLNProvider {
   sendPayment(invoice: string) {
     this.checkConnected();
 
-    return new Promise(async (resolve, reject) => {
+    return new Promise<SendPaymentResponse>(async (resolve, reject) => {
       const command = {
         "method": "pay_invoice",
         "params": {
@@ -241,6 +243,26 @@ export class NostrWebLNProvider {
         clearTimeout(publishTimeoutCheck);
       });
     });
+  }
+
+  // not-yet implemented WebLN interface methods
+  keysend(args: KeysendArgs): Promise<SendPaymentResponse> {
+    throw new Error('Method not implemented.');
+  }
+  lnurl(lnurl: string): Promise<{ status: 'OK'; } | { status: 'ERROR'; reason: string; }> {
+    throw new Error('Method not implemented.');
+  }
+  makeInvoice(args: string | number | RequestInvoiceArgs): Promise<RequestInvoiceResponse> {
+    throw new Error('Method not implemented.');
+  }
+  request(method: RequestMethod, args?: unknown): Promise<unknown> {
+    throw new Error('Method not implemented.');
+  }
+  signMessage(message: string): Promise<SignMessageResponse> {
+    throw new Error('Method not implemented.');
+  }
+  verifyMessage(signature: string, message: string): Promise<void> {
+    throw new Error('Method not implemented.');
   }
 
   getAuthorizationUrl(options: { name?: string, returnTo?: string }) {
