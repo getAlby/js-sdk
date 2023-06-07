@@ -10,8 +10,14 @@ This JavaScript SDK for the Alby OAuth2 Wallet API and the Nostr Wallet Connect 
 npm install alby-js-sdk
 ```
 
-## Alby developer guide
-Read the [Alby developer guide](https://guides.getalby.com/overall-guide/alby-for-developers/getting-started) to better understand how Alby packages and APIs can be used to power your app.
+**This library relies on a global fetch() function which will work in browsers and node v18.x or newer.** (In older versions you have to use a polyfill.)
+
+## Content
+
+* [Nostr Wallet Connect](#nostr-wallet-connect-documentation)
+* [Alby OAuth API](#oauth-api-documentation)
+* [Need help?](#need-help)
+
 
 ## Nostr Wallet Connect Documentation
 
@@ -349,8 +355,8 @@ console.log(response.keysends);
 }
 ```
 
-## fetch
-This library relies on a global fetch object which will only work in newer browsers and versions of node. You can manually install a global fetch option or polyfill if needed.
+## fetch() dependency
+This library relies on a global `fetch()` function which will only work in browsers and node v18.x or newer. In older versions you can manually install a global fetch option or polyfill if needed.
 
 For example:
 ```js
@@ -375,6 +381,7 @@ We are happy to help, please contact us or create an issue.
 * [Telegram group](https://t.me/getAlby)
 * support at getalby.com
 * [bitcoin.design](https://bitcoin.design/) Slack community [#lightning-browser-extension](https://bitcoindesign.slack.com/archives/C02591ADXM2)
+* Read the [Alby developer guide](https://guides.getalby.com/overall-guide/alby-for-developers/getting-started) to better understand how Alby packages and APIs can be used to power your app.
 
 
 ## Thanks
