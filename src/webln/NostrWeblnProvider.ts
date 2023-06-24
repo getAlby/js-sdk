@@ -266,7 +266,7 @@ export class NostrWebLNProvider implements WebLNProvider {
     throw new Error('Method not implemented.');
   }
 
-  getAuthorizationUrl(options: GetNWCAuthorizationUrlOptions) {
+  getAuthorizationUrl(options?: GetNWCAuthorizationUrlOptions) {
     if (!this.options.authorizationUrl) {
       throw new Error("Missing authorizationUrl option");
     }
@@ -279,16 +279,16 @@ export class NostrWebLNProvider implements WebLNProvider {
       url.searchParams.set('return_to', options.returnTo);
     }
 
-    if (options.budgetRenewal) {
+    if (options?.budgetRenewal) {
       url.searchParams.set("budget_renewal", options.budgetRenewal)
     }
-    if (options.expiresAt) {
+    if (options?.expiresAt) {
       url.searchParams.set("expires_at", options.expiresAt.toISOString())
     }
-    if (options.maxAmount) {
+    if (options?.maxAmount) {
       url.searchParams.set("max_amount", options.maxAmount.toString())
     }
-    if (options.editable !== undefined) {
+    if (options?.editable !== undefined) {
       url.searchParams.set("editable", options.editable.toString())
     }
 
