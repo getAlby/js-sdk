@@ -186,3 +186,12 @@ export type Invoice = {
     zap_request?: unknown;
   }
 } & Record<string, unknown>;
+
+export type GetNWCAuthorizationUrlOptions = {
+  name?: string;
+  returnTo?: string;
+  expiresAt?: Date;
+  maxAmount?: number;
+  budgetRenewal?: "never" | "daily" | "weekly" | "monthly" | "yearly";
+  editable?: boolean;
+};
