@@ -186,3 +186,31 @@ export type Invoice = {
     zap_request?: unknown;
   }
 } & Record<string, unknown>;
+
+export type SendPaymentResponse = {
+  amount: number;
+  description: string;
+  destination: string;
+  fee: number;
+  payment_hash: string;
+  payment_preimage: string;
+  payment_request: string;
+}
+
+export type GetAccountBalanceResponse = {
+  balance: number;
+  currency: string;
+  unit: string;
+}
+
+export type GetAccountInformationResponse = {
+  identifier: string;
+  email: string;
+  name?: string;
+  avatar?: string;
+  keysend_custom_key: string;
+  keysend_custom_value: string;
+  keysend_pubkey: string;
+  lightning_address?: string;
+  nostr_pubkey?: string;
+}

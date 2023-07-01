@@ -8,7 +8,11 @@ import {
   SendBoostagramRequestParams,
   SendToAlbyRequestParams,
   CreateWebhookEndpointResponse,
-  BaseWebhookEndpointResponse
+  BaseWebhookEndpointResponse,
+  SendPaymentResponse,
+  Invoice,
+  GetAccountBalanceResponse,
+  GetAccountInformationResponse
 } from "./types";
 import { keysendParamsFromBoostagram } from "./helpers";
 import { OAuth2Bearer } from "./auth";
@@ -29,7 +33,7 @@ export class Client {
     };
   }
 
-  accountBalance(params: {}, request_options?: Partial<RequestOptions>) {
+  accountBalance(params: {}, request_options?: Partial<RequestOptions>): Promise<GetAccountBalanceResponse> {
     return rest({
       auth: this.auth,
       ...this.defaultRequestOptions,
@@ -51,7 +55,7 @@ export class Client {
     });
   }
 
-  accountInformation(params: {}, request_options?: Partial<RequestOptions>) {
+  accountInformation(params: {}, request_options?: Partial<RequestOptions>): Promise<GetAccountInformationResponse> {
     return rest({
       auth: this.auth,
       ...this.defaultRequestOptions,
@@ -73,7 +77,7 @@ export class Client {
     });
   }
 
-  incomingInvoices(params: {}, request_options?: Partial<RequestOptions>) {
+  incomingInvoices(params: {}, request_options?: Partial<RequestOptions>): Promise<Invoice[]> {
     return rest({
       auth: this.auth,
       ...this.defaultRequestOptions,
@@ -84,7 +88,7 @@ export class Client {
     });
   }
 
-  outgoingInvoices(params: {}, request_options?: Partial<RequestOptions>) {
+  outgoingInvoices(params: {}, request_options?: Partial<RequestOptions>): Promise<Invoice[]> {
     return rest({
       auth: this.auth,
       ...this.defaultRequestOptions,
@@ -95,7 +99,7 @@ export class Client {
     });
   }
 
-  getInvoice(paymentHash: string, request_options?: Partial<RequestOptions>) {
+  getInvoice(paymentHash: string, request_options?: Partial<RequestOptions>): Promise<Invoice> {
     return rest({
       auth: this.auth,
       ...this.defaultRequestOptions,
@@ -105,7 +109,7 @@ export class Client {
     });
   }
 
-  createInvoice(invoice: InvoiceRequestParams, request_options?: Partial<RequestOptions>) {
+  createInvoice(invoice: InvoiceRequestParams, request_options?: Partial<RequestOptions>): Promise<Invoice> {
     return rest({
       auth: this.auth,
       ...this.defaultRequestOptions,
@@ -116,7 +120,7 @@ export class Client {
     });
   }
 
-  keysend(args: KeysendRequestParams | KeysendRequestParams[], request_options?: Partial<RequestOptions>) {
+  keysend(args: KeysendRequestParams | KeysendRequestParams[], request_options?: Partial<RequestOptions>): Promise<SendPaymentResponse> {
     let endpoint, request_body;
     if (Array.isArray(args)) {
       endpoint = "/payments/keysend/multi";
@@ -135,7 +139,7 @@ export class Client {
     });
   }
 
-  sendPayment(params: SendPaymentRequestParams, request_options?: Partial<RequestOptions>) {
+  sendPayment(params: SendPaymentRequestParams, request_options?: Partial<RequestOptions>): Promise<SendPaymentResponse> {
     return rest({
       auth: this.auth,
       ...this.defaultRequestOptions,
