@@ -283,7 +283,7 @@ export class NostrWebLNProvider implements WebLNProvider {
       url.searchParams.set("budget_renewal", options.budgetRenewal)
     }
     if (options?.expiresAt) {
-      url.searchParams.set("expires_at", options.expiresAt.toISOString())
+      url.searchParams.set("expires_at", Math.floor(options.expiresAt.getTime() / 1000).toString())
     }
     if (options?.maxAmount) {
       url.searchParams.set("max_amount", options.maxAmount.toString())

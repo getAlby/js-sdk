@@ -12,6 +12,6 @@ describe("isValidAmount", () => {
       maxAmount: 100,
       name: "TestApp",
       returnTo: "https://example.com"
-    }).toString()).toEqual("https://nwc.getalby.com/apps/new?c=TestApp&pubkey=c5dc47856f533dad6c016b979ee3b21f83f88ae0f0058001b67a4b348339fe94&return_to=https%3A%2F%2Fexample.com&budget_renewal=weekly&expires_at=2023-07-21T00%3A00%3A00.000Z&max_amount=100&editable=false");
+    }).toString()).toEqual("https://nwc.getalby.com/apps/new?c=TestApp&pubkey=c5dc47856f533dad6c016b979ee3b21f83f88ae0f0058001b67a4b348339fe94&return_to=https%3A%2F%2Fexample.com&budget_renewal=weekly&expires_at=1689897600&max_amount=100&editable=false");
   });
 });
