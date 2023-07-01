@@ -12,6 +12,7 @@ import {
 } from 'nostr-tools';
 import { KeysendArgs, RequestInvoiceArgs, RequestInvoiceResponse, RequestMethod, SendPaymentResponse, SignMessageResponse, WebLNNode, WebLNProvider } from "@webbtc/webln-types";
 import { GetInfoResponse } from '@webbtc/webln-types';
+import { GetNWCAuthorizationUrlOptions } from '../types';
 
 const NWCs: Record<string,NostrWebLNOptions> = {
   alby: {
@@ -265,7 +266,7 @@ export class NostrWebLNProvider implements WebLNProvider {
     throw new Error('Method not implemented.');
   }
 
-  getAuthorizationUrl(options: { name?: string, returnTo?: string }) {
+  getAuthorizationUrl(options?: GetNWCAuthorizationUrlOptions) {
     if (!this.options.authorizationUrl) {
       throw new Error("Missing authorizationUrl option");
     }
@@ -277,10 +278,26 @@ export class NostrWebLNProvider implements WebLNProvider {
     if (options?.returnTo) {
       url.searchParams.set('return_to', options.returnTo);
     }
+
+    if (options?.budgetRenewal) {
+      url.searchParams.set("budget_renewal", options.budgetRenewal)
+    }
+    if (options?.expiresAt) {
+      url.searchParams.set("expires_at", Math.floor(options.expiresAt.getTime() / 1000).toString())
+    }
+    if (options?.maxAmount) {
+      url.searchParams.set("max_amount", options.maxAmount.toString())
+    }
+    if (options?.editable !== undefined) {
+      url.searchParams.set("editable", options.editable.toString())
+    }
+
     return url;
   }
 
-  initNWC(options: { name?: string, returnTo?: string } = {}) {
+  
+
+  initNWC(options: GetNWCAuthorizationUrlOptions = {}) {
     // here we assume an browser context and window/document is available
     // we set the location.host as a default name if none is given
     if (!options.name) {

@@ -187,6 +187,15 @@ export type Invoice = {
   }
 } & Record<string, unknown>;
 
+export type GetNWCAuthorizationUrlOptions = {
+  name?: string;
+  returnTo?: string;
+  expiresAt?: Date;
+  maxAmount?: number;
+  budgetRenewal?: "never" | "daily" | "weekly" | "monthly" | "yearly";
+  editable?: boolean;
+};
+
 export type SendPaymentResponse = {
   amount: number;
   description: string;
