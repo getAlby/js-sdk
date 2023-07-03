@@ -77,9 +77,6 @@ export class OauthWeblnProvider {
     try {
       this.isExecuting = true;
       const result = await this.client.keysend(params);
-      if (result.error) {
-        throw new Error(result.message);
-      }
       this.notify('keysend', result);
       return {
         preimage: result.payment_preimage
