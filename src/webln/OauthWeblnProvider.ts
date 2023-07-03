@@ -59,9 +59,6 @@ export class OauthWeblnProvider {
     try {
       this.isExecuting = true;
       const result = await this.client.sendPayment({ invoice });
-      if (result.error) {
-        throw new Error(result.message);
-      }
       this.notify('sendPayment', result);
       return {
         preimage: result.payment_preimage
