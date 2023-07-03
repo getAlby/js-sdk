@@ -1,14 +1,14 @@
 import {
   nip04,
   relayInit,
-  signEvent,
   getEventHash,
   nip19,
   generatePrivateKey,
-  getPublicKey,
+  getPublicKey as getPublicKeySync,
   Relay,
   Event,
-  UnsignedEvent
+  UnsignedEvent,
+  finishEvent
 } from 'nostr-tools';
 import { KeysendArgs, RequestInvoiceArgs, RequestInvoiceResponse, RequestMethod, SendPaymentResponse, SignMessageResponse, WebLNNode, WebLNProvider } from "@webbtc/webln-types";
 import { GetInfoResponse } from '@webbtc/webln-types';
@@ -29,7 +29,12 @@ interface NostrWebLNOptions {
   secret?: string;
 };
 
-export class NostrWebLNProvider implements WebLNProvider {
+type Nip07Provider = {
+  getPublicKey(): Promise<string>;
+  signEvent(event: UnsignedEvent): Promise<Event>;
+}
+
+export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
   relay: Relay;
   relayUrl: string;
   secret: string | undefined;
@@ -112,14 +117,19 @@ export class NostrWebLNProvider implements WebLNProvider {
     if (!this.secret) {
       throw new Error("Missing secret key");
     }
-    return getPublicKey(this.secret);
+    return getPublicKeySync(this.secret);
   }
 
-  signEvent(event: UnsignedEvent) {
+  getPublicKey(): Promise<string> {
+    return Promise.resolve(this.publicKey);
+  }
+
+  signEvent(event: UnsignedEvent): Promise<Event> {
     if (!this.secret) {
       throw new Error("Missing secret key");
     }
-    return signEvent(event, this.secret)
+    
+    return Promise.resolve(finishEvent(event, this.secret));
   }
 
   getEventHash(event: Event) {
