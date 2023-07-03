@@ -4,7 +4,7 @@ import {
   getEventHash,
   nip19,
   generatePrivateKey,
-  getPublicKey as getPublicKeySync,
+  getPublicKey,
   Relay,
   Event,
   UnsignedEvent,
@@ -117,7 +117,7 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
     if (!this.secret) {
       throw new Error("Missing secret key");
     }
-    return getPublicKeySync(this.secret);
+    return getPublicKey(this.secret);
   }
 
   getPublicKey(): Promise<string> {
