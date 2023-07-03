@@ -38,45 +38,61 @@ export class OAuth2User implements OAuthClient {
   options: OAuth2UserOptions;
   code_verifier?: string;
   code_challenge?: string;
+  private _refreshAccessTokenPromise: Promise<{token: Token}> | null;
   constructor(options: OAuth2UserOptions) {
     const { token, ...defaultOptions } = options;
     this.options = {client_secret: '', ...defaultOptions};
     this.token = token;
+    this._refreshAccessTokenPromise = null;
   }
 
   /**
    * Refresh the access token
    */
   async refreshAccessToken(): Promise<{ token: Token }> {
-    const refresh_token = this.token?.refresh_token;
-    const { client_id, client_secret, request_options, user_agent } = this.options;
-    if (!client_id) {
-      throw new Error("client_id is required");
+    if (this._refreshAccessTokenPromise) {
+      return this._refreshAccessTokenPromise;
     }
-    if (!refresh_token) {
-      throw new Error("refresh_token is required");
-    }
-    const data = await rest<GetTokenResponse>({
-      ...request_options,
-      endpoint: `/oauth/token`,
-      params: {
-        client_id,
-        grant_type: "refresh_token",
-        refresh_token,
-      },
-      user_agent,
-      method: "POST",
-      headers: {
-        ...request_options?.headers,
-        "Content-type": "application/x-www-form-urlencoded",
-        ...{
-          Authorization: basicAuthHeader(client_id, client_secret),
-        },
-      },
-    });
-    const token = processTokenResponse(data);
-    this.token = token;
-    return { token };
+    this._refreshAccessTokenPromise = new Promise(async (resolve, reject) => {
+      try {
+        const refresh_token = this.token?.refresh_token;
+        const { client_id, client_secret, request_options, user_agent } = this.options;
+        if (!client_id) {
+          throw new Error("client_id is required");
+        }
+        if (!refresh_token) {
+          throw new Error("refresh_token is required");
+        }
+        const data = await rest<GetTokenResponse>({
+          ...request_options,
+          endpoint: `/oauth/token`,
+          params: {
+            client_id,
+            grant_type: "refresh_token",
+            refresh_token,
+          },
+          user_agent,
+          method: "POST",
+          headers: {
+            ...request_options?.headers,
+            "Content-type": "application/x-www-form-urlencoded",
+            ...{
+              Authorization: basicAuthHeader(client_id, client_secret),
+            },
+          },
+        });
+        const token = processTokenResponse(data);
+        this.token = token;
+        resolve({token});
+      }
+      catch(error) {
+        reject(error);
+      }
+      finally {
+        this._refreshAccessTokenPromise = null;
+      }
+    })
+    return this._refreshAccessTokenPromise;
   }
 
   /**
