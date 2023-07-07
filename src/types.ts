@@ -1,3 +1,4 @@
+import { AlbyResponseError } from "./AlbyResponseError";
 
 export type SuccessStatus = 200 | 201;
 export type ResponseType = "application/json";
@@ -224,22 +225,4 @@ export type GetAccountInformationResponse = {
   nostr_pubkey?: string;
 }
 
-
-export class AlbyResponseError extends Error {
-  status: number;
-  statusText: string;
-  headers: Record<string, any>;
-  error: any; // todo: typeable?
-  constructor(
-    status: number,
-    statusText: string,
-    headers: Headers,
-    error: any
-  ) {
-    super([status.toString(), statusText, error.message ? error.message : JSON.stringify(error)].filter(text => text).join(" "));
-    this.status = status;
-    this.statusText = statusText;
-    this.headers = headers;
-    this.error = error;
-  }
-}
+export { AlbyResponseError };
