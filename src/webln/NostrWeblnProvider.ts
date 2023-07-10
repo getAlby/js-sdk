@@ -219,7 +219,7 @@ export class NostrWebLNProvider implements WebLNProvider {
         // @ts-ignore // event is still unknown in nostr-tools
         if (event.kind == 23195 && response.result?.preimage) {
           resolve({ preimage: response.result.preimage });
-          this.notify('sendPayment', event.content);
+          this.notify('sendPayment', response.result);
         } else {
           reject({ error: response.error?.message, code: response.error?.code });
         }
