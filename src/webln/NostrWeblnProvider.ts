@@ -1,14 +1,15 @@
 import {
   nip04,
   relayInit,
-  signEvent,
   getEventHash,
   nip19,
   generatePrivateKey,
   getPublicKey,
   Relay,
   Event,
-  UnsignedEvent
+  UnsignedEvent,
+  finishEvent,
+  Kind
 } from 'nostr-tools';
 import { KeysendArgs, RequestInvoiceArgs, RequestInvoiceResponse, RequestMethod, SendPaymentResponse, SignMessageResponse, WebLNNode, WebLNProvider } from "@webbtc/webln-types";
 import { GetInfoResponse } from '@webbtc/webln-types';
@@ -29,7 +30,12 @@ interface NostrWebLNOptions {
   secret?: string;
 };
 
-export class NostrWebLNProvider implements WebLNProvider {
+type Nip07Provider = {
+  getPublicKey(): Promise<string>;
+  signEvent(event: UnsignedEvent): Promise<Event>;
+}
+
+export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
   relay: Relay;
   relayUrl: string;
   secret: string | undefined;
@@ -115,11 +121,16 @@ export class NostrWebLNProvider implements WebLNProvider {
     return getPublicKey(this.secret);
   }
 
-  signEvent(event: UnsignedEvent) {
+  getPublicKey(): Promise<string> {
+    return Promise.resolve(this.publicKey);
+  }
+
+  signEvent(event: UnsignedEvent): Promise<Event> {
     if (!this.secret) {
       throw new Error("Missing secret key");
     }
-    return signEvent(event, this.secret)
+    
+    return Promise.resolve(finishEvent(event, this.secret));
   }
 
   getEventHash(event: Event) {
@@ -175,17 +186,15 @@ export class NostrWebLNProvider implements WebLNProvider {
         }
       };
       const encryptedCommand = await this.encrypt(this.walletPubkey, JSON.stringify(command));
-      let event: any = {
-        kind: 23194,
+      const unsignedEvent: UnsignedEvent = {
+        kind: 23194 as Kind,
         created_at: Math.floor(Date.now() / 1000),
         tags: [['p', this.walletPubkey]],
         content: encryptedCommand,
+        pubkey: this.publicKey
       };
 
-      event.pubkey = this.publicKey;
-      event.id = this.getEventHash(event);
-      event.sig = this.signEvent(event);
-
+      const event = await this.signEvent(unsignedEvent);
       // subscribe to NIP_47_SUCCESS_RESPONSE_KIND and NIP_47_ERROR_RESPONSE_KIND
       // that reference the request event (NIP_47_REQUEST_KIND)
       let sub = this.relay.sub([
