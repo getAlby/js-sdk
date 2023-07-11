@@ -8,7 +8,8 @@ import {
   Relay,
   Event,
   UnsignedEvent,
-  finishEvent
+  finishEvent,
+  Kind
 } from 'nostr-tools';
 import { KeysendArgs, RequestInvoiceArgs, RequestInvoiceResponse, RequestMethod, SendPaymentResponse, SignMessageResponse, WebLNNode, WebLNProvider } from "@webbtc/webln-types";
 import { GetInfoResponse } from '@webbtc/webln-types';
@@ -185,17 +186,15 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
         }
       };
       const encryptedCommand = await this.encrypt(this.walletPubkey, JSON.stringify(command));
-      let event: any = {
-        kind: 23194,
+      const unsignedEvent: UnsignedEvent = {
+        kind: 23194 as Kind,
         created_at: Math.floor(Date.now() / 1000),
         tags: [['p', this.walletPubkey]],
         content: encryptedCommand,
+        pubkey: this.publicKey
       };
 
-      event.pubkey = this.publicKey;
-      event.id = this.getEventHash(event);
-      event.sig = this.signEvent(event);
-
+      const event = await this.signEvent(unsignedEvent);
       // subscribe to NIP_47_SUCCESS_RESPONSE_KIND and NIP_47_ERROR_RESPONSE_KIND
       // that reference the request event (NIP_47_REQUEST_KIND)
       let sub = this.relay.sub([
