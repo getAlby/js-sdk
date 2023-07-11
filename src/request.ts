@@ -1,5 +1,6 @@
 import { buildQueryString } from "./utils";
 import {
+  AlbyResponseError,
   AuthClient,
 } from "./types";
 
@@ -33,25 +34,6 @@ async function fetchWithRetries(
     return fetchWithRetries(url, init, max_retries - 1);
   }
   return res;
-}
-
-class AlbyResponseError extends Error {
-  status: number;
-  statusText: string;
-  headers: Record<string, any>;
-  error: any; // todo: typeable?
-  constructor(
-    status: number,
-    statusText: string,
-    headers: Headers,
-    error: any
-  ) {
-    super();
-    this.status = status;
-    this.statusText = statusText;
-    this.headers = headers;
-    this.error = error;
-  }
 }
 
 export async function request({

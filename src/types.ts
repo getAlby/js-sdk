@@ -1,3 +1,4 @@
+import { AlbyResponseError } from "./AlbyResponseError";
 
 export type SuccessStatus = 200 | 201;
 export type ResponseType = "application/json";
@@ -223,3 +224,5 @@ export type GetAccountInformationResponse = {
   lightning_address?: string;
   nostr_pubkey?: string;
 }
+
+export { AlbyResponseError };
