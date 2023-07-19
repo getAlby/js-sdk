@@ -133,6 +133,27 @@ export type BaseWebhookEndpointResponse = {
   id: string,
 }
 
+export type SwapInfoResponse = {
+  service_fee_percentage: number;
+  network_fee: number;
+  sats_per_vbyte: number;
+}
+
+export type CreateSwapParams = {
+  amount: number;
+  address: string;
+  sats_per_vbyte: number;
+}
+
+export type CreateSwapResponse = {
+  address: string;
+  service_fee: number;
+  network_fee: number;
+  amount: number;
+  total: number;
+  invoice: string;
+}
+
 export type CreateWebhookEndpointResponse = BaseWebhookEndpointResponse & {
   endpoint_secret: string;
 }

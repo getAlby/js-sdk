@@ -12,7 +12,10 @@ import {
   SendPaymentResponse,
   Invoice,
   GetAccountBalanceResponse,
-  GetAccountInformationResponse
+  GetAccountInformationResponse,
+  SwapInfoResponse,
+  CreateSwapParams,
+  CreateSwapResponse
 } from "./types";
 import { keysendParamsFromBoostagram } from "./helpers";
 import { OAuth2Bearer } from "./auth";
@@ -208,6 +211,27 @@ export class Client {
       ...request_options,
       endpoint: `/webhook_endpoints/${id}`,
       method: "DELETE",
+    });
+  }
+
+  getSwapInfo(request_options?: Partial<RequestOptions>): Promise<SwapInfoResponse>  {
+    return rest({
+      auth: this.auth,
+      ...this.defaultRequestOptions,
+      ...request_options,
+      endpoint: `/swap/info`,
+      method: "GET",
+    });
+  }
+  
+  createSwap(params: CreateSwapParams, request_options?: Partial<RequestOptions>): Promise<CreateSwapResponse>  {
+    return rest({
+      auth: this.auth,
+      ...this.defaultRequestOptions,
+      ...request_options,
+      endpoint: `/swap`,
+      method: "POST",
+      request_body: params,
     });
   }
 
