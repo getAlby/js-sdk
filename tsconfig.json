@@ -12,7 +12,8 @@
     "target": "es2020",
     "rootDir": "./src",
     "sourceMap": true,
-    "moduleResolution": "node"
+    "moduleResolution": "node",
+    "outDir": "./dist"
   },
   "include": [
     "src/**/*"
