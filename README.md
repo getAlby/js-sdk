@@ -225,7 +225,7 @@ const authClient = new auth.OAuth2User({
 
 const authUrl = authClient.generateAuthURL({
   code_challenge_method: "S256",
-  authorizeUrl: "https://getalby.com/oauth" // endpoint for authorization (replace with the appropriate URL based on the environment)
+  // authorizeUrl: "https://getalby.com/oauth"  endpoint for authorization (replace with the appropriate URL based on the environment)
 });
 // open auth URL
 // `code` is passed as a query parameter when the user is redirected back aufter authorization
