@@ -144,7 +144,7 @@ export class OAuth2User implements OAuthClient {
     return { token };
   }
 
-  generateAuthURL(options: GenerateAuthUrlOptions): string {
+  generateAuthURL(options?: GenerateAuthUrlOptions): string {
     if (!options) { options = {}; }
     console.log(options);
     const { client_id, callback, scopes } = this.options;
