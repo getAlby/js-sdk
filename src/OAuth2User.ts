@@ -3,7 +3,7 @@ import { buildQueryString, basicAuthHeader } from "./utils";
 import { OAuthClient, AuthHeader, GetTokenResponse, Token, GenerateAuthUrlOptions } from "./types";
 import { RequestOptions, rest } from "./request";
 
-let AUTHORIZE_URL = "https://getalby.com/oauth";
+const AUTHORIZE_URL = "https://getalby.com/oauth";
 
 export type OAuth2Scopes =
   | "account:read"
@@ -145,7 +145,8 @@ export class OAuth2User implements OAuthClient {
   }
 
   generateAuthURL(options: GenerateAuthUrlOptions): string {
-   
+    if (!options) { options = {}; }
+    console.log(options);
     const { client_id, callback, scopes } = this.options;
     if (!callback) throw new Error("callback required");
     if (!scopes) throw new Error("scopes required");
@@ -161,11 +162,7 @@ export class OAuth2User implements OAuthClient {
       code_challenge_method = "plain";
     }
     const code_challenge = this.code_challenge;
-    if(options.testnet){
-      AUTHORIZE_URL="https://app.regtest.getalby.com/oauth"
-
-    }
-    const url = new URL(AUTHORIZE_URL);
+    const url = new URL(options.authorizeUrl || AUTHORIZE_URL);
     url.search = buildQueryString({
       ...options,
       client_id,

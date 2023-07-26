@@ -25,17 +25,15 @@ export interface Token extends Omit<GetTokenResponse, "expires_in"> {
 
 
 export type GenerateAuthUrlOptions =
-  | {
+{authorizeUrl?: string} & (|{
       code_challenge_method?: string;
       code_challenge?: string;
-      testnet: boolean;
     }
   | {
       /** A random string you provide to verify against CSRF attacks.  The length of this string can be up to 500 characters. */
       state?: string;
       /** Specifies the method you are using to make a request (S256 OR plain). */
       code_challenge_method: "S256";
-      testnet: boolean;
     }
   | {
       /** A random string you provide to verify against CSRF attacks.  The length of this string can be up to 500 characters. */
@@ -44,8 +42,7 @@ export type GenerateAuthUrlOptions =
       code_challenge: string;
       /** Specifies the method you are using to make a request (S256 OR plain). */
       code_challenge_method?: "plain";
-      testnet: boolean;
-    };
+    });
 
 export abstract class OAuthClient implements AuthClient {
   abstract token?: Token;
