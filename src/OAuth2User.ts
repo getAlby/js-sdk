@@ -162,7 +162,7 @@ export class OAuth2User implements OAuthClient {
       code_challenge_method = "plain";
     }
     const code_challenge = this.code_challenge;
-    const url = new URL(AUTHORIZE_URL);
+    const url = new URL(options.authorizeUrl || AUTHORIZE_URL);
     url.search = buildQueryString({
       ...options,
       client_id,

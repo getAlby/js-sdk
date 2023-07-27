@@ -25,7 +25,7 @@ export interface Token extends Omit<GetTokenResponse, "expires_in"> {
 
 
 export type GenerateAuthUrlOptions =
-  | {
+{authorizeUrl?: string} & (|{
       code_challenge_method?: string;
       code_challenge?: string;
     }
@@ -42,7 +42,7 @@ export type GenerateAuthUrlOptions =
       code_challenge: string;
       /** Specifies the method you are using to make a request (S256 OR plain). */
       code_challenge_method?: "plain";
-    };
+    });
 
 export abstract class OAuthClient implements AuthClient {
   abstract token?: Token;
