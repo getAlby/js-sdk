@@ -6,6 +6,7 @@ export function buildQueryString(query: Record<string, any>): string {
         ? `${key}=${value}`
         : ""
     )
+    .filter(entry => entry)
     .join("&");
 }
 
