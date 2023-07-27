@@ -115,6 +115,9 @@ export class OAuth2User implements OAuthClient {
     if (!client_id) {
       throw new Error("client_id is required");
     }
+    if (!client_secret) {
+      throw new Error("client_secret is required");
+    }
     if (!callback) {
       throw new Error("callback is required");
     }
