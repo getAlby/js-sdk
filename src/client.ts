@@ -219,7 +219,7 @@ export class Client {
       auth: this.auth,
       ...this.defaultRequestOptions,
       ...request_options,
-      endpoint: `/swap/info`,
+      endpoint: `/swaps/info`,
       method: "GET",
     });
   }
@@ -229,7 +229,7 @@ export class Client {
       auth: this.auth,
       ...this.defaultRequestOptions,
       ...request_options,
-      endpoint: `/swap`,
+      endpoint: `/swaps`,
       method: "POST",
       request_body: params,
     });
