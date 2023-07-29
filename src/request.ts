@@ -58,14 +58,13 @@ export async function request({
     url.toString(),
     {
       headers: {
-        ...(isPost
-          ? { "Content-Type": "application/json; charset=utf-8" }
-          : undefined),
+        ...
+        { "Content-Type": "application/json; charset=utf-8" },
         ...authHeader,
         ...headers,
         ...{
-          "User-Agent": user_agent ?? "alby-js-api",
-          "X-User-Agent": user_agent ?? "alby-js-api"
+          "User-Agent": user_agent ?? "@getalby/sdk",
+          "X-User-Agent": user_agent ?? "@getalby/sdk"
         },
       },
       method,
