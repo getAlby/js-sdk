@@ -33,6 +33,7 @@
   "dependencies": {
     "crypto-js": "^4.1.1",
     "nostr-tools": "1.13.1"
+    "events": "^3.3.0"
   },
   "devDependencies": {
     "@types/crypto-js": "^4.1.1",

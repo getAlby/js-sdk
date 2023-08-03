@@ -2,6 +2,7 @@ import CryptoJS from 'crypto-js';
 import { buildQueryString, basicAuthHeader } from "./utils";
 import { OAuthClient, AuthHeader, GetTokenResponse, Token, GenerateAuthUrlOptions } from "./types";
 import { RequestOptions, rest } from "./request";
+import EventEmitter from 'events';
 
 const AUTHORIZE_URL = "https://getalby.com/oauth";
 
@@ -39,13 +40,17 @@ export class OAuth2User implements OAuthClient {
   code_verifier?: string;
   code_challenge?: string;
   private _refreshAccessTokenPromise: Promise<{token: Token}> | null;
+  private _tokenEvents = new EventEmitter();
   constructor(options: OAuth2UserOptions) {
     const { token, ...defaultOptions } = options;
     this.options = {client_secret: '', ...defaultOptions};
     this.token = token;
     this._refreshAccessTokenPromise = null;
   }
-
+  
+  on(eventName: string, listener: (tokens: Token) => void) {
+    return this._tokenEvents.on(eventName, listener);
+  }
   /**
    * Refresh the access token
    */
@@ -177,7 +182,10 @@ export class OAuth2User implements OAuthClient {
 
   async getAuthHeader(): Promise<AuthHeader> {
     if (!this.token?.access_token) throw new Error("access_token is required");
-    if (this.isAccessTokenExpired()) await this.refreshAccessToken();
+    if (this.isAccessTokenExpired()){ 
+      await this.refreshAccessToken()
+      this._tokenEvents.emit("tokens", this.token);
+    };
     return {
       Authorization: `Bearer ${this.token.access_token}`,
     };
