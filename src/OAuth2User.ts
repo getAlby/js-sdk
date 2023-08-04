@@ -24,6 +24,8 @@ export interface OAuth2UserOptions {
   token?: Token;
 }
 
+export type EventName= "tokens";
+
 function processTokenResponse(token: GetTokenResponse): Token {
   const { expires_in, ...rest } = token;
   return {
@@ -47,10 +49,14 @@ export class OAuth2User implements OAuthClient {
     this.token = token;
     this._refreshAccessTokenPromise = null;
   }
-  
-  on(eventName: string, listener: (tokens: Token) => void) {
-    return this._tokenEvents.on(eventName, listener);
+
+    /**
+   * Subscribe to the events
+   */
+  async on(eventName: EventName, listener: (tokens: Token) => void): Promise<void> {
+    this._tokenEvents.on(eventName, listener);
   }
+
   /**
    * Refresh the access token
    */
