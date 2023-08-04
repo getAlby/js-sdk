@@ -228,7 +228,7 @@ const authUrl = authClient.generateAuthURL({
   // authorizeUrl: "https://getalby.com/oauth"  endpoint for authorization (replace with the appropriate URL based on the environment)
 });
 // open auth URL
-// `code` is passed as a query parameter when the user is redirected back aufter authorization
+// `code` is passed as a query parameter when the user is redirected back after authorization
 await authClient.requestAccessToken(code);
 
 // access the token response. You can store this securely for future client initializations
