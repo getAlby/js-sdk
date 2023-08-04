@@ -256,6 +256,28 @@ const client = new Client(authClient);
 const result = await client.createInvoice({amount: 1000});
 ```
 
+#### Handling refresh token 
+Access tokens do expire. If an access token is about to expire, this library will automatically use a refresh token to retrieve a fresh one. Utilising the tokens event is a simple approach to guarantee that you always save the most recent tokens:
+
+```js
+const token = loadTokenForUser(); // {access_token: string, refresh_token: string, expires_at: number}
+const authClient = new auth.OAuth2User({
+  client_id: process.env.CLIENT_ID,
+  callback: "http://localhost:8080/callback",
+  scopes: ["invoices:read", "account:read", "balance:read", "invoices:create", "invoices:read", "payments:send"],
+  token: token
+});
+
+// listen to the tokens event
+authClient.on('tokens', (tokens) => {
+  if (tokens.refresh_token) {
+    // store the tokens in database
+    console.log(tokens.refresh_token);
+  }
+  console.log(tokens.access_token);
+});
+```
+
 #### Sending payments
 
 ```js
