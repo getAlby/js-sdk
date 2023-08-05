@@ -19,7 +19,8 @@
   ],
   "exports": {
     "require": "./dist/index.cjs",
-    "default": "./dist/index.modern.js"
+    "default": "./dist/index.modern.js",
+    "types": "./dist/index.d.ts"
   },
   "scripts": {
     "prebuild": "yarn run clean",
