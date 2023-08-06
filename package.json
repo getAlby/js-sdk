@@ -6,7 +6,7 @@
   "bugs": "https://github.com/getAlby/alby-js-sdk/issues",
   "funding": {
     "type": "lightning",
-    "url": "hello@getalby.com"
+    "url": "lightning:hello@getalby.com"
   },
   "type": "module",
   "source": "src/index.ts",
