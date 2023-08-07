@@ -24,7 +24,10 @@ export interface OAuth2UserOptions {
   token?: Token;
 }
 
-export type EventName= "tokens";
+export type TokenListener = (tokens: Token) => void;
+export type TokenRefreshFailedListener = (error: Error) => void;
+export type EventName= "tokens" | "tokenRefreshFailed";
+export type Listener = TokenListener | TokenRefreshFailedListener;
 
 function processTokenResponse(token: GetTokenResponse): Token {
   const { expires_in, ...rest } = token;
@@ -53,8 +56,8 @@ export class OAuth2User implements OAuthClient {
     /**
    * Subscribe to the events
    */
-  async on(eventName: EventName, listener: (tokens: Token) => void): Promise<void> {
-    this._tokenEvents.on(eventName, listener);
+  async on(eventName: EventName, listener: Listener): Promise<void> {
+    await this._tokenEvents.on(eventName, listener);
   }
 
   /**
@@ -95,8 +98,11 @@ export class OAuth2User implements OAuthClient {
         const token = processTokenResponse(data);
         this.token = token;
         resolve({token});
+        this._tokenEvents.emit("tokens", this.token);
       }
       catch(error) {
+        console.log(error);
+        this._tokenEvents.emit("tokenRefreshFailed", error)
         reject(error);
       }
       finally {
@@ -190,7 +196,6 @@ export class OAuth2User implements OAuthClient {
     if (!this.token?.access_token) throw new Error("access_token is required");
     if (this.isAccessTokenExpired()){ 
       await this.refreshAccessToken()
-      this._tokenEvents.emit("tokens", this.token);
     };
     return {
       Authorization: `Bearer ${this.token.access_token}`,

@@ -27,7 +27,7 @@ The Alby JS SDK allows you to easily integrate Nostr Wallet Connect into any Jav
 
 The `NostrWebLNProvider` exposes the [WebLN](webln.guide/) sendPayment interface to execute lightning payments through Nostr Wallet Connect.
 
-(note: in the future more WebLN functions will be added to Nostr Wallet Connect)
+(Note: in the future more WebLN functions will be added to Nostr Wallet Connect)
 
 ### NostrWebLNProvider (aliased as NWC) Options
 
@@ -256,8 +256,13 @@ const client = new Client(authClient);
 const result = await client.createInvoice({amount: 1000});
 ```
 
-#### Handling refresh token 
-Access tokens do expire. If an access token is about to expire, this library will automatically use a refresh token to retrieve a fresh one. Utilising the tokens event is a simple approach to guarantee that you always save the most recent tokens:
+#### Handling refresh token
+
+Access tokens do expire. If an access token is about to expire, this library will automatically use a refresh token to retrieve a fresh one. Utilising the *tokens* event is a simple approach to guarantee that you always save the most recent tokens.
+
+If token refresh fails, you can restart the OAuth Authentication flow or log the error by listening for the *tokenRefreshFailed* event.
+
+(Note: To prevent losing access to the user's token, only initialize one instance of the client per token pair at a time)
 
 ```js
 const token = loadTokenForUser(); // {access_token: string, refresh_token: string, expires_at: number}
@@ -270,11 +275,14 @@ const authClient = new auth.OAuth2User({
 
 // listen to the tokens event
 authClient.on('tokens', (tokens) => {
-  if (tokens.refresh_token) {
     // store the tokens in database
-    console.log(tokens.refresh_token);
-  }
-  console.log(tokens.access_token);
+    console.log(tokens);
+});
+
+// Listen to the tokenRefreshFailed event
+authClient.on('tokenRefreshFailed', (error) => {
+    // Handle the token refresh failure, for example, log the error or launch OAuth authentication flow
+    console.error("Token refresh failed:", error.message);
 });
 ```
 
