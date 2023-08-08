@@ -1,12 +1,12 @@
 {
-  "name": "alby-js-sdk",
-  "version": "2.1.0",
+  "name": "@getalby/sdk",
+  "version": "2.1.4",
   "description": "The SDK to integrate with Nostr Wallet Connect and the Alby API",
   "repository": "https://github.com/getAlby/alby-js-sdk.git",
   "bugs": "https://github.com/getAlby/alby-js-sdk/issues",
   "funding": {
     "type": "lightning",
-    "url": "hello@getalby.com"
+    "url": "lightning:hello@getalby.com"
   },
   "type": "module",
   "source": "src/index.ts",
@@ -19,7 +19,8 @@
   ],
   "exports": {
     "require": "./dist/index.cjs",
-    "default": "./dist/index.modern.js"
+    "default": "./dist/index.modern.js",
+    "types": "./dist/index.d.ts"
   },
   "scripts": {
     "prebuild": "yarn run clean",
@@ -32,7 +33,7 @@
   },
   "dependencies": {
     "crypto-js": "^4.1.1",
-    "nostr-tools": "^1.13.1"
+    "nostr-tools": "1.13.1"
   },
   "devDependencies": {
     "@types/crypto-js": "^4.1.1",
