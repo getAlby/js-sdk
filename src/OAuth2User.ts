@@ -24,10 +24,10 @@ export interface OAuth2UserOptions {
   token?: Token;
 }
 
-export type TokenListener = (tokens: Token) => void;
+export type TokenRefreshListener = (tokens: Token) => void;
 export type TokenRefreshFailedListener = (error: Error) => void;
 export type EventName= "tokenRefresh" | "tokenRefreshFailed";
-export type Listener = TokenListener | TokenRefreshFailedListener;
+export type EventListener = TokenRefreshListener | TokenRefreshFailedListener;
 
 function processTokenResponse(token: GetTokenResponse): Token {
   const { expires_in, ...rest } = token;
@@ -56,8 +56,8 @@ export class OAuth2User implements OAuthClient {
     /**
    * Subscribe to the events
    */
-  async on(eventName: EventName, listener: Listener): Promise<void> {
-    await this._tokenEvents.on(eventName, listener);
+  on(eventName: EventName, listener: EventListener): void {
+     this._tokenEvents.on(eventName, listener);
   }
 
   /**
