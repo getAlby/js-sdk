@@ -58,8 +58,8 @@ export async function request({
     url.toString(),
     {
       headers: {
-        ...
-        { "Content-Type": "application/json; charset=utf-8" },
+        ...(isPost
+          ? { "Content-Type": "application/json; charset=utf-8" } : undefined),
         ...authHeader,
         ...headers,
         ...{
