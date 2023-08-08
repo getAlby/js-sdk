@@ -26,7 +26,7 @@ export interface OAuth2UserOptions {
 
 export type TokenListener = (tokens: Token) => void;
 export type TokenRefreshFailedListener = (error: Error) => void;
-export type EventName= "tokens" | "tokenRefreshFailed";
+export type EventName= "tokenRefresh" | "tokenRefreshFailed";
 export type Listener = TokenListener | TokenRefreshFailedListener;
 
 function processTokenResponse(token: GetTokenResponse): Token {
@@ -98,7 +98,7 @@ export class OAuth2User implements OAuthClient {
         const token = processTokenResponse(data);
         this.token = token;
         resolve({token});
-        this._tokenEvents.emit("tokens", this.token);
+        this._tokenEvents.emit("tokenRefresh", this.token);
       }
       catch(error) {
         console.log(error);
