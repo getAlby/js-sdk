@@ -102,8 +102,8 @@ export class OAuth2User implements OAuthClient {
       }
       catch(error) {
         console.log(error);
-        this._tokenEvents.emit("tokenRefreshFailed", error)
         reject(error);
+        this._tokenEvents.emit("tokenRefreshFailed", error)
       }
       finally {
         this._refreshAccessTokenPromise = null;
