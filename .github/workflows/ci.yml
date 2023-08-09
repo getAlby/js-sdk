@@ -1,4 +1,4 @@
-name: Build 
+name: CI
 
 on:
   push:
@@ -17,3 +17,4 @@ jobs:
           node-version: 18
       - run: yarn install --frozen-lockfile
       - run: yarn build
+      - run: yarn test
