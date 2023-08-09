@@ -1,22 +1,24 @@
-import { rest, RequestOptions } from "./request";
+import { OAuth2Bearer } from "./auth";
+import { keysendParamsFromBoostagram } from "./helpers";
+import { RequestOptions, rest } from "./request";
 import {
   AuthClient,
+  BaseWebhookEndpointResponse,
+  CreateSwapParams,
+  CreateSwapResponse,
   CreateWebhookEndpointParams,
+  CreateWebhookEndpointResponse,
+  GetAccountBalanceResponse,
+  GetAccountInformationResponse,
+  Invoice,
   InvoiceRequestParams,
   KeysendRequestParams,
-  SendPaymentRequestParams,
   SendBoostagramRequestParams,
-  SendToAlbyRequestParams,
-  CreateWebhookEndpointResponse,
-  BaseWebhookEndpointResponse,
+  SendPaymentRequestParams,
   SendPaymentResponse,
-  Invoice,
-  GetAccountBalanceResponse,
-  GetAccountInformationResponse
+  SendToAlbyRequestParams,
+  SwapInfoResponse,
 } from "./types";
-import { keysendParamsFromBoostagram } from "./helpers";
-import { OAuth2Bearer } from "./auth";
-
 
 export class Client {
   auth: AuthClient;
@@ -29,11 +31,14 @@ export class Client {
     this.auth = typeof auth === "string" ? new OAuth2Bearer(auth) : auth;
     this.defaultRequestOptions = {
       ...requestOptions,
-      user_agent: requestOptions?.user_agent
+      user_agent: requestOptions?.user_agent,
     };
   }
 
-  accountBalance(params: {}, request_options?: Partial<RequestOptions>): Promise<GetAccountBalanceResponse> {
+  accountBalance(
+    params: {},
+    request_options?: Partial<RequestOptions>
+  ): Promise<GetAccountBalanceResponse> {
     return rest({
       auth: this.auth,
       ...this.defaultRequestOptions,
@@ -55,7 +60,10 @@ export class Client {
     });
   }
 
-  accountInformation(params: {}, request_options?: Partial<RequestOptions>): Promise<GetAccountInformationResponse> {
+  accountInformation(
+    params: {},
+    request_options?: Partial<RequestOptions>
+  ): Promise<GetAccountInformationResponse> {
     return rest({
       auth: this.auth,
       ...this.defaultRequestOptions,
@@ -77,7 +85,10 @@ export class Client {
     });
   }
 
-  incomingInvoices(params: {}, request_options?: Partial<RequestOptions>): Promise<Invoice[]> {
+  incomingInvoices(
+    params: {},
+    request_options?: Partial<RequestOptions>
+  ): Promise<Invoice[]> {
     return rest({
       auth: this.auth,
       ...this.defaultRequestOptions,
@@ -88,7 +99,10 @@ export class Client {
     });
   }
 
-  outgoingInvoices(params: {}, request_options?: Partial<RequestOptions>): Promise<Invoice[]> {
+  outgoingInvoices(
+    params: {},
+    request_options?: Partial<RequestOptions>
+  ): Promise<Invoice[]> {
     return rest({
       auth: this.auth,
       ...this.defaultRequestOptions,
@@ -99,7 +113,10 @@ export class Client {
     });
   }
 
-  getInvoice(paymentHash: string, request_options?: Partial<RequestOptions>): Promise<Invoice> {
+  getInvoice(
+    paymentHash: string,
+    request_options?: Partial<RequestOptions>
+  ): Promise<Invoice> {
     return rest({
       auth: this.auth,
       ...this.defaultRequestOptions,
@@ -109,7 +126,10 @@ export class Client {
     });
   }
 
-  createInvoice(invoice: InvoiceRequestParams, request_options?: Partial<RequestOptions>): Promise<Invoice> {
+  createInvoice(
+    invoice: InvoiceRequestParams,
+    request_options?: Partial<RequestOptions>
+  ): Promise<Invoice> {
     return rest({
       auth: this.auth,
       ...this.defaultRequestOptions,
@@ -120,7 +140,10 @@ export class Client {
     });
   }
 
-  keysend(args: KeysendRequestParams | KeysendRequestParams[], request_options?: Partial<RequestOptions>): Promise<SendPaymentResponse> {
+  keysend(
+    args: KeysendRequestParams | KeysendRequestParams[],
+    request_options?: Partial<RequestOptions>
+  ): Promise<SendPaymentResponse> {
     let endpoint, request_body;
     if (Array.isArray(args)) {
       endpoint = "/payments/keysend/multi";
@@ -139,7 +162,10 @@ export class Client {
     });
   }
 
-  sendPayment(params: SendPaymentRequestParams, request_options?: Partial<RequestOptions>): Promise<SendPaymentResponse> {
+  sendPayment(
+    params: SendPaymentRequestParams,
+    request_options?: Partial<RequestOptions>
+  ): Promise<SendPaymentResponse> {
     return rest({
       auth: this.auth,
       ...this.defaultRequestOptions,
@@ -150,7 +176,10 @@ export class Client {
     });
   }
 
-  sendBoostagram(args: SendBoostagramRequestParams | SendBoostagramRequestParams[], request_options?: Partial<RequestOptions>) {
+  sendBoostagram(
+    args: SendBoostagramRequestParams | SendBoostagramRequestParams[],
+    request_options?: Partial<RequestOptions>
+  ) {
     let endpoint, request_body;
     if (Array.isArray(args)) {
       endpoint = "/payments/keysend/multi";
@@ -171,9 +200,13 @@ export class Client {
     });
   }
 
-  sendToAlbyAccount(args: SendToAlbyRequestParams, request_options?: Partial<RequestOptions>) {
+  sendToAlbyAccount(
+    args: SendToAlbyRequestParams,
+    request_options?: Partial<RequestOptions>
+  ) {
     const params = {
-      destination: "030a58b8653d32b99200a2334cfe913e51dc7d155aa0116c176657a4f1722677a3",
+      destination:
+        "030a58b8653d32b99200a2334cfe913e51dc7d155aa0116c176657a4f1722677a3",
       customRecords: {
         "696969": args.account,
       },
@@ -190,7 +223,10 @@ export class Client {
     });
   }
 
-  createWebhookEndpoint(params: CreateWebhookEndpointParams, request_options?: Partial<RequestOptions>): Promise<CreateWebhookEndpointResponse> {
+  createWebhookEndpoint(
+    params: CreateWebhookEndpointParams,
+    request_options?: Partial<RequestOptions>
+  ): Promise<CreateWebhookEndpointResponse> {
     return rest({
       auth: this.auth,
       ...this.defaultRequestOptions,
@@ -201,7 +237,10 @@ export class Client {
     });
   }
 
-  deleteWebhookEndpoint(id: string, request_options?: Partial<RequestOptions>): Promise<BaseWebhookEndpointResponse>  {
+  deleteWebhookEndpoint(
+    id: string,
+    request_options?: Partial<RequestOptions>
+  ): Promise<BaseWebhookEndpointResponse> {
     return rest({
       auth: this.auth,
       ...this.defaultRequestOptions,
@@ -211,4 +250,29 @@ export class Client {
     });
   }
 
+  getSwapInfo(
+    request_options?: Partial<RequestOptions>
+  ): Promise<SwapInfoResponse> {
+    return rest({
+      auth: this.auth,
+      ...this.defaultRequestOptions,
+      ...request_options,
+      endpoint: `/swaps/info`,
+      method: "GET",
+    });
+  }
+
+  createSwap(
+    params: CreateSwapParams,
+    request_options?: Partial<RequestOptions>
+  ): Promise<CreateSwapResponse> {
+    return rest({
+      auth: this.auth,
+      ...this.defaultRequestOptions,
+      ...request_options,
+      endpoint: `/swaps`,
+      method: "POST",
+      request_body: params,
+    });
+  }
 }
