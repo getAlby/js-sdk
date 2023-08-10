@@ -1,8 +1,8 @@
 export default {
-    "src/**/*.{js,ts,jsx}": [
+    "src/**/*.{js,ts}": [
       "prettier --write",
     ],
-    "examples/**/*.{js,mjs}": [
+    "examples/**/*.{js,mjs,jsx}": [
       "prettier --write",
     ],
   
