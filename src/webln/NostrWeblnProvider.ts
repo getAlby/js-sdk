@@ -183,7 +183,7 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
   }
 
   // TODO: refactor code in getBalance and sendPayment
-  getBalance() {
+  getBalance(): Promise<GetBalanceResponse> {
     this.checkConnected();
 
     // FIXME: add getBalance to webln-types
