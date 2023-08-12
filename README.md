@@ -7,7 +7,7 @@ This JavaScript SDK for the Alby OAuth2 Wallet API and the Nostr Wallet Connect 
 ## Installing
 
 ```
-npm install alby-js-sdk
+npm install @getalby/sdk
 ```
 
 **This library relies on a global fetch() function which will work in browsers and node v18.x or newer.** (In older versions you have to use a polyfill.)
@@ -41,7 +41,7 @@ The `NostrWebLNProvider` exposes the [WebLN](webln.guide/) sendPayment interface
 ### Quick start example
 
 ```js
-import { webln } from "alby-js-sdk";
+import { webln } from "@getalby/sdk";
 const nwc = new webln.NostrWebLNProvider({ nostrWalletConnectUrl: loadNWCUrl() }); // loadNWCUrl is some function to get the NWC URL from some (encrypted) storage
 // or use the short version
 const nwc = new webln.NWC({ nostrWalletConnectUrl: loadNWCUrl });
@@ -140,7 +140,7 @@ globalThis.crypto = crypto as any;
 
 #### Defaults
 ```js
-import { NostrWebLNProvider } from 'alby-js-sdk';
+import { NostrWebLNProvider } from '@getalby/sdk';
 
 const webln = new NostrWebLNProvider(); // use defaults (connects to Alby's relay, will use window.nostr to sign the request)
 await webln.enable(); // connect to the relay
@@ -152,7 +152,7 @@ webln.close(); // close the websocket connection
 
 #### Use a custom, user provided Nostr Wallet Connect URL
 ```js
-import { NostrWebLNProvider } from 'alby-js-sdk';
+import { NostrWebLNProvider } from '@getalby/sdk';
 
 const webln = new NostrWebLNProvider({ nostrWalletConnectUrl: 'nostrwalletconnect://69effe7b49a6dd5cf525bd0905917a5005ffe480b58eeb8e861418cf3ae760d9?relay=wss://nostr.bitcoiner.social&secret=c60320b3ecb6c15557510d1518ef41194e9f9337c82621ddef3f979f668bfebd'); // use defaults
 await webln.enable(); // connect to the relay
@@ -225,6 +225,7 @@ const authClient = new auth.OAuth2User({
 
 const authUrl = authClient.generateAuthURL({
   code_challenge_method: "S256",
+  // authorizeUrl: "https://getalby.com/oauth"  endpoint for authorization (replace with the appropriate URL based on the environment)
 });
 // open auth URL
 // `code` is passed as a query parameter when the user is redirected back aufter authorization
