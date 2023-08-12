@@ -23,6 +23,13 @@ const NWCs: Record<string,NostrWebLNOptions> = {
   }
 };
 
+// TODO: fetch this from @webbtc/webln-types
+interface GetBalanceResponse {
+  balance: number;
+  max_amount?: number;
+  budget_renewal?: string;
+}
+
 interface NostrWebLNOptions {
   authorizationUrl?: string; // the URL to the NWC interface for the user to confirm the session
   relayUrl: string;
@@ -168,91 +175,27 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
   // TODO: use NIP-47 get_info call
   async getInfo(): Promise<GetInfoResponse> {
     return {
-      methods: ["getInfo", "sendPayment"],
+      methods: ["getInfo", "sendPayment", "getBalance"],
       node: {} as WebLNNode,
       supports: ["lightning"],
       version: "NWC"
     }
   }
 
+  // TODO: refactor code in getBalance and sendPayment
+  getBalance() {
+    this.checkConnected();
+
+    // FIXME: add getBalance to webln-types
+    return this.executeNip47Request("get_balance", "getBalance" as RequestMethod, undefined, result => result.balance !== undefined, result => result);
+  }
+
   sendPayment(invoice: string) {
     this.checkConnected();
 
-    return new Promise<SendPaymentResponse>(async (resolve, reject) => {
-      const command = {
-        "method": "pay_invoice",
-        "params": {
-          "invoice": invoice
-        }
-      };
-      const encryptedCommand = await this.encrypt(this.walletPubkey, JSON.stringify(command));
-      const unsignedEvent: UnsignedEvent = {
-        kind: 23194 as Kind,
-        created_at: Math.floor(Date.now() / 1000),
-        tags: [['p', this.walletPubkey]],
-        content: encryptedCommand,
-        pubkey: this.publicKey
-      };
-
-      const event = await this.signEvent(unsignedEvent);
-      // subscribe to NIP_47_SUCCESS_RESPONSE_KIND and NIP_47_ERROR_RESPONSE_KIND
-      // that reference the request event (NIP_47_REQUEST_KIND)
-      let sub = this.relay.sub([
-        {
-          kinds: [23195],
-          authors: [this.walletPubkey],
-          "#e": [event.id],
-        }
-      ]);
-
-      function replyTimeout() {
-        sub.unsub();
-        //console.error(`Reply timeout: event ${event.id} `);
-        reject({error: `reply timeout: event ${event.id}`, code: "INTERNAL"});
-      }
-
-      let replyTimeoutCheck = setTimeout(replyTimeout, 60000);
-
-      sub.on('event', async (event) => {
-        //console.log(`Received reply event: `, event);
-        clearTimeout(replyTimeoutCheck);
-        sub.unsub();
-        const decryptedContent = await this.decrypt(this.walletPubkey, event.content);
-        let response;
-        try {
-          response = JSON.parse(decryptedContent);
-        } catch(e) {
-          reject({ error: "invalid response", code: "INTERNAL" });
-          return;
-        }
-        // @ts-ignore // event is still unknown in nostr-tools
-        if (event.kind == 23195 && response.result?.preimage) {
-          resolve({ preimage: response.result.preimage });
-          this.notify('sendPayment', response.result);
-        } else {
-          reject({ error: response.error?.message, code: response.error?.code });
-        }
-      });
-
-      let pub = this.relay.publish(event);
-
-      function publishTimeout() {
-        //console.error(`Publish timeout: event ${event.id}`);
-        reject({ error: `Publish timeout: event ${event.id}` });
-      }
-      let publishTimeoutCheck = setTimeout(publishTimeout, 5000);
-
-      pub.on('failed', (reason: unknown) => {
-        //console.debug(`failed to publish to ${this.relay.url}: ${reason}`)
-        clearTimeout(publishTimeoutCheck)
-        reject({ error: `Failed to publish request: ${reason}` });
-      });
-
-      pub.on('ok', () => {
-        //console.debug(`Event ${event.id} for ${invoice} published`);
-        clearTimeout(publishTimeoutCheck);
-      });
-    });
+    return this.executeNip47Request<SendPaymentResponse>("pay_invoice", 'sendPayment', {
+      invoice
+    }, result => !!result.preimage, result => ({ preimage: result.preimage }));
   }
 
   // not-yet implemented WebLN interface methods
@@ -354,6 +297,87 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
     if (!this.connected) {
       throw new Error("please call enable() and await the promise before calling this function")
     }
+  }
+
+  private executeNip47Request<T>(method: string, weblnRequestMethod: RequestMethod, params: any, resultValidator: (result: any) => boolean, resultMapper: (result: any) => any) {
+    return new Promise<T>(async (resolve, reject) => {
+      const command = {
+        method,
+        params
+      };
+      const encryptedCommand = await this.encrypt(this.walletPubkey, JSON.stringify(command));
+      const unsignedEvent: UnsignedEvent = {
+        kind: 23194 as Kind,
+        created_at: Math.floor(Date.now() / 1000),
+        tags: [['p', this.walletPubkey]],
+        content: encryptedCommand,
+        pubkey: this.publicKey
+      };
+
+      const event = await this.signEvent(unsignedEvent);
+      // subscribe to NIP_47_SUCCESS_RESPONSE_KIND and NIP_47_ERROR_RESPONSE_KIND
+      // that reference the request event (NIP_47_REQUEST_KIND)
+      let sub = this.relay.sub([
+        {
+          kinds: [23195],
+          authors: [this.walletPubkey],
+          "#e": [event.id],
+        }
+      ]);
+
+      function replyTimeout() {
+        sub.unsub();
+        //console.error(`Reply timeout: event ${event.id} `);
+        reject({error: `reply timeout: event ${event.id}`, code: "INTERNAL"});
+      }
+
+      let replyTimeoutCheck = setTimeout(replyTimeout, 60000);
+
+      sub.on('event', async (event) => {
+        //console.log(`Received reply event: `, event);
+        clearTimeout(replyTimeoutCheck);
+        sub.unsub();
+        const decryptedContent = await this.decrypt(this.walletPubkey, event.content);
+        let response;
+        try {
+          response = JSON.parse(decryptedContent);
+        } catch(e) {
+          reject({ error: "invalid response", code: "INTERNAL" });
+          return;
+        }
+        // @ts-ignore // event is still unknown in nostr-tools
+        if (event.kind == 23195 && response.result) {
+          if (resultValidator(response.result)) {
+            resolve(resultMapper(response.result));
+            this.notify(weblnRequestMethod, response.result);
+          }
+          else {
+            reject({ error: "Response from NWC failed validation: " + JSON.stringify(response.result), code: "INTERNAL" });
+          }
+        } else {
+          reject({ error: response.error?.message, code: response.error?.code });
+        }
+      });
+
+      let pub = this.relay.publish(event);
+
+      function publishTimeout() {
+        //console.error(`Publish timeout: event ${event.id}`);
+        reject({ error: `Publish timeout: event ${event.id}` });
+      }
+      let publishTimeoutCheck = setTimeout(publishTimeout, 5000);
+
+      pub.on('failed', (reason: unknown) => {
+        //console.debug(`failed to publish to ${this.relay.url}: ${reason}`)
+        clearTimeout(publishTimeoutCheck)
+        reject({ error: `Failed to publish request: ${reason}` });
+      });
+
+      pub.on('ok', () => {
+        //console.debug(`Event ${event.id} for ${invoice} published`);
+        clearTimeout(publishTimeoutCheck);
+      });
+    });
   }
 }
 
