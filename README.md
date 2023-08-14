@@ -39,7 +39,7 @@ The `NostrWebLNProvider` exposes the [WebLN](webln.guide/) sendPayment interface
 * `authorizationUrl`: URL to the NWC interface for the user to and the app connection
 
 ### Quick start example
-
+**NOTE: you need to implement the `loadNWCUrl` function yourself. Create a NWC URL at https://nwc.getalby.com, let your users provide one, or generate a new one for your users (see [below](https://github.com/getAlby/js-sdk#static-withnewsecret))**
 ```js
 import { webln } from "@getalby/sdk";
 const nwc = new webln.NostrWebLNProvider({ nostrWalletConnectUrl: loadNWCUrl() }); // loadNWCUrl is some function to get the NWC URL from some (encrypted) storage
