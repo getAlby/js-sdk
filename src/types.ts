@@ -1,4 +1,5 @@
 import { AlbyResponseError } from "./AlbyResponseError";
+import { RequestOptions } from "./request";
 
 export type SuccessStatus = 200 | 201;
 export type ResponseType = "application/json";
@@ -245,4 +246,4 @@ export type GetAccountInformationResponse = {
   nostr_pubkey?: string;
 };
 
-export { AlbyResponseError };
+export { AlbyResponseError, RequestOptions };
