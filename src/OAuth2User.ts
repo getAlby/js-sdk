@@ -24,10 +24,10 @@ export interface OAuth2UserOptions {
   token?: Token;
 }
 
-export type TokenRefreshListener = (tokens: Token) => void;
+export type TokenRefreshedListener = (tokens: Token) => void;
 export type TokenRefreshFailedListener = (error: Error) => void;
-export type EventName= "tokenRefresh" | "tokenRefreshFailed";
-export type EventListener = TokenRefreshListener | TokenRefreshFailedListener;
+export type EventName= "tokenRefreshed" | "tokenRefreshFailed";
+export type EventListener = TokenRefreshedListener | TokenRefreshFailedListener;
 
 function processTokenResponse(token: GetTokenResponse): Token {
   const { expires_in, ...rest } = token;
@@ -45,8 +45,10 @@ export class OAuth2User implements OAuthClient {
   code_verifier?: string;
   code_challenge?: string;
   private _refreshAccessTokenPromise: Promise<{token: Token}> | null;
-  private _tokenEvents = new EventEmitter();
+  private _tokenEvents: EventEmitter;
+
   constructor(options: OAuth2UserOptions) {
+    this._tokenEvents = new EventEmitter();
     const { token, ...defaultOptions } = options;
     this.options = {client_secret: '', ...defaultOptions};
     this.token = token;
@@ -98,7 +100,7 @@ export class OAuth2User implements OAuthClient {
         const token = processTokenResponse(data);
         this.token = token;
         resolve({token});
-        this._tokenEvents.emit("tokenRefresh", this.token);
+        this._tokenEvents.emit("tokenRefreshed", this.token);
       }
       catch(error) {
         console.log(error);

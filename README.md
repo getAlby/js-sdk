@@ -258,7 +258,7 @@ const result = await client.createInvoice({amount: 1000});
 
 #### Handling refresh token
 
-Access tokens do expire. If an access token is about to expire, this library will automatically use a refresh token to retrieve a fresh one. Utilising the *tokenRefresh* event is a simple approach to guarantee that you always save the most recent tokens.
+Access tokens do expire. If an access token is about to expire, this library will automatically use a refresh token to retrieve a fresh one. Utilising the *tokenRefreshed* event is a simple approach to guarantee that you always save the most recent tokens.
 
 If token refresh fails, you can restart the OAuth Authentication flow or log the error by listening for the *tokenRefreshFailed* event.
 
@@ -273,8 +273,8 @@ const authClient = new auth.OAuth2User({
   token: token
 });
 
-// listen to the tokenRefresh event
-authClient.on('tokenRefresh', (tokens) => {
+// listen to the tokenRefreshed event
+authClient.on('tokenRefreshed', (tokens) => {
     // store the tokens in database
     console.log(tokens);
 });
