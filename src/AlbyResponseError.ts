@@ -7,7 +7,7 @@ export class AlbyResponseError extends Error {
     status: number,
     statusText: string,
     headers: Headers,
-    error: any
+    error: any,
   ) {
     let message = status.toString();
     if (statusText) {
@@ -16,8 +16,7 @@ export class AlbyResponseError extends Error {
     message += ": ";
     if (error.message) {
       message += error.message;
-    }
-    else {
+    } else {
       message += JSON.stringify(error);
     }
 

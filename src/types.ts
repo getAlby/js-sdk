@@ -51,14 +51,14 @@ export abstract class OAuthClient implements AuthClient {
   abstract requestAccessToken(code?: string): Promise<{ token: Token }>;
   abstract getAuthHeader(
     url?: string,
-    method?: string
+    method?: string,
   ): Promise<AuthHeader> | AuthHeader;
 }
 
 export abstract class AuthClient {
   abstract getAuthHeader(
     url?: string,
-    method?: string
+    method?: string,
   ): Promise<AuthHeader> | AuthHeader;
 }
 

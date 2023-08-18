@@ -1,8 +1,5 @@
 import { buildQueryString } from "./utils";
-import {
-  AlbyResponseError,
-  AuthClient,
-} from "./types";
+import { AlbyResponseError, AuthClient } from "./types";
 
 const BASE_URL = "https://api.getalby.com";
 
@@ -20,16 +17,17 @@ export interface RequestOptions extends Omit<RequestInit, "body"> {
 async function fetchWithRetries(
   url: RequestInfo,
   init: RequestInit,
-  max_retries = 0
+  max_retries = 0,
 ): Promise<Response> {
   const res = await fetch(url, init);
   if (res.status === 429 && max_retries > 0) {
     const rateLimitReset = Number(res.headers.get("x-rate-limit-reset"));
-    const rateLimitRemaining = Number(res.headers.get("x-rate-limit-remaining"));
+    const rateLimitRemaining = Number(
+      res.headers.get("x-rate-limit-remaining"),
+    );
     const timeTillReset = rateLimitReset * 1000 - Date.now();
     let timeToWait = 1000;
-    if (rateLimitRemaining === 0)
-      timeToWait = timeTillReset;
+    if (rateLimitRemaining === 0) timeToWait = timeTillReset;
     await new Promise((resolve) => setTimeout(resolve, timeToWait));
     return fetchWithRetries(url, init, max_retries - 1);
   }
@@ -59,19 +57,20 @@ export async function request({
     {
       headers: {
         ...(isPost
-          ? { "Content-Type": "application/json; charset=utf-8" } : undefined),
+          ? { "Content-Type": "application/json; charset=utf-8" }
+          : undefined),
         ...authHeader,
         ...headers,
         ...{
           "User-Agent": user_agent ?? "@getalby/sdk",
-          "X-User-Agent": user_agent ?? "@getalby/sdk"
+          "X-User-Agent": user_agent ?? "@getalby/sdk",
         },
       },
       method,
       body: isPost ? JSON.stringify(request_body) : undefined,
       ...options,
     },
-    max_retries
+    max_retries,
   );
   if (!response.ok) {
     const error = await response.json();
@@ -79,15 +78,13 @@ export async function request({
       response.status,
       response.statusText,
       response.headers,
-      error
+      error,
     );
   }
   return response;
 }
 
-export async function rest<T = any>(
-  args: RequestOptions
-): Promise<T> {
+export async function rest<T = any>(args: RequestOptions): Promise<T> {
   const response = await request(args);
   return response.json() as any;
 }

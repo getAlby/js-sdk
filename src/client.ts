@@ -26,7 +26,7 @@ export class Client {
 
   constructor(
     auth: string | AuthClient,
-    requestOptions?: Partial<RequestOptions>
+    requestOptions?: Partial<RequestOptions>,
   ) {
     this.auth = typeof auth === "string" ? new OAuth2Bearer(auth) : auth;
     this.defaultRequestOptions = {
@@ -37,7 +37,7 @@ export class Client {
 
   accountBalance(
     params: {},
-    request_options?: Partial<RequestOptions>
+    request_options?: Partial<RequestOptions>,
   ): Promise<GetAccountBalanceResponse> {
     return rest({
       auth: this.auth,
@@ -62,7 +62,7 @@ export class Client {
 
   accountInformation(
     params: {},
-    request_options?: Partial<RequestOptions>
+    request_options?: Partial<RequestOptions>,
   ): Promise<GetAccountInformationResponse> {
     return rest({
       auth: this.auth,
@@ -87,7 +87,7 @@ export class Client {
 
   incomingInvoices(
     params: {},
-    request_options?: Partial<RequestOptions>
+    request_options?: Partial<RequestOptions>,
   ): Promise<Invoice[]> {
     return rest({
       auth: this.auth,
@@ -101,7 +101,7 @@ export class Client {
 
   outgoingInvoices(
     params: {},
-    request_options?: Partial<RequestOptions>
+    request_options?: Partial<RequestOptions>,
   ): Promise<Invoice[]> {
     return rest({
       auth: this.auth,
@@ -115,7 +115,7 @@ export class Client {
 
   getInvoice(
     paymentHash: string,
-    request_options?: Partial<RequestOptions>
+    request_options?: Partial<RequestOptions>,
   ): Promise<Invoice> {
     return rest({
       auth: this.auth,
@@ -128,7 +128,7 @@ export class Client {
 
   createInvoice(
     invoice: InvoiceRequestParams,
-    request_options?: Partial<RequestOptions>
+    request_options?: Partial<RequestOptions>,
   ): Promise<Invoice> {
     return rest({
       auth: this.auth,
@@ -142,7 +142,7 @@ export class Client {
 
   keysend(
     args: KeysendRequestParams | KeysendRequestParams[],
-    request_options?: Partial<RequestOptions>
+    request_options?: Partial<RequestOptions>,
   ): Promise<SendPaymentResponse> {
     let endpoint, request_body;
     if (Array.isArray(args)) {
@@ -164,7 +164,7 @@ export class Client {
 
   sendPayment(
     params: SendPaymentRequestParams,
-    request_options?: Partial<RequestOptions>
+    request_options?: Partial<RequestOptions>,
   ): Promise<SendPaymentResponse> {
     return rest({
       auth: this.auth,
@@ -178,7 +178,7 @@ export class Client {
 
   sendBoostagram(
     args: SendBoostagramRequestParams | SendBoostagramRequestParams[],
-    request_options?: Partial<RequestOptions>
+    request_options?: Partial<RequestOptions>,
   ) {
     let endpoint, request_body;
     if (Array.isArray(args)) {
@@ -202,7 +202,7 @@ export class Client {
 
   sendToAlbyAccount(
     args: SendToAlbyRequestParams,
-    request_options?: Partial<RequestOptions>
+    request_options?: Partial<RequestOptions>,
   ) {
     const params = {
       destination:
@@ -225,7 +225,7 @@ export class Client {
 
   createWebhookEndpoint(
     params: CreateWebhookEndpointParams,
-    request_options?: Partial<RequestOptions>
+    request_options?: Partial<RequestOptions>,
   ): Promise<CreateWebhookEndpointResponse> {
     return rest({
       auth: this.auth,
@@ -239,7 +239,7 @@ export class Client {
 
   deleteWebhookEndpoint(
     id: string,
-    request_options?: Partial<RequestOptions>
+    request_options?: Partial<RequestOptions>,
   ): Promise<BaseWebhookEndpointResponse> {
     return rest({
       auth: this.auth,
@@ -251,7 +251,7 @@ export class Client {
   }
 
   getSwapInfo(
-    request_options?: Partial<RequestOptions>
+    request_options?: Partial<RequestOptions>,
   ): Promise<SwapInfoResponse> {
     return rest({
       auth: this.auth,
@@ -264,7 +264,7 @@ export class Client {
 
   createSwap(
     params: CreateSwapParams,
-    request_options?: Partial<RequestOptions>
+    request_options?: Partial<RequestOptions>,
   ): Promise<CreateSwapResponse> {
     return rest({
       auth: this.auth,
