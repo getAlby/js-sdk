@@ -1,7 +1,8 @@
-// https://stackoverflow.com/a/62969380
-export function buildQueryString(query: Record<string, any>): string {
+// https://stackoverflow.com/a/62969380 + fix to remove empty entries (.filter(entry => entry))
+export function buildQueryString(query: Record<string, unknown>): string {
   return Object.entries(query)
     .map(([key, value]) => (key && value ? `${key}=${value}` : ""))
+    .filter((entry) => entry)
     .join("&");
 }
 
