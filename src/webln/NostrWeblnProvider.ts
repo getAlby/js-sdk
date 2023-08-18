@@ -175,7 +175,7 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
   // TODO: use NIP-47 get_info call
   async getInfo(): Promise<GetInfoResponse> {
     return {
-      methods: ["getInfo", "sendPayment", "getBalance"],
+      methods: ["getInfo", "sendPayment", "addinvoice", "getBalance"],
       node: {} as WebLNNode,
       supports: ["lightning"],
       version: "NWC"
@@ -205,8 +205,21 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
   lnurl(lnurl: string): Promise<{ status: 'OK'; } | { status: 'ERROR'; reason: string; }> {
     throw new Error('Method not implemented.');
   }
-  makeInvoice(args: string | number | RequestInvoiceArgs): Promise<RequestInvoiceResponse> {
-    throw new Error('Method not implemented.');
+  makeInvoice(args: string | number | RequestInvoiceArgs) {
+    this.checkConnected();
+
+    const requestInvoiceArgs: RequestInvoiceArgs | undefined = typeof args === "object" ? (args as RequestInvoiceArgs) : undefined;
+    const amount = requestInvoiceArgs?.amount ?? (typeof args === 'string' ? parseInt(args) : args as number);
+
+    if (!amount) {
+      throw new Error("No amount specified");
+    }
+
+    return this.executeNip47Request<RequestInvoiceResponse>("make_invoice", "addinvoice", {
+      amount,
+      description: requestInvoiceArgs?.defaultMemo
+      // TODO: description hash and expiry?
+    }, result => !!result.invoice, result => ({ paymentRequest: result.invoice }));
   }
   request(method: RequestMethod, args?: unknown): Promise<unknown> {
     throw new Error('Method not implemented.');
