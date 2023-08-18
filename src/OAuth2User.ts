@@ -1,8 +1,14 @@
-import CryptoJS from 'crypto-js';
+import CryptoJS from "crypto-js";
 import { buildQueryString, basicAuthHeader } from "./utils";
-import { OAuthClient, AuthHeader, GetTokenResponse, Token, GenerateAuthUrlOptions } from "./types";
+import {
+  OAuthClient,
+  AuthHeader,
+  GetTokenResponse,
+  Token,
+  GenerateAuthUrlOptions,
+} from "./types";
 import { RequestOptions, rest } from "./request";
-import EventEmitter from 'events';
+import EventEmitter from "events";
 
 const AUTHORIZE_URL = "https://getalby.com/oauth";
 
@@ -26,7 +32,7 @@ export interface OAuth2UserOptions {
 
 export type TokenRefreshedListener = (tokens: Token) => void;
 export type TokenRefreshFailedListener = (error: Error) => void;
-export type EventName= "tokenRefreshed" | "tokenRefreshFailed";
+export type EventName = "tokenRefreshed" | "tokenRefreshFailed";
 export type EventListener = TokenRefreshedListener | TokenRefreshFailedListener;
 
 function processTokenResponse(token: GetTokenResponse): Token {
@@ -44,22 +50,22 @@ export class OAuth2User implements OAuthClient {
   options: OAuth2UserOptions;
   code_verifier?: string;
   code_challenge?: string;
-  private _refreshAccessTokenPromise: Promise<{token: Token}> | null;
+  private _refreshAccessTokenPromise: Promise<{ token: Token }> | null;
   private _tokenEvents: EventEmitter;
 
   constructor(options: OAuth2UserOptions) {
     this._tokenEvents = new EventEmitter();
     const { token, ...defaultOptions } = options;
-    this.options = {client_secret: '', ...defaultOptions};
+    this.options = { client_secret: "", ...defaultOptions };
     this.token = token;
     this._refreshAccessTokenPromise = null;
   }
 
-    /**
+  /**
    * Subscribe to the events
    */
   on(eventName: EventName, listener: EventListener): void {
-     this._tokenEvents.on(eventName, listener);
+    this._tokenEvents.on(eventName, listener);
   }
 
   /**
@@ -72,7 +78,8 @@ export class OAuth2User implements OAuthClient {
     this._refreshAccessTokenPromise = new Promise(async (resolve, reject) => {
       try {
         const refresh_token = this.token?.refresh_token;
-        const { client_id, client_secret, request_options, user_agent } = this.options;
+        const { client_id, client_secret, request_options, user_agent } =
+          this.options;
         if (!client_id) {
           throw new Error("client_id is required");
         }
@@ -99,18 +106,16 @@ export class OAuth2User implements OAuthClient {
         });
         const token = processTokenResponse(data);
         this.token = token;
-        resolve({token});
+        resolve({ token });
         this._tokenEvents.emit("tokenRefreshed", this.token);
-      }
-      catch(error) {
+      } catch (error) {
         console.log(error);
         reject(error);
-        this._tokenEvents.emit("tokenRefreshFailed", error)
-      }
-      finally {
+        this._tokenEvents.emit("tokenRefreshFailed", error);
+      } finally {
         this._refreshAccessTokenPromise = null;
       }
-    })
+    });
     return this._refreshAccessTokenPromise;
   }
 
@@ -164,7 +169,9 @@ export class OAuth2User implements OAuthClient {
   }
 
   generateAuthURL(options?: GenerateAuthUrlOptions): string {
-    if (!options) { options = {}; }
+    if (!options) {
+      options = {};
+    }
     console.log(options);
     const { client_id, callback, scopes } = this.options;
     if (!callback) throw new Error("callback required");
@@ -173,9 +180,16 @@ export class OAuth2User implements OAuthClient {
     if (options.code_challenge_method === "S256") {
       const code_verifier = CryptoJS.lib.WordArray.random(64);
       this.code_verifier = code_verifier.toString();
-      this.code_challenge = CryptoJS.SHA256(this.code_verifier).toString(CryptoJS.enc.Base64).replace(/\+/g, '-').replace(/\//g, '_').replace(/\=+$/, '')
+      this.code_challenge = CryptoJS.SHA256(this.code_verifier)
+        .toString(CryptoJS.enc.Base64)
+        .replace(/\+/g, "-")
+        .replace(/\//g, "_")
+        .replace(/\=+$/, "");
       code_challenge_method = "S256";
-    } else if (options.code_challenge_method === "plain" && options.code_challenge) {
+    } else if (
+      options.code_challenge_method === "plain" &&
+      options.code_challenge
+    ) {
       this.code_challenge = options.code_challenge;
       this.code_verifier = options.code_challenge;
       code_challenge_method = "plain";
@@ -196,9 +210,9 @@ export class OAuth2User implements OAuthClient {
 
   async getAuthHeader(): Promise<AuthHeader> {
     if (!this.token?.access_token) throw new Error("access_token is required");
-    if (this.isAccessTokenExpired()){ 
-      await this.refreshAccessToken()
-    };
+    if (this.isAccessTokenExpired()) {
+      await this.refreshAccessToken();
+    }
     return {
       Authorization: `Bearer ${this.token.access_token}`,
     };
