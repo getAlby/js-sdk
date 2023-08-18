@@ -2,6 +2,7 @@ import CryptoJS from 'crypto-js';
 import { buildQueryString, basicAuthHeader } from "./utils";
 import { OAuthClient, AuthHeader, GetTokenResponse, Token, GenerateAuthUrlOptions } from "./types";
 import { RequestOptions, rest } from "./request";
+import EventEmitter from 'events';
 
 const AUTHORIZE_URL = "https://getalby.com/oauth";
 
@@ -23,6 +24,11 @@ export interface OAuth2UserOptions {
   token?: Token;
 }
 
+export type TokenRefreshedListener = (tokens: Token) => void;
+export type TokenRefreshFailedListener = (error: Error) => void;
+export type EventName= "tokenRefreshed" | "tokenRefreshFailed";
+export type EventListener = TokenRefreshedListener | TokenRefreshFailedListener;
+
 function processTokenResponse(token: GetTokenResponse): Token {
   const { expires_in, ...rest } = token;
   return {
@@ -39,11 +45,21 @@ export class OAuth2User implements OAuthClient {
   code_verifier?: string;
   code_challenge?: string;
   private _refreshAccessTokenPromise: Promise<{token: Token}> | null;
+  private _tokenEvents: EventEmitter;
+
   constructor(options: OAuth2UserOptions) {
+    this._tokenEvents = new EventEmitter();
     const { token, ...defaultOptions } = options;
     this.options = {client_secret: '', ...defaultOptions};
     this.token = token;
     this._refreshAccessTokenPromise = null;
+  }
+
+    /**
+   * Subscribe to the events
+   */
+  on(eventName: EventName, listener: EventListener): void {
+     this._tokenEvents.on(eventName, listener);
   }
 
   /**
@@ -84,9 +100,12 @@ export class OAuth2User implements OAuthClient {
         const token = processTokenResponse(data);
         this.token = token;
         resolve({token});
+        this._tokenEvents.emit("tokenRefreshed", this.token);
       }
       catch(error) {
+        console.log(error);
         reject(error);
+        this._tokenEvents.emit("tokenRefreshFailed", error)
       }
       finally {
         this._refreshAccessTokenPromise = null;
@@ -177,7 +196,9 @@ export class OAuth2User implements OAuthClient {
 
   async getAuthHeader(): Promise<AuthHeader> {
     if (!this.token?.access_token) throw new Error("access_token is required");
-    if (this.isAccessTokenExpired()) await this.refreshAccessToken();
+    if (this.isAccessTokenExpired()){ 
+      await this.refreshAccessToken()
+    };
     return {
       Authorization: `Bearer ${this.token.access_token}`,
     };

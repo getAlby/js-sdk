@@ -15,8 +15,10 @@ rl.close();
 
 const webln = new providers.NostrWebLNProvider({ nostrWalletConnectUrl: nwcUrl });
 await webln.enable();
-const response = await webln.sendPayment(invoice);
+const sendPaymentResponse = await webln.sendPayment(invoice);
+console.log(sendPaymentResponse);
 
-console.log(response);
+const getBalanceResponse = await webln.getBalance();
+console.log(getBalanceResponse);
 
 webln.close();
