@@ -1,4 +1,5 @@
 import { AlbyResponseError } from "./AlbyResponseError";
+import { RequestOptions } from "./request";
 
 export type SuccessStatus = 200 | 201;
 export type ResponseType = "application/json";
@@ -23,9 +24,8 @@ export interface Token extends Omit<GetTokenResponse, "expires_in"> {
   expires_at?: number;
 }
 
-
-export type GenerateAuthUrlOptions =
-{authorizeUrl?: string} & (|{
+export type GenerateAuthUrlOptions = { authorizeUrl?: string } & (
+  | {
       code_challenge_method?: string;
       code_challenge?: string;
     }
@@ -42,12 +42,13 @@ export type GenerateAuthUrlOptions =
       code_challenge: string;
       /** Specifies the method you are using to make a request (S256 OR plain). */
       code_challenge_method?: "plain";
-    });
+    }
+);
 
 export abstract class OAuthClient implements AuthClient {
   abstract token?: Token;
   abstract generateAuthURL(options: GenerateAuthUrlOptions): string;
-  abstract requestAccessToken(code?: string): Promise<{ token: Token }>
+  abstract requestAccessToken(code?: string): Promise<{ token: Token }>;
   abstract getAuthHeader(
     url?: string,
     method?: string
@@ -85,57 +86,77 @@ export type ExtractAlbyResponse<T> = "responses" extends keyof T
   : never;
 
 export type InvoiceRequestParams = {
-  description?: string,
-  description_hash?: string,
-  amount: number,
-}
+  description?: string;
+  description_hash?: string;
+  amount: number;
+};
 
 export type KeysendRequestParams = {
-  amount: number,
-  destination: string,
-  memo?: string,
-  customRecords?: Record<string, string>
-}
+  amount: number;
+  destination: string;
+  memo?: string;
+  customRecords?: Record<string, string>;
+};
 
 export type SendPaymentRequestParams = {
-  invoice: string,
-  amount?: number,
-}
+  invoice: string;
+  amount?: number;
+};
 
 export type SendBoostagramRequestParams = {
   recipient: {
-    address: string,
-    customKey?: string,
-    customValue?: string,
-  },
-  boostagram: unknown,
-  amount: number,
-}
-
+    address: string;
+    customKey?: string;
+    customValue?: string;
+  };
+  boostagram: unknown;
+  amount: number;
+};
 
 export type SendToAlbyRequestParams = {
   account: string;
   amount: number;
   memo?: string;
-}
+};
 
 export type CreateWebhookEndpointParams = {
   url: string;
   description?: string;
   filter_types: string[];
-}
+};
 
 export type BaseWebhookEndpointResponse = {
   url: string;
   description?: string;
   filter_types: string[];
-  created_at: string,
-  id: string,
-}
+  created_at: string;
+  id: string;
+};
+
+export type SwapInfoResponse = {
+  service_fee_percentage: number;
+  network_fee: number;
+  sats_per_vbyte: number;
+};
+
+export type CreateSwapParams = {
+  amount: number;
+  address: string;
+  sats_per_vbyte: number;
+};
+
+export type CreateSwapResponse = {
+  address: string;
+  service_fee: number;
+  network_fee: number;
+  amount: number;
+  total: number;
+  payment_request: string;
+};
 
 export type CreateWebhookEndpointResponse = BaseWebhookEndpointResponse & {
   endpoint_secret: string;
-}
+};
 
 export type Invoice = {
   amount: number;
@@ -185,7 +206,7 @@ export type Invoice = {
     // TODO: add typings
     payer_data?: unknown;
     zap_request?: unknown;
-  }
+  };
 } & Record<string, unknown>;
 
 export type GetNWCAuthorizationUrlOptions = {
@@ -205,13 +226,13 @@ export type SendPaymentResponse = {
   payment_hash: string;
   payment_preimage: string;
   payment_request: string;
-}
+};
 
 export type GetAccountBalanceResponse = {
   balance: number;
   currency: string;
   unit: string;
-}
+};
 
 export type GetAccountInformationResponse = {
   identifier: string;
@@ -223,6 +244,6 @@ export type GetAccountInformationResponse = {
   keysend_pubkey: string;
   lightning_address?: string;
   nostr_pubkey?: string;
-}
+};
 
-export { AlbyResponseError };
+export { AlbyResponseError, RequestOptions };

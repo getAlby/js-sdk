@@ -23,6 +23,13 @@ const NWCs: Record<string,NostrWebLNOptions> = {
   }
 };
 
+// TODO: fetch this from @webbtc/webln-types
+interface GetBalanceResponse {
+  balance: number;
+  max_amount?: number;
+  budget_renewal?: string;
+}
+
 interface NostrWebLNOptions {
   authorizationUrl?: string; // the URL to the NWC interface for the user to confirm the session
   relayUrl: string;
@@ -168,11 +175,19 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
   // TODO: use NIP-47 get_info call
   async getInfo(): Promise<GetInfoResponse> {
     return {
-      methods: ["getInfo", "sendPayment", "addinvoice"],
+      methods: ["getInfo", "sendPayment", "addinvoice", "getBalance"],
       node: {} as WebLNNode,
       supports: ["lightning"],
       version: "NWC"
     }
+  }
+
+  // TODO: refactor code in getBalance and sendPayment
+  getBalance(): Promise<GetBalanceResponse> {
+    this.checkConnected();
+
+    // FIXME: add getBalance to webln-types
+    return this.executeNip47Request("get_balance", "getBalance" as RequestMethod, undefined, result => result.balance !== undefined, result => result);
   }
 
   sendPayment(invoice: string) {
