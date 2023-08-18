@@ -5,10 +5,12 @@ const AlbyOauthCallback = () => {
 
   useEffect(() => {
     if (!window.opener) {
-      alert("Something went wrong. Opener not available. Please contact support@getalby.com");
+      alert(
+        "Something went wrong. Opener not available. Please contact support@getalby.com",
+      );
       return;
     }
-    const params = new URLSearchParams(window.location.search)
+    const params = new URLSearchParams(window.location.search);
     const code = params.get("code");
     const error = params.get("error");
 
@@ -22,24 +24,18 @@ const AlbyOauthCallback = () => {
     }
 
     window.opener.postMessage({
-      type: 'alby:oauth:success',
+      type: "alby:oauth:success",
       payload: { code },
     });
     console.log("auth message published");
-
   }, []);
 
   return (
     <div>
-      {error && (
-        <p>Authorization failed: {error}</p>
-      )}
-      {!error && (
-        <p>Connected. you can close this window.</p>
-      )}
+      {error && <p>Authorization failed: {error}</p>}
+      {!error && <p>Connected. you can close this window.</p>}
     </div>
-  )
-
-}
+  );
+};
 
 export default AlbyOauthCallback;

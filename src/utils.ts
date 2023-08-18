@@ -1,4 +1,4 @@
-// https://stackoverflow.com/a/62969380
+// https://stackoverflow.com/a/62969380 + fix to remove empty entries (.filter(entry => entry))
 export function buildQueryString(query: Record<string, any>): string {
   return Object.entries(query)
     .map(([key, value]) =>
@@ -10,6 +10,9 @@ export function buildQueryString(query: Record<string, any>): string {
     .join("&");
 }
 
-export function basicAuthHeader(client_id: string, client_secret: string | undefined) {
+export function basicAuthHeader(
+  client_id: string,
+  client_secret: string | undefined,
+) {
   return `Basic ${btoa(`${client_id}:${client_secret}`)}`;
 }
