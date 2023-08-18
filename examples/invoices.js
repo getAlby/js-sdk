@@ -1,5 +1,5 @@
-import * as readline from 'node:readline/promises';
-import { stdin as input, stdout as output } from 'node:process';
+import * as readline from "node:readline/promises";
+import { stdin as input, stdout as output } from "node:process";
 
 import { auth, Client } from "../dist/index.module.js";
 
@@ -10,14 +10,18 @@ const authClient = new auth.OAuth2User({
   client_secret: process.env.CLIENT_SECRET,
   callback: "http://localhost:8080",
   scopes: ["invoices:read", "account:read", "balance:read"],
-  token: { access_token: undefined, refresh_token: undefined, expires_at: undefined } // initialize with existing token
+  token: {
+    access_token: undefined,
+    refresh_token: undefined,
+    expires_at: undefined,
+  }, // initialize with existing token
 });
 
 console.log(`Open the following URL and authenticate the app:`);
 console.log(authClient.generateAuthURL());
 console.log("----\n");
 
-const code = await rl.question('Code: (localhost:8080?code=[THIS CODE]: ');
+const code = await rl.question("Code: (localhost:8080?code=[THIS CODE]: ");
 rl.close();
 
 await authClient.requestAccessToken(code);
@@ -25,7 +29,6 @@ console.log(authClient.token);
 const client = new Client(authClient);
 
 const response = await client.incomingInvoices();
-
 
 console.log(JSON.stringify(response, null, 2));
 

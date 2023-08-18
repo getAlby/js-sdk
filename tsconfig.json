@@ -14,11 +14,6 @@
     "sourceMap": true,
     "moduleResolution": "node"
   },
-  "include": [
-    "src/**/*"
-  ],
-  "exclude": [
-    "examples/*",
-    "scripts/*"
-  ]
+  "include": ["src/**/*"],
+  "exclude": ["examples/*", "scripts/*"]
 }

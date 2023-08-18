@@ -1,15 +1,13 @@
-import { Client } from '../client';
-import {
-  OAuthClient,
-  KeysendRequestParams,
-} from "../types";
+import { Client } from "../client";
+import { OAuthClient, KeysendRequestParams } from "../types";
 
 interface RequestInvoiceArgs {
   amount: string | number;
   defaultMemo?: string;
 }
 
-const isBrowser = () => typeof window !== "undefined" && typeof window.document !== "undefined";
+const isBrowser = () =>
+  typeof window !== "undefined" && typeof window.document !== "undefined";
 
 export class OauthWeblnProvider {
   client: Client;
@@ -38,7 +36,9 @@ export class OauthWeblnProvider {
   }
 
   async enable() {
-    if (this.isExecuting) { return; }
+    if (this.isExecuting) {
+      return;
+    }
     if (this.auth.token?.access_token) {
       return { enabled: true };
     }
@@ -55,17 +55,19 @@ export class OauthWeblnProvider {
   }
 
   async sendPayment(invoice: string) {
-    if (this.isExecuting) { return; }
+    if (this.isExecuting) {
+      return;
+    }
     try {
       this.isExecuting = true;
       const result = await this.client.sendPayment({ invoice });
-      this.notify('sendPayment', result);
+      this.notify("sendPayment", result);
       return {
-        preimage: result.payment_preimage
-      }
+        preimage: result.payment_preimage,
+      };
     } catch (error) {
-      let message = 'Unknown Error'
-      if (error instanceof Error) message = error.message
+      let message = "Unknown Error";
+      if (error instanceof Error) message = error.message;
       throw new Error(message);
     } finally {
       this.isExecuting = false;
@@ -73,17 +75,19 @@ export class OauthWeblnProvider {
   }
 
   async keysend(params: KeysendRequestParams) {
-    if (this.isExecuting) { return; }
+    if (this.isExecuting) {
+      return;
+    }
     try {
       this.isExecuting = true;
       const result = await this.client.keysend(params);
-      this.notify('keysend', result);
+      this.notify("keysend", result);
       return {
-        preimage: result.payment_preimage
-      }
+        preimage: result.payment_preimage,
+      };
     } catch (error) {
-      let message = 'Unknown Error'
-      if (error instanceof Error) message = error.message
+      let message = "Unknown Error";
+      if (error instanceof Error) message = error.message;
       throw new Error(message);
     } finally {
       this.isExecuting = false;
@@ -92,25 +96,27 @@ export class OauthWeblnProvider {
 
   async getInfo() {
     return {
-      alias: "Alby"
+      alias: "Alby",
     };
   }
 
   async makeInvoice(params: RequestInvoiceArgs) {
-    if (this.isExecuting) { return; }
+    if (this.isExecuting) {
+      return;
+    }
     try {
       this.isExecuting = true;
       const result = await this.client.createInvoice({
         amount: parseInt(params.amount.toString()),
-        description: params.defaultMemo
+        description: params.defaultMemo,
       });
-      this.notify('makeInvoice', result);
+      this.notify("makeInvoice", result);
       return {
-        paymentRequest: result.payment_request
-      }
+        paymentRequest: result.payment_request,
+      };
     } catch (error) {
-      let message = 'Unknown Error'
-      if (error instanceof Error) message = error.message
+      let message = "Unknown Error";
+      if (error instanceof Error) message = error.message;
       throw new Error(message);
     } finally {
       this.isExecuting = false;
@@ -128,12 +134,18 @@ export class OauthWeblnProvider {
       const popup = window.open(
         url,
         `${document.title} - WebLN enable`,
-        `height=${height},width=${width},top=${top},left=${left}`
+        `height=${height},width=${width},top=${top},left=${left}`,
       );
       let processingCode = false;
-      window.addEventListener('message', async (message) => {
+      window.addEventListener("message", async (message) => {
         const data = message.data;
-        if (data && data.type === 'alby:oauth:success' && message.origin === `${document.location.protocol}//${document.location.host}` && !processingCode) {
+        if (
+          data &&
+          data.type === "alby:oauth:success" &&
+          message.origin ===
+            `${document.location.protocol}//${document.location.host}` &&
+          !processingCode
+        ) {
           processingCode = true; // make sure we request the access token only once
           console.info("Processing OAuth code response");
           const code = data.payload.code;
@@ -143,7 +155,7 @@ export class OauthWeblnProvider {
             if (popup) {
               popup.close();
             }
-            this.notify('enable');
+            this.notify("enable");
             resolve({ enabled: true });
           } catch (e) {
             console.error(e);
