@@ -261,18 +261,27 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
   makeInvoice(args: string | number | RequestInvoiceArgs) {
     this.checkConnected();
 
-    const requestInvoiceArgs: RequestInvoiceArgs | undefined = typeof args === "object" ? (args as RequestInvoiceArgs) : undefined;
-    const amount = requestInvoiceArgs?.amount ?? (typeof args === 'string' ? parseInt(args) : args as number);
+    const requestInvoiceArgs: RequestInvoiceArgs | undefined =
+      typeof args === "object" ? (args as RequestInvoiceArgs) : undefined;
+    const amount =
+      requestInvoiceArgs?.amount ??
+      (typeof args === "string" ? parseInt(args) : (args as number));
 
     if (!amount) {
       throw new Error("No amount specified");
     }
 
-    return this.executeNip47Request<RequestInvoiceResponse>("make_invoice", "addinvoice", {
-      amount,
-      description: requestInvoiceArgs?.defaultMemo
-      // TODO: description hash and expiry?
-    }, result => !!result.invoice, result => ({ paymentRequest: result.invoice }));
+    return this.executeNip47Request<RequestInvoiceResponse>(
+      "make_invoice",
+      "addinvoice",
+      {
+        amount,
+        description: requestInvoiceArgs?.defaultMemo,
+        // TODO: description hash and expiry?
+      },
+      (result) => !!result.invoice,
+      (result) => ({ paymentRequest: result.invoice }),
+    );
   }
   request(method: RequestMethod, args?: unknown): Promise<unknown> {
     throw new Error("Method not implemented.");
