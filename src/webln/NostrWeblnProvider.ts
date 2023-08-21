@@ -446,7 +446,6 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
         }
         // @ts-ignore // event is still unknown in nostr-tools
         if (event.kind == 23195 && response.result) {
-          console.log("GOT RESULT", response.result);
           if (resultValidator(response.result)) {
             resolve(resultMapper(response.result));
             this.notify(weblnRequestMethod, response.result);
