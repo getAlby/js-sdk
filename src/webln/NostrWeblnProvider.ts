@@ -40,6 +40,16 @@ interface GetBalanceResponse {
   budget_renewal?: string;
 }
 
+interface LookupInvoiceArgs {
+  invoice?: string;
+  payment_hash?: string;
+}
+
+interface LookupInvoiceResponse {
+  invoice: string;
+  paid: boolean;
+}
+
 interface NostrWebLNOptions {
   authorizationUrl?: string; // the URL to the NWC interface for the user to confirm the session
   relayUrl: string;
@@ -214,7 +224,7 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
   // TODO: use NIP-47 get_info call
   async getInfo(): Promise<GetInfoResponse> {
     return {
-      methods: ["getInfo", "sendPayment", "addinvoice", "getBalance"],
+      methods: ["getInfo", "sendPayment", "addinvoice", "getBalance", "lookupinvoice"],
       node: {} as WebLNNode,
       supports: ["lightning"],
       version: "NWC",
@@ -258,6 +268,7 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
   ): Promise<{ status: "OK" } | { status: "ERROR"; reason: string }> {
     throw new Error("Method not implemented.");
   }
+  
   makeInvoice(args: string | number | RequestInvoiceArgs) {
     this.checkConnected();
 
@@ -283,6 +294,19 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
       (result) => ({ paymentRequest: result.invoice }),
     );
   }
+
+  lookupInvoice(args: LookupInvoiceArgs) {
+    this.checkConnected();
+
+    return this.executeNip47Request<LookupInvoiceResponse>(
+      "lookup_invoice",
+      "lookupinvoice",
+      args,
+      (result) => result.invoice !== undefined && result.paid !== undefined,
+      (result) => ({ paymentRequest: result.invoice, paid: result.paid }),
+    );
+  }
+
   request(method: RequestMethod, args?: unknown): Promise<unknown> {
     throw new Error("Method not implemented.");
   }
