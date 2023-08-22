@@ -20,7 +20,6 @@ import {
   SignMessageResponse,
   WebLNNode,
   WebLNProvider,
-  WebLNMethod,
   WebLNRequestMethod,
   LookupInvoiceArgs,
   LookupInvoiceResponse,
@@ -47,6 +46,13 @@ interface NostrWebLNOptions {
 type Nip07Provider = {
   getPublicKey(): Promise<string>;
   signEvent(event: UnsignedEvent): Promise<Event>;
+};
+
+const nip47ToWeblnRequestMap = {
+  get_balance: "getBalance",
+  make_invoice: "makeInvoice",
+  pay_invoice: "sendPayment",
+  lookup_invoice: "lookupInvoice",
 };
 
 export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
@@ -228,7 +234,6 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
 
     return this.executeNip47Request<GetBalanceResponse, { balance: number }>(
       "get_balance",
-      "getBalance",
       undefined,
       (result) => result.balance !== undefined,
       (result) => result,
@@ -240,7 +245,6 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
 
     return this.executeNip47Request<SendPaymentResponse, { preimage: string }>(
       "pay_invoice",
-      "sendPayment",
       {
         invoice,
       },
@@ -274,7 +278,6 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
 
     return this.executeNip47Request<MakeInvoiceResponse, { invoice: string }>(
       "make_invoice",
-      "makeInvoice",
       {
         amount,
         description: requestInvoiceArgs?.defaultMemo,
@@ -293,7 +296,6 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
       { invoice: string; paid: boolean }
     >(
       "lookup_invoice",
-      "lookupInvoice",
       args,
       (result) => result.invoice !== undefined && result.paid !== undefined,
       (result) => ({ paymentRequest: result.invoice, paid: result.paid }),
@@ -405,12 +407,12 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
   }
 
   private executeNip47Request<T, R>(
-    nip47Method: string,
-    weblnMethod: WebLNMethod,
+    nip47Method: keyof typeof nip47ToWeblnRequestMap,
     params: unknown,
     resultValidator: (result: R) => boolean,
     resultMapper: (result: R) => T,
   ) {
+    const weblnMethod = nip47ToWeblnRequestMap[nip47Method];
     return new Promise<T>((resolve, reject) => {
       (async () => {
         const command = {
