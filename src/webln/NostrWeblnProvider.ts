@@ -12,14 +12,18 @@ import {
   Kind,
 } from "nostr-tools";
 import {
+  GetBalanceResponse,
   KeysendArgs,
   RequestInvoiceArgs,
-  RequestInvoiceResponse,
-  RequestMethod,
+  MakeInvoiceResponse,
   SendPaymentResponse,
   SignMessageResponse,
   WebLNNode,
   WebLNProvider,
+  WebLNMethod,
+  WebLNRequestMethod,
+  LookupInvoiceArgs,
+  LookupInvoiceResponse,
 } from "@webbtc/webln-types";
 import { GetInfoResponse } from "@webbtc/webln-types";
 import { GetNWCAuthorizationUrlOptions } from "../types";
@@ -32,23 +36,6 @@ const NWCs: Record<string, NostrWebLNOptions> = {
       "69effe7b49a6dd5cf525bd0905917a5005ffe480b58eeb8e861418cf3ae760d9",
   },
 };
-
-// TODO: fetch this from @webbtc/webln-types
-interface GetBalanceResponse {
-  balance: number;
-  max_amount?: number;
-  budget_renewal?: string;
-}
-
-interface LookupInvoiceArgs {
-  invoice?: string;
-  payment_hash?: string;
-}
-
-interface LookupInvoiceResponse {
-  invoice: string;
-  paid: boolean;
-}
 
 interface NostrWebLNOptions {
   authorizationUrl?: string; // the URL to the NWC interface for the user to confirm the session
@@ -68,7 +55,7 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
   secret: string | undefined;
   walletPubkey: string;
   options: NostrWebLNOptions;
-  subscribers: Record<string, (payload: any) => void>;
+  subscribers: Record<string, (payload: unknown) => void>;
 
   static parseWalletConnectUrl(walletConnectUrl: string) {
     walletConnectUrl = walletConnectUrl
@@ -135,7 +122,6 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
     ) as string;
     this.subscribers = {};
 
-    // @ts-ignore
     if (globalThis.WebSocket === undefined) {
       console.error(
         "WebSocket is undefined. Make sure to `import websocket-polyfill` for nodejs environments",
@@ -147,7 +133,7 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
     this.subscribers[name] = callback;
   }
 
-  notify(name: string, payload?: any) {
+  notify(name: string, payload?: unknown) {
     const callback = this.subscribers[name];
     if (callback) {
       callback(payload);
@@ -224,21 +210,25 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
   // TODO: use NIP-47 get_info call
   async getInfo(): Promise<GetInfoResponse> {
     return {
-      methods: ["getInfo", "sendPayment", "addinvoice", "getBalance", "lookupinvoice"],
+      methods: [
+        "getInfo",
+        "sendPayment",
+        "makeInvoice",
+        "getBalance",
+        "lookupInvoice",
+      ],
       node: {} as WebLNNode,
       supports: ["lightning"],
       version: "NWC",
     };
   }
 
-  // TODO: refactor code in getBalance and sendPayment
-  getBalance(): Promise<GetBalanceResponse> {
+  getBalance() {
     this.checkConnected();
 
-    // FIXME: add getBalance to webln-types
-    return this.executeNip47Request(
+    return this.executeNip47Request<GetBalanceResponse, { balance: number }>(
       "get_balance",
-      "getBalance" as RequestMethod,
+      "getBalance",
       undefined,
       (result) => result.balance !== undefined,
       (result) => result,
@@ -248,7 +238,7 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
   sendPayment(invoice: string) {
     this.checkConnected();
 
-    return this.executeNip47Request<SendPaymentResponse>(
+    return this.executeNip47Request<SendPaymentResponse, { preimage: string }>(
       "pay_invoice",
       "sendPayment",
       {
@@ -268,7 +258,7 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
   ): Promise<{ status: "OK" } | { status: "ERROR"; reason: string }> {
     throw new Error("Method not implemented.");
   }
-  
+
   makeInvoice(args: string | number | RequestInvoiceArgs) {
     this.checkConnected();
 
@@ -282,9 +272,9 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
       throw new Error("No amount specified");
     }
 
-    return this.executeNip47Request<RequestInvoiceResponse>(
+    return this.executeNip47Request<MakeInvoiceResponse, { invoice: string }>(
       "make_invoice",
-      "addinvoice",
+      "makeInvoice",
       {
         amount,
         description: requestInvoiceArgs?.defaultMemo,
@@ -298,16 +288,19 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
   lookupInvoice(args: LookupInvoiceArgs) {
     this.checkConnected();
 
-    return this.executeNip47Request<LookupInvoiceResponse>(
+    return this.executeNip47Request<
+      LookupInvoiceResponse,
+      { invoice: string; paid: boolean }
+    >(
       "lookup_invoice",
-      "lookupinvoice",
+      "lookupInvoice",
       args,
       (result) => result.invoice !== undefined && result.paid !== undefined,
       (result) => ({ paymentRequest: result.invoice, paid: result.paid }),
     );
   }
 
-  request(method: RequestMethod, args?: unknown): Promise<unknown> {
+  request(method: WebLNRequestMethod, args?: unknown): Promise<unknown> {
     throw new Error("Method not implemented.");
   }
   signMessage(message: string): Promise<SignMessageResponse> {
@@ -380,7 +373,10 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
         }
       };
 
-      const onMessage = (message: { data: any; origin: string }) => {
+      const onMessage = (message: {
+        data?: { type: "nwc:success" | unknown };
+        origin: string;
+      }) => {
         const data = message.data;
         if (
           data &&
@@ -408,103 +404,109 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
     }
   }
 
-  private executeNip47Request<T>(
-    method: string,
-    weblnRequestMethod: RequestMethod,
-    params: any,
-    resultValidator: (result: any) => boolean,
-    resultMapper: (result: any) => any,
+  private executeNip47Request<T, R>(
+    nip47Method: string,
+    weblnMethod: WebLNMethod,
+    params: unknown,
+    resultValidator: (result: R) => boolean,
+    resultMapper: (result: R) => T,
   ) {
-    return new Promise<T>(async (resolve, reject) => {
-      const command = {
-        method,
-        params,
-      };
-      const encryptedCommand = await this.encrypt(
-        this.walletPubkey,
-        JSON.stringify(command),
-      );
-      const unsignedEvent: UnsignedEvent = {
-        kind: 23194 as Kind,
-        created_at: Math.floor(Date.now() / 1000),
-        tags: [["p", this.walletPubkey]],
-        content: encryptedCommand,
-        pubkey: this.publicKey,
-      };
-
-      const event = await this.signEvent(unsignedEvent);
-      // subscribe to NIP_47_SUCCESS_RESPONSE_KIND and NIP_47_ERROR_RESPONSE_KIND
-      // that reference the request event (NIP_47_REQUEST_KIND)
-      let sub = this.relay.sub([
-        {
-          kinds: [23195],
-          authors: [this.walletPubkey],
-          "#e": [event.id],
-        },
-      ]);
-
-      function replyTimeout() {
-        sub.unsub();
-        //console.error(`Reply timeout: event ${event.id} `);
-        reject({ error: `reply timeout: event ${event.id}`, code: "INTERNAL" });
-      }
-
-      let replyTimeoutCheck = setTimeout(replyTimeout, 60000);
-
-      sub.on("event", async (event) => {
-        //console.log(`Received reply event: `, event);
-        clearTimeout(replyTimeoutCheck);
-        sub.unsub();
-        const decryptedContent = await this.decrypt(
+    return new Promise<T>((resolve, reject) => {
+      (async () => {
+        const command = {
+          method: nip47Method,
+          params,
+        };
+        const encryptedCommand = await this.encrypt(
           this.walletPubkey,
-          event.content,
+          JSON.stringify(command),
         );
-        let response;
-        try {
-          response = JSON.parse(decryptedContent);
-        } catch (e) {
-          reject({ error: "invalid response", code: "INTERNAL" });
-          return;
-        }
-        // @ts-ignore // event is still unknown in nostr-tools
-        if (event.kind == 23195 && response.result) {
-          if (resultValidator(response.result)) {
-            resolve(resultMapper(response.result));
-            this.notify(weblnRequestMethod, response.result);
-          } else {
-            reject({
-              error:
-                "Response from NWC failed validation: " +
-                JSON.stringify(response.result),
-              code: "INTERNAL",
-            });
-          }
-        } else {
+        const unsignedEvent: UnsignedEvent = {
+          kind: 23194 as Kind,
+          created_at: Math.floor(Date.now() / 1000),
+          tags: [["p", this.walletPubkey]],
+          content: encryptedCommand,
+          pubkey: this.publicKey,
+        };
+
+        const event = await this.signEvent(unsignedEvent);
+        // subscribe to NIP_47_SUCCESS_RESPONSE_KIND and NIP_47_ERROR_RESPONSE_KIND
+        // that reference the request event (NIP_47_REQUEST_KIND)
+        const sub = this.relay.sub([
+          {
+            kinds: [23195],
+            authors: [this.walletPubkey],
+            "#e": [event.id],
+          },
+        ]);
+
+        function replyTimeout() {
+          sub.unsub();
+          //console.error(`Reply timeout: event ${event.id} `);
           reject({
-            error: response.error?.message,
-            code: response.error?.code,
+            error: `reply timeout: event ${event.id}`,
+            code: "INTERNAL",
           });
         }
-      });
 
-      let pub = this.relay.publish(event);
+        const replyTimeoutCheck = setTimeout(replyTimeout, 60000);
 
-      function publishTimeout() {
-        //console.error(`Publish timeout: event ${event.id}`);
-        reject({ error: `Publish timeout: event ${event.id}` });
-      }
-      let publishTimeoutCheck = setTimeout(publishTimeout, 5000);
+        sub.on("event", async (event) => {
+          //console.log(`Received reply event: `, event);
+          clearTimeout(replyTimeoutCheck);
+          sub.unsub();
+          const decryptedContent = await this.decrypt(
+            this.walletPubkey,
+            event.content,
+          );
+          let response;
+          try {
+            response = JSON.parse(decryptedContent);
+          } catch (e) {
+            reject({ error: "invalid response", code: "INTERNAL" });
+            return;
+          }
+          // @ts-ignore // event is still unknown in nostr-tools
+          if (event.kind == 23195 && response.result) {
+            //console.log("NIP-47 result", response.result);
+            if (resultValidator(response.result)) {
+              resolve(resultMapper(response.result));
+              this.notify(weblnMethod, response.result);
+            } else {
+              reject({
+                error:
+                  "Response from NWC failed validation: " +
+                  JSON.stringify(response.result),
+                code: "INTERNAL",
+              });
+            }
+          } else {
+            reject({
+              error: response.error?.message,
+              code: response.error?.code,
+            });
+          }
+        });
 
-      pub.on("failed", (reason: unknown) => {
-        //console.debug(`failed to publish to ${this.relay.url}: ${reason}`)
-        clearTimeout(publishTimeoutCheck);
-        reject({ error: `Failed to publish request: ${reason}` });
-      });
+        const pub = this.relay.publish(event);
 
-      pub.on("ok", () => {
-        //console.debug(`Event ${event.id} for ${invoice} published`);
-        clearTimeout(publishTimeoutCheck);
-      });
+        function publishTimeout() {
+          //console.error(`Publish timeout: event ${event.id}`);
+          reject({ error: `Publish timeout: event ${event.id}` });
+        }
+        const publishTimeoutCheck = setTimeout(publishTimeout, 5000);
+
+        pub.on("failed", (reason: unknown) => {
+          //console.debug(`failed to publish to ${this.relay.url}: ${reason}`)
+          clearTimeout(publishTimeoutCheck);
+          reject({ error: `Failed to publish request: ${reason}` });
+        });
+
+        pub.on("ok", () => {
+          //console.debug(`Event ${event.id} for ${invoice} published`);
+          clearTimeout(publishTimeoutCheck);
+        });
+      })();
     });
   }
 }
