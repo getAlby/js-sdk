@@ -19,10 +19,10 @@ const webln = new providers.NostrWebLNProvider({
 });
 await webln.enable();
 const response = await webln.makeInvoice({
-  amount: 100,
+  amount: 1, // in sats
   defaultMemo: "NWC WebLN example",
 });
 
-console.log(response);
+console.info(response);
 
 webln.close();
