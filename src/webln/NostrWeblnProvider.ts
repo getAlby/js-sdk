@@ -232,11 +232,21 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
   getBalance() {
     this.checkConnected();
 
-    return this.executeNip47Request<GetBalanceResponse, { balance: number }>(
+    return this.executeNip47Request<
+      GetBalanceResponse,
+      { balance: number; max_amount?: number; budget_renewal?: string }
+    >(
       "get_balance",
       undefined,
       (result) => result.balance !== undefined,
-      (result) => result,
+      (result) => ({
+        balance: Math.floor(result.balance / 1000),
+        max_amount:
+          result.max_amount !== undefined
+            ? Math.floor(result.max_amount / 1000)
+            : undefined,
+        budget_renewal: result.budget_renewal,
+      }),
     );
   }
 
