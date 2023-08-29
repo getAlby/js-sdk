@@ -240,6 +240,7 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
       undefined,
       (result) => result.balance !== undefined,
       (result) => ({
+        // NWC uses msats - convert to sats for webln
         balance: Math.floor(result.balance / 1000),
         max_amount:
           result.max_amount !== undefined
