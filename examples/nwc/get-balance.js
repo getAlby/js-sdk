@@ -20,6 +20,6 @@ const webln = new providers.NostrWebLNProvider({
 await webln.enable();
 const response = await webln.getBalance();
 
-console.log(response);
+console.info(response);
 
 webln.close();

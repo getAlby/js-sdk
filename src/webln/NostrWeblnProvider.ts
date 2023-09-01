@@ -236,7 +236,11 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
       "get_balance",
       undefined,
       (result) => result.balance !== undefined,
-      (result) => result,
+      (result) => ({
+        // NWC uses msats - convert to sats for webln
+        balance: Math.floor(result.balance / 1000),
+        currency: "sats",
+      }),
     );
   }
 
