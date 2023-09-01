@@ -272,9 +272,9 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
 
     const requestInvoiceArgs: RequestInvoiceArgs | undefined =
       typeof args === "object" ? (args as RequestInvoiceArgs) : undefined;
-    const amount =
+    const amount = +(
       requestInvoiceArgs?.amount ??
-      (typeof args === "string" ? parseInt(args) : (args as number));
+      args as string | number);
 
     if (!amount) {
       throw new Error("No amount specified");
@@ -283,9 +283,11 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
     return this.executeNip47Request<MakeInvoiceResponse, { invoice: string }>(
       "make_invoice",
       {
-        amount,
+        amount: amount * 1000, // NIP-47 uses msat
         description: requestInvoiceArgs?.defaultMemo,
-        // TODO: description hash and expiry?
+        // TODO: support additional fields below
+        //expiry: 86500,
+        //description_hash: "b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9"
       },
       (result) => !!result.invoice,
       (result) => ({ paymentRequest: result.invoice }),
