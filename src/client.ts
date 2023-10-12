@@ -113,6 +113,20 @@ export class Client {
     });
   }
 
+  invoices(
+    params: {},
+    request_options?: Partial<RequestOptions>,
+  ): Promise<Invoice[]> {
+    return rest({
+      auth: this.auth,
+      ...this.defaultRequestOptions,
+      ...request_options,
+      endpoint: `/invoices`,
+      params,
+      method: "GET",
+    });
+  }
+
   getInvoice(
     paymentHash: string,
     request_options?: Partial<RequestOptions>,

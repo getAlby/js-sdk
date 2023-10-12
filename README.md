@@ -209,6 +209,7 @@ Please have a look a the Alby OAuth2 Wallet API:
 - accountSummary
 - accountInformation
 - accountValue4Value
+- invoices
 - incomingInvoices
 - outgoingInvoices
 - getInvoice
