@@ -10,6 +10,7 @@ import {
   CreateWebhookEndpointResponse,
   GetAccountBalanceResponse,
   GetAccountInformationResponse,
+  GetInvoicesRequestParams,
   Invoice,
   InvoiceRequestParams,
   KeysendRequestParams,
@@ -86,7 +87,7 @@ export class Client {
   }
 
   incomingInvoices(
-    params: {},
+    params: GetInvoicesRequestParams,
     request_options?: Partial<RequestOptions>,
   ): Promise<Invoice[]> {
     return rest({
@@ -100,7 +101,7 @@ export class Client {
   }
 
   outgoingInvoices(
-    params: {},
+    params: GetInvoicesRequestParams,
     request_options?: Partial<RequestOptions>,
   ): Promise<Invoice[]> {
     return rest({
@@ -114,7 +115,7 @@ export class Client {
   }
 
   invoices(
-    params: {},
+    params: GetInvoicesRequestParams,
     request_options?: Partial<RequestOptions>,
   ): Promise<Invoice[]> {
     return rest({
