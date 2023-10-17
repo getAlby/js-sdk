@@ -85,6 +85,16 @@ export type ExtractAlbyResponse<T> = "responses" extends keyof T
   ? GetSuccess<T["responses"]>
   : never;
 
+export type GetInvoicesRequestParams = {  
+  q?: {
+    since?: string;
+    created_at_lt?: string;
+    created_at_gt?: string;
+  };
+  page?: number;
+  items?: number;
+};
+
 export type InvoiceRequestParams = {
   description?: string;
   description_hash?: string;
