@@ -168,6 +168,7 @@ export class OAuth2User implements OAuthClient {
     });
     const token = processTokenResponse(data);
     this.token = token;
+    this._tokenEvents.emit("tokenRefreshed", this.token);
     return { token };
   }
 
