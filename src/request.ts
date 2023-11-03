@@ -52,6 +52,11 @@ export async function request({
   const authHeader = auth
     ? await auth.getAuthHeader(url.href, method)
     : undefined;
+
+  let userAgent;
+  if(auth?.getUserAgent)
+   userAgent = auth?.getUserAgent()
+  console.log(userAgent);
   const response = await fetchWithRetries(
     url.toString(),
     {

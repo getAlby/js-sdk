@@ -60,6 +60,8 @@ export abstract class AuthClient {
     url?: string,
     method?: string,
   ): Promise<AuthHeader> | AuthHeader;
+
+  abstract getUserAgent?(): string;
 }
 
 // https://stackoverflow.com/a/50375286

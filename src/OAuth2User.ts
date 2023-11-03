@@ -52,6 +52,7 @@ export class OAuth2User implements OAuthClient {
   code_challenge?: string;
   private _refreshAccessTokenPromise: Promise<{ token: Token }> | null;
   private _tokenEvents: EventEmitter;
+  private  _userAgent: string;
 
   constructor(options: OAuth2UserOptions) {
     this._tokenEvents = new EventEmitter();
@@ -59,6 +60,11 @@ export class OAuth2User implements OAuthClient {
     this.options = { client_secret: "", ...defaultOptions };
     this.token = token;
     this._refreshAccessTokenPromise = null;
+    this._userAgent = options.user_agent;
+  }
+
+  getUserAgent(): string {
+    return this._userAgent
   }
 
   /**
