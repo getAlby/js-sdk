@@ -24,7 +24,7 @@ Nostr Wallet Connect is an open protocol enabling applications to interact with 
 
 The Alby JS SDK allows you to easily integrate Nostr Wallet Connect into any JavaScript based application.
 
-The `NostrWebLNProvider` exposes the [WebLN](webln.guide/) sendPayment interface to execute lightning payments through Nostr Wallet Connect.
+The `NostrWebLNProvider` exposes the [WebLN](webln.guide/) interface to execute lightning wallet functionality through Nostr Wallet Connect, such as sending payments, making invoices and getting the node balance.
 
 (Note: in the future more WebLN functions will be added to Nostr Wallet Connect)
 
@@ -69,7 +69,7 @@ if (!window.webln) {
 
 ### NostrWebLNProvider Functions
 
-The goal of the Nostr Wallet Connect provider is to be API compatible with [webln](https://www.webln.guide/). Currently not all methods are supported and only `sendPayment` is specified.
+The goal of the Nostr Wallet Connect provider is to be API compatible with [webln](https://www.webln.guide/). Currently not all methods are supported - see the examples/nwc directory for a list of supported methods.
 
 #### `static withNewSecret()`
 
