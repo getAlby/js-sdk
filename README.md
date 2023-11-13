@@ -126,6 +126,9 @@ catch (e) {
 }
 ```
 
+#### React Native (Expo)
+Look at our [NWC React Native Expo Demo app](https://github.com/getAlby/nwc-react-native-expo) for how to use NWC in a React Native expo project.
+
 #### For Node.js
 
 To use this on Node.js you first must install `websocket-polyfill` and import it:
