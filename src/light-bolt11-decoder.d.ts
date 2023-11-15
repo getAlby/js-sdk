@@ -1,4 +1,4 @@
-// TODO: submit PR to https://github.com/nbd-wtf/light-bolt11-decoder
+// TODO: remove when https://github.com/nbd-wtf/light-bolt11-decoder/pull/4 is merged
 declare module "light-bolt11-decoder" {
   type NetworkSection = {
     name: "coin_network";
