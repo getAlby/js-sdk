@@ -12,7 +12,7 @@ describe("decodeInvoice", () => {
     if (amountSection?.name !== "amount") {
       throw new Error("did not find amount section");
     }
-    const value = amountSection.value as string;
+    const value = amountSection.value;
     expect(value).toEqual("1000");
   });
 
@@ -24,7 +24,7 @@ describe("decodeInvoice", () => {
     if (paymentHashSection?.name !== "payment_hash") {
       throw new Error("did not find payment_hash section");
     }
-    const value = paymentHashSection.value as string;
+    const value = paymentHashSection.value;
     expect(value).toEqual(
       "9c0e57f7f1f4823ce6751fc3fd260e55fe12ccb7dbd70ab58e660c03f569ab34",
     );
