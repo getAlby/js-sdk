@@ -450,6 +450,14 @@ console.log(response.keysends);
 }
 ```
 
+#### Decoding an invoice
+
+For quick invoice decoding without an API request please see Alby's [Lightning Tools package](https://github.com/getAlby/js-lightning-tools#basic-invoice-decoding).
+
+For more invoice details you can use the Alby Wallet API.
+
+**COMING SOON**
+
 ## fetch() dependency
 
 This library relies on a global `fetch()` function which will only work in browsers and node v18.x or newer. In older versions you can manually install a global fetch option or polyfill if needed.
