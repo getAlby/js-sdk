@@ -265,4 +265,23 @@ export type GetAccountInformationResponse = {
   nostr_pubkey?: string;
 };
 
+export type DecodedInvoice = {
+  currency: string;
+  /**
+   * unix timestamp in seconds
+   */
+  created_at: number;
+  /**
+   * expiry from the created_at time in seconds (not a timestamp)
+   */
+  expiry: number;
+  payee: string;
+  msatoshi: number;
+  description: string;
+  payment_hash: string;
+  min_final_cltv_expiry: number;
+  amount: number;
+  payee_alias: string;
+};
+
 export { AlbyResponseError, RequestOptions };

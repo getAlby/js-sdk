@@ -8,6 +8,7 @@ import {
   CreateSwapResponse,
   CreateWebhookEndpointParams,
   CreateWebhookEndpointResponse,
+  DecodedInvoice,
   GetAccountBalanceResponse,
   GetAccountInformationResponse,
   GetInvoicesRequestParams,
@@ -147,6 +148,19 @@ export class Client {
       ...this.defaultRequestOptions,
       ...request_options,
       endpoint: `/invoices/${paymentHash}`,
+      method: "GET",
+    });
+  }
+
+  decodeInvoice(
+    paymentRequest: string,
+    request_options?: Partial<RequestOptions>,
+  ): Promise<DecodedInvoice> {
+    return rest({
+      auth: this.auth,
+      ...this.defaultRequestOptions,
+      ...request_options,
+      endpoint: `/decode/bolt11/${paymentRequest}`,
       method: "GET",
     });
   }
