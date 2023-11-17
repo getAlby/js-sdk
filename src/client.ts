@@ -226,7 +226,7 @@ export class Client {
   }
 
   /**
-   * @deprecated please use sendBoostagramToAlbyAccount
+   * @deprecated please use sendBoostagramToAlbyAccount. Deprecated since v2.7.0. Will be removed in v3.0.0.
    */
   sendToAlbyAccount(
     args: SendBoostagramToAlbyRequestParams,
