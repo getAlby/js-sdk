@@ -63,11 +63,11 @@ export abstract class AuthClient {
 }
 
 // https://stackoverflow.com/a/50375286
-export type UnionToIntersection<U> = (
-  U extends any ? (k: U) => void : never
-) extends (k: infer I) => void
-  ? I
-  : never;
+export type UnionToIntersection<U> =
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (U extends any ? (k: U) => void : never) extends (k: infer I) => void
+    ? I
+    : never;
 
 export type GetSuccess<T> = {
   [K in SuccessStatus & keyof T]: GetContent<T[K]>;
@@ -85,7 +85,7 @@ export type ExtractAlbyResponse<T> = "responses" extends keyof T
   ? GetSuccess<T["responses"]>
   : never;
 
-export type GetInvoicesRequestParams = {  
+export type GetInvoicesRequestParams = {
   q?: {
     since?: string;
     created_at_lt?: string;
@@ -255,6 +255,25 @@ export type GetAccountInformationResponse = {
   keysend_pubkey: string;
   lightning_address?: string;
   nostr_pubkey?: string;
+};
+
+export type DecodedInvoice = {
+  currency: string;
+  /**
+   * unix timestamp in seconds
+   */
+  created_at: number;
+  /**
+   * expiry from the created_at time in seconds (not a timestamp)
+   */
+  expiry: number;
+  payee: string;
+  msatoshi: number;
+  description: string;
+  payment_hash: string;
+  min_final_cltv_expiry: number;
+  amount: number;
+  payee_alias: string;
 };
 
 export { AlbyResponseError, RequestOptions };
