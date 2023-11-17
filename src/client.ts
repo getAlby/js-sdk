@@ -17,7 +17,7 @@ import {
   SendBoostagramRequestParams,
   SendPaymentRequestParams,
   SendPaymentResponse,
-  SendToAlbyRequestParams,
+  SendBoostagramToAlbyRequestParams,
   SwapInfoResponse,
 } from "./types";
 
@@ -37,6 +37,7 @@ export class Client {
   }
 
   accountBalance(
+    // eslint-disable-next-line @typescript-eslint/ban-types
     params: {},
     request_options?: Partial<RequestOptions>,
   ): Promise<GetAccountBalanceResponse> {
@@ -50,7 +51,11 @@ export class Client {
     });
   }
 
-  accountSummary(params: {}, request_options?: Partial<RequestOptions>) {
+  accountSummary(
+    // eslint-disable-next-line @typescript-eslint/ban-types
+    params: {},
+    request_options?: Partial<RequestOptions>,
+  ) {
     return rest({
       auth: this.auth,
       ...this.defaultRequestOptions,
@@ -62,6 +67,7 @@ export class Client {
   }
 
   accountInformation(
+    // eslint-disable-next-line @typescript-eslint/ban-types
     params: {},
     request_options?: Partial<RequestOptions>,
   ): Promise<GetAccountInformationResponse> {
@@ -75,7 +81,11 @@ export class Client {
     });
   }
 
-  accountValue4Value(params: {}, request_options?: Partial<RequestOptions>) {
+  accountValue4Value(
+    // eslint-disable-next-line @typescript-eslint/ban-types
+    params: {},
+    request_options?: Partial<RequestOptions>,
+  ) {
     return rest({
       auth: this.auth,
       ...this.defaultRequestOptions,
@@ -215,8 +225,8 @@ export class Client {
     });
   }
 
-  sendToAlbyAccount(
-    args: SendToAlbyRequestParams,
+  sendBoostagramToAlbyAccount(
+    args: SendBoostagramToAlbyRequestParams,
     request_options?: Partial<RequestOptions>,
   ) {
     const params = {
