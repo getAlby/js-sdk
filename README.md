@@ -217,6 +217,7 @@ Please have a look a the Alby OAuth2 Wallet API:
 - outgoingInvoices
 - getInvoice
 - createInvoice
+- decodeInvoice
 - keysend
 - sendPayment
 - sendBoostagram
@@ -454,9 +455,12 @@ console.log(response.keysends);
 
 For quick invoice decoding without an API request please see Alby's [Lightning Tools package](https://github.com/getAlby/js-lightning-tools#basic-invoice-decoding).
 
-For more invoice details you can use the Alby Wallet API.
+For more invoice details you can use the Alby Wallet API:
 
-**COMING SOON**
+```js
+const decodedInvoice = await client.decodeInvoice(paymentRequest);
+const {payment_hash, amount, description, ...} = decodedInvoice;
+```
 
 ## fetch() dependency
 
