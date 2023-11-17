@@ -272,9 +272,7 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
 
     const requestInvoiceArgs: RequestInvoiceArgs | undefined =
       typeof args === "object" ? (args as RequestInvoiceArgs) : undefined;
-    const amount = +(
-      requestInvoiceArgs?.amount ??
-      args as string | number);
+    const amount = +(requestInvoiceArgs?.amount ?? (args as string | number));
 
     if (!amount) {
       throw new Error("No amount specified");
@@ -496,24 +494,21 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
           }
         });
 
-        const pub = this.relay.publish(event);
-
         function publishTimeout() {
           //console.error(`Publish timeout: event ${event.id}`);
           reject({ error: `Publish timeout: event ${event.id}` });
         }
         const publishTimeoutCheck = setTimeout(publishTimeout, 5000);
 
-        pub.on("failed", (reason: unknown) => {
-          //console.debug(`failed to publish to ${this.relay.url}: ${reason}`)
+        try {
+          await this.relay.publish(event);
           clearTimeout(publishTimeoutCheck);
-          reject({ error: `Failed to publish request: ${reason}` });
-        });
-
-        pub.on("ok", () => {
           //console.debug(`Event ${event.id} for ${invoice} published`);
+        } catch (error) {
+          //console.error(`Failed to publish to ${this.relay.url}`, error);
           clearTimeout(publishTimeoutCheck);
-        });
+          reject({ error: `Failed to publish request: ${error}` });
+        }
       })();
     });
   }
