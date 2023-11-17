@@ -123,11 +123,19 @@ export type SendBoostagramRequestParams = {
   amount: number;
 };
 
-export type SendToAlbyRequestParams = {
+export type SendBoostagramToAlbyRequestParams = {
+  /**
+   * the keysend custom value found at https://getalby.com/node
+   */
   account: string;
   amount: number;
   memo?: string;
 };
+
+/**
+ * @deprecated please use SendBoostagramToAlbyRequestParams
+ */
+export type SendToAlbyRequestParams = SendBoostagramToAlbyRequestParams;
 
 export type CreateWebhookEndpointParams = {
   url: string;
