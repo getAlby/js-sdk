@@ -132,6 +132,11 @@ export type SendBoostagramToAlbyRequestParams = {
   memo?: string;
 };
 
+/**
+ * @deprecated please use SendBoostagramToAlbyRequestParams
+ */
+export type SendToAlbyRequestParams = SendBoostagramToAlbyRequestParams;
+
 export type CreateWebhookEndpointParams = {
   url: string;
   description?: string;

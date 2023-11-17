@@ -225,6 +225,16 @@ export class Client {
     });
   }
 
+  /**
+   * @deprecated please use sendBoostagramToAlbyAccount
+   */
+  sendToAlbyAccount(
+    args: SendBoostagramToAlbyRequestParams,
+    request_options?: Partial<RequestOptions>,
+  ) {
+    return this.sendBoostagramToAlbyAccount(args, request_options);
+  }
+
   sendBoostagramToAlbyAccount(
     args: SendBoostagramToAlbyRequestParams,
     request_options?: Partial<RequestOptions>,
