@@ -63,11 +63,11 @@ export abstract class AuthClient {
 }
 
 // https://stackoverflow.com/a/50375286
-export type UnionToIntersection<U> = (
-  U extends any ? (k: U) => void : never
-) extends (k: infer I) => void
-  ? I
-  : never;
+export type UnionToIntersection<U> =
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (U extends any ? (k: U) => void : never) extends (k: infer I) => void
+    ? I
+    : never;
 
 export type GetSuccess<T> = {
   [K in SuccessStatus & keyof T]: GetContent<T[K]>;
@@ -85,7 +85,7 @@ export type ExtractAlbyResponse<T> = "responses" extends keyof T
   ? GetSuccess<T["responses"]>
   : never;
 
-export type GetInvoicesRequestParams = {  
+export type GetInvoicesRequestParams = {
   q?: {
     since?: string;
     created_at_lt?: string;
@@ -123,11 +123,19 @@ export type SendBoostagramRequestParams = {
   amount: number;
 };
 
-export type SendToAlbyRequestParams = {
+export type SendBoostagramToAlbyRequestParams = {
+  /**
+   * the keysend custom value found at https://getalby.com/node
+   */
   account: string;
   amount: number;
   memo?: string;
 };
+
+/**
+ * @deprecated please use SendBoostagramToAlbyRequestParams
+ */
+export type SendToAlbyRequestParams = SendBoostagramToAlbyRequestParams;
 
 export type CreateWebhookEndpointParams = {
   url: string;

@@ -220,7 +220,7 @@ Please have a look a the Alby OAuth2 Wallet API:
 - keysend
 - sendPayment
 - sendBoostagram
-- sendToAlbyAccount
+- sendBoostagramToAlbyAccount
 - createWebhookEndpoint
 - deleteWebhookEndpoint
 
