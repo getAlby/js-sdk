@@ -63,11 +63,11 @@ export abstract class AuthClient {
 }
 
 // https://stackoverflow.com/a/50375286
-export type UnionToIntersection<U> = (
-  U extends any ? (k: U) => void : never
-) extends (k: infer I) => void
-  ? I
-  : never;
+export type UnionToIntersection<U> =
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (U extends any ? (k: U) => void : never) extends (k: infer I) => void
+    ? I
+    : never;
 
 export type GetSuccess<T> = {
   [K in SuccessStatus & keyof T]: GetContent<T[K]>;
@@ -85,7 +85,7 @@ export type ExtractAlbyResponse<T> = "responses" extends keyof T
   ? GetSuccess<T["responses"]>
   : never;
 
-export type GetInvoicesRequestParams = {  
+export type GetInvoicesRequestParams = {
   q?: {
     since?: string;
     created_at_lt?: string;
@@ -206,7 +206,7 @@ export type Invoice = {
   payer_pubkey?: string;
   payment_hash: string;
   payment_request: string;
-  preimage: string;
+  preimage?: string;
   r_hash_str: string;
   settled: boolean;
   settled_at: string;
