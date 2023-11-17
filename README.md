@@ -485,10 +485,10 @@ You can find examples in the [examples/](examples/) directory.
 We are happy to help, please contact us or create an issue.
 
 - [Twitter: @getAlby](https://twitter.com/getAlby)
-- [Telegram group](https://t.me/getAlby)
-- support at getalby.com
+- [Telegram Community Chat](https://t.me/getAlby)
+- e-mail to support at getalby.com
 - [bitcoin.design](https://bitcoin.design/) Slack community [#lightning-browser-extension](https://bitcoindesign.slack.com/archives/C02591ADXM2)
-- Read the [Alby developer guide](https://guides.getalby.com/overall-guide/alby-for-developers/getting-started) to better understand how Alby packages and APIs can be used to power your app.
+- Read the [Alby developer guide](https://guides.getalby.com/developer-guide) to better understand how Alby packages and APIs can be used to power your app.
 
 ## Thanks
 
