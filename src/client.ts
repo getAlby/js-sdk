@@ -232,6 +232,9 @@ export class Client {
     args: SendBoostagramToAlbyRequestParams,
     request_options?: Partial<RequestOptions>,
   ) {
+    console.warn(
+      "sendToAlbyAccount is deprecated. Please use sendBoostagramToAlbyAccount instead.",
+    );
     return this.sendBoostagramToAlbyAccount(args, request_options);
   }
 
