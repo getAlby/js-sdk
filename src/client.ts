@@ -240,12 +240,15 @@ export class Client {
   }
 
   /**
-   * @deprecated please use sendBoostagramToAlbyAccount
+   * @deprecated please use sendBoostagramToAlbyAccount. Deprecated since v2.7.0. Will be removed in v3.0.0.
    */
   sendToAlbyAccount(
     args: SendBoostagramToAlbyRequestParams,
     request_options?: Partial<RequestOptions>,
   ) {
+    console.warn(
+      "sendToAlbyAccount is deprecated. Please use sendBoostagramToAlbyAccount instead.",
+    );
     return this.sendBoostagramToAlbyAccount(args, request_options);
   }
 
