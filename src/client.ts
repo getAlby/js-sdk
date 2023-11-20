@@ -8,6 +8,7 @@ import {
   CreateSwapResponse,
   CreateWebhookEndpointParams,
   CreateWebhookEndpointResponse,
+  DecodedInvoice,
   GetAccountBalanceResponse,
   GetAccountInformationResponse,
   GetInvoicesRequestParams,
@@ -17,7 +18,7 @@ import {
   SendBoostagramRequestParams,
   SendPaymentRequestParams,
   SendPaymentResponse,
-  SendToAlbyRequestParams,
+  SendBoostagramToAlbyRequestParams,
   SwapInfoResponse,
 } from "./types";
 
@@ -37,6 +38,7 @@ export class Client {
   }
 
   accountBalance(
+    // eslint-disable-next-line @typescript-eslint/ban-types
     params: {},
     request_options?: Partial<RequestOptions>,
   ): Promise<GetAccountBalanceResponse> {
@@ -50,7 +52,11 @@ export class Client {
     });
   }
 
-  accountSummary(params: {}, request_options?: Partial<RequestOptions>) {
+  accountSummary(
+    // eslint-disable-next-line @typescript-eslint/ban-types
+    params: {},
+    request_options?: Partial<RequestOptions>,
+  ) {
     return rest({
       auth: this.auth,
       ...this.defaultRequestOptions,
@@ -62,6 +68,7 @@ export class Client {
   }
 
   accountInformation(
+    // eslint-disable-next-line @typescript-eslint/ban-types
     params: {},
     request_options?: Partial<RequestOptions>,
   ): Promise<GetAccountInformationResponse> {
@@ -75,7 +82,11 @@ export class Client {
     });
   }
 
-  accountValue4Value(params: {}, request_options?: Partial<RequestOptions>) {
+  accountValue4Value(
+    // eslint-disable-next-line @typescript-eslint/ban-types
+    params: {},
+    request_options?: Partial<RequestOptions>,
+  ) {
     return rest({
       auth: this.auth,
       ...this.defaultRequestOptions,
@@ -137,6 +148,19 @@ export class Client {
       ...this.defaultRequestOptions,
       ...request_options,
       endpoint: `/invoices/${paymentHash}`,
+      method: "GET",
+    });
+  }
+
+  decodeInvoice(
+    paymentRequest: string,
+    request_options?: Partial<RequestOptions>,
+  ): Promise<DecodedInvoice> {
+    return rest({
+      auth: this.auth,
+      ...this.defaultRequestOptions,
+      ...request_options,
+      endpoint: `/decode/bolt11/${paymentRequest}`,
       method: "GET",
     });
   }
@@ -215,8 +239,21 @@ export class Client {
     });
   }
 
+  /**
+   * @deprecated please use sendBoostagramToAlbyAccount. Deprecated since v2.7.0. Will be removed in v3.0.0.
+   */
   sendToAlbyAccount(
-    args: SendToAlbyRequestParams,
+    args: SendBoostagramToAlbyRequestParams,
+    request_options?: Partial<RequestOptions>,
+  ) {
+    console.warn(
+      "sendToAlbyAccount is deprecated. Please use sendBoostagramToAlbyAccount instead.",
+    );
+    return this.sendBoostagramToAlbyAccount(args, request_options);
+  }
+
+  sendBoostagramToAlbyAccount(
+    args: SendBoostagramToAlbyRequestParams,
     request_options?: Partial<RequestOptions>,
   ) {
     const params = {

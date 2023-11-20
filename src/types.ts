@@ -123,11 +123,19 @@ export type SendBoostagramRequestParams = {
   amount: number;
 };
 
-export type SendToAlbyRequestParams = {
+export type SendBoostagramToAlbyRequestParams = {
+  /**
+   * the keysend custom value found at https://getalby.com/node
+   */
   account: string;
   amount: number;
   memo?: string;
 };
+
+/**
+ * @deprecated please use SendBoostagramToAlbyRequestParams
+ */
+export type SendToAlbyRequestParams = SendBoostagramToAlbyRequestParams;
 
 export type CreateWebhookEndpointParams = {
   url: string;
@@ -255,6 +263,25 @@ export type GetAccountInformationResponse = {
   keysend_pubkey: string;
   lightning_address?: string;
   nostr_pubkey?: string;
+};
+
+export type DecodedInvoice = {
+  currency: string;
+  /**
+   * unix timestamp in seconds
+   */
+  created_at: number;
+  /**
+   * expiry from the created_at time in seconds (not a timestamp)
+   */
+  expiry: number;
+  payee: string;
+  msatoshi: number;
+  description: string;
+  payment_hash: string;
+  min_final_cltv_expiry: number;
+  amount: number;
+  payee_alias: string;
 };
 
 export { AlbyResponseError, RequestOptions };

@@ -10,7 +10,7 @@ import { webln as providers } from "../../dist/index.module.js";
 const rl = readline.createInterface({ input, output });
 
 const nwcUrl = await rl.question(
-  "Nostr Wallet Connect URL (nostrwalletconnect://...): ",
+  "Nostr Wallet Connect URL (nostr+walletconnect://...): ",
 );
 rl.close();
 

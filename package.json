@@ -40,7 +40,7 @@
   },
   "dependencies": {
     "crypto-js": "^4.1.1",
-    "nostr-tools": "1.13.1",
+    "nostr-tools": "^1.17.0",
     "events": "^3.3.0"
   },
   "devDependencies": {

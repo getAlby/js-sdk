@@ -166,7 +166,7 @@ webln.close(); // close the websocket connection
 ```js
 import { NostrWebLNProvider } from '@getalby/sdk';
 
-const webln = new NostrWebLNProvider({ nostrWalletConnectUrl: 'nostrwalletconnect://69effe7b49a6dd5cf525bd0905917a5005ffe480b58eeb8e861418cf3ae760d9?relay=wss://nostr.bitcoiner.social&secret=c60320b3ecb6c15557510d1518ef41194e9f9337c82621ddef3f979f668bfebd'); // use defaults
+const webln = new NostrWebLNProvider({ nostrWalletConnectUrl: 'nostr+walletconnect://69effe7b49a6dd5cf525bd0905917a5005ffe480b58eeb8e861418cf3ae760d9?relay=wss://nostr.bitcoiner.social&secret=c60320b3ecb6c15557510d1518ef41194e9f9337c82621ddef3f979f668bfebd'); // use defaults
 await webln.enable(); // connect to the relay
 const response = await webln.sendPayment(invoice);
 console.log(response.preimage);
@@ -217,10 +217,11 @@ Please have a look a the Alby OAuth2 Wallet API:
 - outgoingInvoices
 - getInvoice
 - createInvoice
+- decodeInvoice
 - keysend
 - sendPayment
 - sendBoostagram
-- sendToAlbyAccount
+- sendBoostagramToAlbyAccount
 - createWebhookEndpoint
 - deleteWebhookEndpoint
 
@@ -454,9 +455,12 @@ console.log(response.keysends);
 
 For quick invoice decoding without an API request please see Alby's [Lightning Tools package](https://github.com/getAlby/js-lightning-tools#basic-invoice-decoding).
 
-For more invoice details you can use the Alby Wallet API.
+For more invoice details you can use the Alby Wallet API:
 
-**COMING SOON**
+```js
+const decodedInvoice = await client.decodeInvoice(paymentRequest);
+const {payment_hash, amount, description, ...} = decodedInvoice;
+```
 
 ## fetch() dependency
 
@@ -481,10 +485,10 @@ You can find examples in the [examples/](examples/) directory.
 We are happy to help, please contact us or create an issue.
 
 - [Twitter: @getAlby](https://twitter.com/getAlby)
-- [Telegram group](https://t.me/getAlby)
-- support at getalby.com
+- [Telegram Community Chat](https://t.me/getAlby)
+- e-mail to support@getalby.com
 - [bitcoin.design](https://bitcoin.design/) Slack community [#lightning-browser-extension](https://bitcoindesign.slack.com/archives/C02591ADXM2)
-- Read the [Alby developer guide](https://guides.getalby.com/overall-guide/alby-for-developers/getting-started) to better understand how Alby packages and APIs can be used to power your app.
+- Read the [Alby developer guide](https://guides.getalby.com/developer-guide) to better understand how Alby packages and APIs can be used to power your app.
 
 ## Thanks
 
