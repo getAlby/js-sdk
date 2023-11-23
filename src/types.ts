@@ -214,7 +214,7 @@ export type Invoice = {
   payer_pubkey?: string;
   payment_hash: string;
   payment_request: string;
-  preimage: string;
+  preimage?: string;
   r_hash_str: string;
   settled: boolean;
   settled_at: string;
