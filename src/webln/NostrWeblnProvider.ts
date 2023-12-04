@@ -13,18 +13,15 @@ import {
 } from "nostr-tools";
 import {
   GetBalanceResponse,
-  KeysendArgs,
   RequestInvoiceArgs,
   MakeInvoiceResponse,
   SendPaymentResponse,
   SignMessageResponse,
-  WebLNNode,
   WebLNProvider,
   WebLNRequestMethod,
   LookupInvoiceArgs,
   LookupInvoiceResponse,
 } from "@webbtc/webln-types";
-import { GetInfoResponse } from "@webbtc/webln-types";
 import { GetNWCAuthorizationUrlOptions } from "../types";
 
 const NWCs: Record<string, NostrWebLNOptions> = {
@@ -35,6 +32,64 @@ const NWCs: Record<string, NostrWebLNOptions> = {
       "69effe7b49a6dd5cf525bd0905917a5005ffe480b58eeb8e861418cf3ae760d9",
   },
 };
+
+interface GetInfoResponse {
+  alias: string;
+  color: string;
+  pubkey: string;
+  network: string;
+  block_height: number;
+  block_hash: string;
+}
+
+interface PayKeysendArgs {
+  amount: number;
+  pubkey: string;
+  message?: string;
+  preimage?: string;
+  tlv_records: Record<string,  string | number>;
+}
+
+interface PayKeysendResponse {
+  preimage: string;
+  payment_hash: string;
+}
+
+interface ListInvoicesArgs {
+  from?: number;
+  until?: number;
+  limit?: number;
+  offset?: number;
+  unpaid?: boolean;
+}
+
+
+interface ListPaymentsArgs {
+  from?: number;
+  until?: number;
+  limit?: number;
+  offset?: number;
+}
+
+interface ListInvoicesArgs extends ListPaymentsArgs {
+  unpaid?: boolean;
+}
+
+interface ListedInvoice {
+  invoice: string;
+  description: string;
+  description_hash: string;
+  preimage: string;
+  payment_hash: string;
+  amount: number;
+  fees_paid: number;
+  settled_at: number;
+  metadata?: Record<string, unknown>;
+}
+
+interface ListedPayment extends ListedInvoice {
+  payee_pubkey: string;
+}
 
 interface NostrWebLNOptions {
   authorizationUrl?: string; // the URL to the NWC interface for the user to confirm the session
@@ -49,10 +104,14 @@ type Nip07Provider = {
 };
 
 const nip47ToWeblnRequestMap = {
+  get_info: "getInfo",
   get_balance: "getBalance",
   make_invoice: "makeInvoice",
   pay_invoice: "sendPayment",
   lookup_invoice: "lookupInvoice",
+  pay_keysend: "payKeysend",
+  list_invoices: "listInvoices",
+  list_payments: "listPayments",
 };
 
 export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
@@ -212,21 +271,18 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
     return decrypted;
   }
 
-  // WebLN compatible response
-  // TODO: use NIP-47 get_info call
-  async getInfo(): Promise<GetInfoResponse> {
-    return {
-      methods: [
-        "getInfo",
-        "sendPayment",
-        "makeInvoice",
-        "getBalance",
-        "lookupInvoice",
-      ],
-      node: {} as WebLNNode,
-      supports: ["lightning"],
-      version: "NWC",
-    };
+  getInfo() {
+    this.checkConnected();
+
+    return this.executeNip47Request<
+      GetInfoResponse,
+      { alias: string; color: string; pubkey: string; network: string; block_height: number; block_hash: string }
+    >(
+      "get_info",
+      undefined,
+      (result) => !!result.alias, // What to verify here?
+      (result) => result,
+    );
   }
 
   getBalance() {
@@ -257,10 +313,22 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
     );
   }
 
-  // not-yet implemented WebLN interface methods
-  keysend(args: KeysendArgs): Promise<SendPaymentResponse> {
-    throw new Error("Method not implemented.");
+  payKeysend(args: PayKeysendArgs) {
+    this.checkConnected();
+
+    return this.executeNip47Request<
+      PayKeysendResponse,
+      { preimage: string; payment_hash: string }
+    >(
+      "pay_keysend",
+      {
+        args,
+      },
+      (result) => !!result.preimage,
+      (result) => ({ preimage: result.preimage, payment_hash: result.payment_hash }),
+    );
   }
+
   lnurl(
     lnurl: string,
   ): Promise<{ status: "OK" } | { status: "ERROR"; reason: string }> {
@@ -303,6 +371,35 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
       args,
       (result) => result.invoice !== undefined && result.paid !== undefined,
       (result) => ({ paymentRequest: result.invoice, paid: result.paid }),
+    );
+  }
+
+  listInvoices(args: ListInvoicesArgs) {
+    this.checkConnected();
+
+    return this.executeNip47Request<
+      // maybe we can tailor the response to our needs
+      ListedInvoice[],
+      ListedInvoice[]
+    >(
+      "list_invoices",
+      args,
+      (results) => results.every(result => !!result.invoice && !!result.preimage),
+      (results) => results,
+    );
+  }
+
+  listPayments(args: ListPaymentsArgs) {
+    this.checkConnected();
+
+    return this.executeNip47Request<
+      ListedPayment[],
+      ListedPayment[]
+    >(
+      "list_invoices",
+      args,
+      (results) => results.every(result => !!result.invoice && !!result.preimage),
+      (results) => results,
     );
   }
 
