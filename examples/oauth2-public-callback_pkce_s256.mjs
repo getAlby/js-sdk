@@ -1,14 +1,29 @@
 import { auth, Client } from "../dist/index.module.js";
 import express from "express";
 
+if (!process.env.CLIENT_ID || !process.env.CLIENT_SECRET) {
+  throw new Error("Please set CLIENT_ID and CLIENT_SECRET");
+}
+
 const app = express();
 
 const authClient = new auth.OAuth2User({
   client_id: process.env.CLIENT_ID,
   client_secret: process.env.CLIENT_SECRET,
   callback: "http://localhost:8080/callback",
-  scopes: ["invoices:read", "account:read", "balance:read", "invoices:create", "invoices:read", "payments:send"],
-  token: {access_token: undefined, refresh_token: undefined, expires_at: undefined} // initialize with existing token
+  scopes: [
+    "invoices:read",
+    "account:read",
+    "balance:read",
+    "invoices:create",
+    "invoices:read",
+    "payments:send",
+  ],
+  token: {
+    access_token: undefined,
+    refresh_token: undefined,
+    expires_at: undefined,
+  }, // initialize with existing token
 });
 
 const client = new Client(authClient);
@@ -29,7 +44,7 @@ app.get("/callback", async function (req, res) {
 });
 
 app.get("/login", async function (req, res) {
-  const authUrl = authClient.generateAuthURL({
+  const authUrl = await authClient.generateAuthURL({
     state: STATE,
     code_challenge_method: "S256",
   });
@@ -52,20 +67,20 @@ app.get("/value4value", async function (req, res) {
 });
 
 app.get("/make-invoice", async function (req, res) {
-  const result = await client.createInvoice({amount: 1000});
+  const result = await client.createInvoice({ amount: 1000 });
   res.send(result);
 });
 
-app.get("/bolt11/:invoice", async function(req, res) {
-  const result = await client.sendPayment({invoice: req.params.invoice});
+app.get("/bolt11/:invoice", async function (req, res) {
+  const result = await client.sendPayment({ invoice: req.params.invoice });
   res.send(result);
 });
 
-app.get('/keysend/:destination', async function(req, res) {
+app.get("/keysend/:destination", async function (req, res) {
   const result = await client.keysend({
     destination: req.params.destination,
     amount: 10,
-    memo: req.query.memo
+    memo: req.query.memo,
   });
   res.send(result);
 });
