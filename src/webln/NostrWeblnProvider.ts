@@ -12,11 +12,14 @@ import {
   Kind,
 } from "nostr-tools";
 import {
+  KeysendArgs,
+  GetInfoResponse,
   GetBalanceResponse,
   RequestInvoiceArgs,
   MakeInvoiceResponse,
   SendPaymentResponse,
   SignMessageResponse,
+  WebLNNode,
   WebLNProvider,
   WebLNRequestMethod,
   LookupInvoiceArgs,
@@ -33,7 +36,7 @@ const NWCs: Record<string, NostrWebLNOptions> = {
   },
 };
 
-interface GetInfoResponse {
+interface NWCGetInfoResponse {
   alias: string;
   color: string;
   pubkey: string;
@@ -42,37 +45,19 @@ interface GetInfoResponse {
   block_hash: string;
 }
 
-interface PayKeysendArgs {
-  amount: number;
-  pubkey: string;
-  message?: string;
-  preimage?: string;
-  tlv_records: Record<string,  string | number>;
+interface NWCGetBalanceResponse extends GetBalanceResponse {}
+
+interface NWCPayInvoiceResponse {
+  preimage: string;
 }
 
-interface PayKeysendResponse {
-  preimage: string;
+interface NWCPayKeysendResponse extends NWCPayInvoiceResponse {
   payment_hash: string;
 }
 
-interface ListInvoicesArgs {
-  from?: number;
-  until?: number;
-  limit?: number;
-  offset?: number;
-  unpaid?: boolean;
-}
-
-
-interface ListPaymentsArgs {
-  from?: number;
-  until?: number;
-  limit?: number;
-  offset?: number;
-}
-
-interface ListInvoicesArgs extends ListPaymentsArgs {
-  unpaid?: boolean;
+interface NWCMakeInvoiceResponse {
+  invoice: string;
+  payment_hash: string;
 }
 
 interface ListedInvoice {
@@ -85,6 +70,19 @@ interface ListedInvoice {
   fees_paid: number;
   settled_at: number;
   metadata?: Record<string, unknown>;
+}
+
+interface NWCLookupInvoiceResponse extends ListedInvoice {}
+
+interface ListPaymentsArgs {
+  from?: number;
+  until?: number;
+  limit?: number;
+  offset?: number;
+}
+
+interface ListInvoicesArgs extends ListPaymentsArgs {
+  unpaid?: boolean;
 }
 
 interface ListedPayment extends ListedInvoice {
@@ -274,21 +272,27 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
   getInfo() {
     this.checkConnected();
 
-    return this.executeNip47Request<
-      GetInfoResponse,
-      { alias: string; color: string; pubkey: string; network: string; block_height: number; block_hash: string }
-    >(
+    return this.executeNip47Request<GetInfoResponse, NWCGetInfoResponse>(
       "get_info",
       undefined,
       (result) => !!result.alias, // What to verify here?
-      (result) => result,
+      (result) => ({
+        methods: Object.values(nip47ToWeblnRequestMap),
+        node: {
+          alias: result.alias,
+          pubkey: result.pubkey,
+          color: result.color,
+        } as WebLNNode,
+        supports: ["lightning", "nostr"],
+        version: "NWC",
+      }),
     );
   }
 
   getBalance() {
     this.checkConnected();
 
-    return this.executeNip47Request<GetBalanceResponse, { balance: number }>(
+    return this.executeNip47Request<GetBalanceResponse, NWCGetBalanceResponse>(
       "get_balance",
       undefined,
       (result) => result.balance !== undefined,
@@ -303,7 +307,7 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
   sendPayment(invoice: string) {
     this.checkConnected();
 
-    return this.executeNip47Request<SendPaymentResponse, { preimage: string }>(
+    return this.executeNip47Request<SendPaymentResponse, NWCPayInvoiceResponse>(
       "pay_invoice",
       {
         invoice,
@@ -313,19 +317,23 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
     );
   }
 
-  payKeysend(args: PayKeysendArgs) {
+  keysend(args: KeysendArgs) {
     this.checkConnected();
 
-    return this.executeNip47Request<
-      PayKeysendResponse,
-      { preimage: string; payment_hash: string }
-    >(
+    return this.executeNip47Request<SendPaymentResponse, NWCPayKeysendResponse>(
       "pay_keysend",
       {
-        args,
+        amount: args.amount,
+        pubkey: args.destination,
+        tlv_records: args.customRecords,
+        // TODO: support optional preimage
+        // preimage?: "123",
       },
       (result) => !!result.preimage,
-      (result) => ({ preimage: result.preimage, payment_hash: result.payment_hash }),
+      (result) => ({
+        preimage: result.preimage,
+        payment_hash: result.payment_hash,
+      }),
     );
   }
 
@@ -346,7 +354,10 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
       throw new Error("No amount specified");
     }
 
-    return this.executeNip47Request<MakeInvoiceResponse, { invoice: string }>(
+    return this.executeNip47Request<
+      MakeInvoiceResponse,
+      NWCMakeInvoiceResponse
+    >(
       "make_invoice",
       {
         amount: amount * 1000, // NIP-47 uses msat
@@ -365,26 +376,24 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
 
     return this.executeNip47Request<
       LookupInvoiceResponse,
-      { invoice: string; paid: boolean }
+      NWCLookupInvoiceResponse
     >(
       "lookup_invoice",
       args,
-      (result) => result.invoice !== undefined && result.paid !== undefined,
-      (result) => ({ paymentRequest: result.invoice, paid: result.paid }),
+      (result) => !!result.invoice && !!result.preimage,
+      (result) => ({ paymentRequest: result.invoice, paid: !!result.preimage }),
     );
   }
 
   listInvoices(args: ListInvoicesArgs) {
     this.checkConnected();
 
-    return this.executeNip47Request<
-      // maybe we can tailor the response to our needs
-      ListedInvoice[],
-      ListedInvoice[]
-    >(
+    // maybe we can tailor the response to our needs
+    return this.executeNip47Request<ListedInvoice[], ListedInvoice[]>(
       "list_invoices",
       args,
-      (results) => results.every(result => !!result.invoice && !!result.preimage),
+      (results) =>
+        results.every((result) => !!result.invoice && !!result.preimage),
       (results) => results,
     );
   }
@@ -392,13 +401,11 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
   listPayments(args: ListPaymentsArgs) {
     this.checkConnected();
 
-    return this.executeNip47Request<
-      ListedPayment[],
-      ListedPayment[]
-    >(
+    return this.executeNip47Request<ListedPayment[], ListedPayment[]>(
       "list_invoices",
       args,
-      (results) => results.every(result => !!result.invoice && !!result.preimage),
+      (results) =>
+        results.every((result) => !!result.invoice && !!result.preimage),
       (results) => results,
     );
   }
