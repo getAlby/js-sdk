@@ -1,5 +1,4 @@
-import CryptoJS from "crypto-js";
-import { buildQueryString, basicAuthHeader } from "./utils";
+import { buildQueryString, basicAuthHeader, toHexString } from "./utils";
 import {
   OAuthClient,
   AuthHeader,
@@ -75,6 +74,7 @@ export class OAuth2User implements OAuthClient {
     if (this._refreshAccessTokenPromise) {
       return this._refreshAccessTokenPromise;
     }
+    // eslint-disable-next-line no-async-promise-executor
     this._refreshAccessTokenPromise = new Promise(async (resolve, reject) => {
       try {
         const refresh_token = this.token?.refresh_token;
@@ -109,7 +109,7 @@ export class OAuth2User implements OAuthClient {
         resolve({ token });
         this._tokenEvents.emit("tokenRefreshed", this.token);
       } catch (error) {
-        console.log(error);
+        console.error(error);
         reject(error);
         this._tokenEvents.emit("tokenRefreshFailed", error);
       } finally {
@@ -140,7 +140,9 @@ export class OAuth2User implements OAuthClient {
       throw new Error("client_id is required");
     }
     if (!client_secret && !code_verifier) {
-      throw new Error("either client_secret is required, or code should be generated using a challenge");
+      throw new Error(
+        "either client_secret is required, or code should be generated using a challenge",
+      );
     }
     if (!callback) {
       throw new Error("callback is required");
@@ -171,23 +173,16 @@ export class OAuth2User implements OAuthClient {
     return { token };
   }
 
-  generateAuthURL(options?: GenerateAuthUrlOptions): string {
+  async generateAuthURL(options?: GenerateAuthUrlOptions): Promise<string> {
     if (!options) {
       options = {};
     }
-    console.log(options);
     const { client_id, callback, scopes } = this.options;
     if (!callback) throw new Error("callback required");
     if (!scopes) throw new Error("scopes required");
     let code_challenge_method;
     if (options.code_challenge_method === "S256") {
-      const code_verifier = CryptoJS.lib.WordArray.random(64);
-      this.code_verifier = code_verifier.toString();
-      this.code_challenge = CryptoJS.SHA256(this.code_verifier)
-        .toString(CryptoJS.enc.Base64)
-        .replace(/\+/g, "-")
-        .replace(/\//g, "_")
-        .replace(/\=+$/, "");
+      await this._generateS256Challenge();
       code_challenge_method = "S256";
     } else if (
       options.code_challenge_method === "plain" &&
@@ -219,5 +214,25 @@ export class OAuth2User implements OAuthClient {
     return {
       Authorization: `Bearer ${this.token.access_token}`,
     };
+  }
+
+  private async _generateS256Challenge() {
+    const codeVerifierBytes = crypto.getRandomValues(new Uint8Array(64));
+    this.code_verifier = toHexString(codeVerifierBytes);
+
+    // from https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/digest
+    const hashBuffer = await crypto.subtle.digest(
+      "SHA-256",
+      new TextEncoder().encode(this.code_verifier),
+    );
+    const hashArray = new Uint8Array(hashBuffer);
+
+    // from https://stackoverflow.com/a/45313868
+    // TODO: consider using Buffer.from(hashBuffer).toString("base64") in NodeJS
+    this.code_challenge = btoa(String.fromCharCode(...hashArray))
+      // from https://gist.github.com/jhurliman/1250118?permalink_comment_id=3194799
+      .replace(/\+/g, "-")
+      .replace(/\//g, "_")
+      .replace(/=+$/, "");
   }
 }

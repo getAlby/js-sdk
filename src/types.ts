@@ -47,7 +47,7 @@ export type GenerateAuthUrlOptions = { authorizeUrl?: string } & (
 
 export abstract class OAuthClient implements AuthClient {
   abstract token?: Token;
-  abstract generateAuthURL(options: GenerateAuthUrlOptions): string;
+  abstract generateAuthURL(options: GenerateAuthUrlOptions): Promise<string>;
   abstract requestAccessToken(code?: string): Promise<{ token: Token }>;
   abstract getAuthHeader(
     url?: string,

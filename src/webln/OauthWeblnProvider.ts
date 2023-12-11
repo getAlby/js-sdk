@@ -13,7 +13,7 @@ export class OauthWeblnProvider {
   client: Client;
   auth: OAuthClient;
   oauth: boolean;
-  subscribers: Record<string, (payload: any) => void>;
+  subscribers: Record<string, (payload: unknown) => void>;
   isExecuting: boolean;
 
   constructor(options: { auth: OAuthClient }) {
@@ -28,7 +28,7 @@ export class OauthWeblnProvider {
     this.subscribers[name] = callback;
   }
 
-  notify(name: string, payload?: any) {
+  notify(name: string, payload?: unknown) {
     const callback = this.subscribers[name];
     if (callback) {
       callback(payload);
@@ -45,7 +45,7 @@ export class OauthWeblnProvider {
     if (isBrowser()) {
       try {
         this.isExecuting = true;
-        const result = await this.openAuthorization();
+        await this.openAuthorization();
       } finally {
         this.isExecuting = false;
       }
@@ -123,12 +123,14 @@ export class OauthWeblnProvider {
     }
   }
 
-  openAuthorization() {
+  async openAuthorization() {
     const height = 700;
     const width = 600;
     const top = window.outerHeight / 2 + window.screenY - height / 2;
     const left = window.outerWidth / 2 + window.screenX - width / 2;
-    const url = this.auth.generateAuthURL({ code_challenge_method: "S256" });
+    const url = await this.auth.generateAuthURL({
+      code_challenge_method: "S256",
+    });
 
     return new Promise((resolve, reject) => {
       const popup = window.open(

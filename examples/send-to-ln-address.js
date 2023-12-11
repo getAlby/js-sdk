@@ -19,7 +19,7 @@ const authClient = new auth.OAuth2User({
 });
 
 console.log(`Open the following URL and authenticate the app:`);
-console.log(authClient.generateAuthURL());
+console.log(await authClient.generateAuthURL());
 console.log("----\n");
 
 const code = await rl.question("Code: (localhost:8080?code=[THIS CODE]: ");

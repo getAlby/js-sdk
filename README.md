@@ -10,6 +10,31 @@ This JavaScript SDK for the Alby OAuth2 Wallet API and the Nostr Wallet Connect 
 npm install @getalby/sdk
 ```
 
+or
+
+```
+yarn add @getalby/sdk
+```
+
+or for use without any build tools:
+
+```html
+<script type="module">
+  import { webln } from "https://esm.sh/@getalby/js-sdk@3.0.0"; // jsdelivr.net, skypack.dev also work
+
+  // use webln normally...
+  (async () => {
+    const nwc = new webln.NostrWebLNProvider({
+      nostrWalletConnectUrl: YOUR_NWC_URL,
+    });
+    await nwc.enable();
+    const balanceResponse = await nwc.getBalance();
+    console.log("Wallet balance", balanceResponse.balance);
+    nwc.close();
+  })();
+</script>
+```
+
 **This library relies on a global fetch() function which will work in browsers and node v18.x or newer.** (In older versions you have to use a polyfill.)
 
 ## Content
@@ -127,6 +152,7 @@ catch (e) {
 ```
 
 #### React Native (Expo)
+
 Look at our [NWC React Native Expo Demo app](https://github.com/getAlby/nwc-react-native-expo) for how to use NWC in a React Native expo project.
 
 #### For Node.js
@@ -249,7 +275,7 @@ const authClient = new auth.OAuth2User({
   }, // initialize with existing token
 });
 
-const authUrl = authClient.generateAuthURL({
+const authUrl = await authClient.generateAuthURL({
   code_challenge_method: "S256",
   // authorizeUrl: "https://getalby.com/oauth"  endpoint for authorization (replace with the appropriate URL based on the environment)
 });
