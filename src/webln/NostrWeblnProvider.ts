@@ -48,7 +48,18 @@ type Nip07Provider = {
   signEvent(event: UnsignedEvent): Promise<Event>;
 };
 
+type Nip47GetInfoResponse = {
+  alias: string;
+  color: string;
+  pubkey: string;
+  network: string;
+  block_height: number;
+  block_hash: string;
+  methods: string[];
+};
+
 const nip47ToWeblnRequestMap = {
+  get_info: "getInfo",
   get_balance: "getBalance",
   make_invoice: "makeInvoice",
   pay_invoice: "sendPayment",
@@ -215,18 +226,41 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
   // WebLN compatible response
   // TODO: use NIP-47 get_info call
   async getInfo(): Promise<GetInfoResponse> {
-    return {
-      methods: [
-        "getInfo",
-        "sendPayment",
-        "makeInvoice",
-        "getBalance",
-        "lookupInvoice",
-      ],
-      node: {} as WebLNNode,
-      supports: ["lightning"],
-      version: "NWC",
-    };
+    this.checkConnected();
+
+    const supports = ["lightning", "nostr"];
+    const version = "Alby JS SDK";
+
+    try {
+      return this.executeNip47Request<GetInfoResponse, Nip47GetInfoResponse>(
+        "get_info",
+        undefined,
+        (result) => !!result.methods,
+        (result) => ({
+          methods: result.methods.map(
+            (key) =>
+              nip47ToWeblnRequestMap[
+                key as keyof typeof nip47ToWeblnRequestMap
+              ],
+          ),
+          node: {
+            alias: result.alias,
+            pubkey: result.pubkey,
+            color: result.color,
+          } as WebLNNode,
+          supports,
+          version,
+        }),
+      );
+    } catch (error) {
+      console.error("Failed to request get_info", error);
+      return {
+        methods: ["sendPayment"],
+        node: {} as WebLNNode,
+        supports,
+        version,
+      };
+    }
   }
 
   getBalance() {
