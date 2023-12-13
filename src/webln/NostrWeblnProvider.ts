@@ -302,7 +302,7 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
     return this.executeNip47Request<SendPaymentResponse, Nip47PayResponse>(
       "pay_keysend",
       {
-        amount: args.amount,
+        amount: +args.amount * 1000, // NIP-47 uses msat
         pubkey: args.destination,
         tlv_records: args.customRecords,
         // TODO: support optional preimage
