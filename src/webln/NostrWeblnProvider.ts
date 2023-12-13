@@ -304,7 +304,12 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
       {
         amount: +args.amount * 1000, // NIP-47 uses msat
         pubkey: args.destination,
-        tlv_records: args.customRecords,
+        tlv_records: args.customRecords
+          ? Object.entries(args.customRecords).map((v) => ({
+              type: parseInt(v[0]),
+              value: v[1],
+            }))
+          : [],
         // TODO: support optional preimage
         // preimage?: "123",
       },
