@@ -36,6 +36,34 @@ const NWCs: Record<string, NostrWebLNOptions> = {
   },
 };
 
+interface ListTransactionsArgs {
+  from?: number;
+  until?: number;
+  limit?: number;
+  offset?: number;
+  unpaid?: boolean;
+  type?: string;
+}
+
+interface ListedInvoice {
+  type: string;
+  invoice: string;
+  description: string;
+  description_hash: string;
+  preimage: string;
+  payment_hash: string;
+  amount: number;
+  fees_paid: number;
+  settled_at: number;
+  created_at: number;
+  expires_at: number;
+  metadata?: Record<string, unknown>;
+}
+
+interface ListTransactionsResponse {
+  transactions: ListedInvoice[];
+}
+
 interface NostrWebLNOptions {
   authorizationUrl?: string; // the URL to the NWC interface for the user to confirm the session
   relayUrl: string;
@@ -58,12 +86,17 @@ type Nip47GetInfoResponse = {
   methods: string[];
 };
 
+type Nip47ListTransactionsResponse = {
+  transactions: ListedInvoice[];
+};
+
 const nip47ToWeblnRequestMap = {
   get_info: "getInfo",
   get_balance: "getBalance",
   make_invoice: "makeInvoice",
   pay_invoice: "sendPayment",
   lookup_invoice: "lookupInvoice",
+  list_transactions: "listTransactions",
 };
 
 export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
@@ -337,6 +370,24 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
       args,
       (result) => result.invoice !== undefined && result.paid !== undefined,
       (result) => ({ paymentRequest: result.invoice, paid: result.paid }),
+    );
+  }
+
+  listTransactions(args: ListTransactionsArgs) {
+    this.checkConnected();
+
+    // maybe we can tailor the response to our needs
+    return this.executeNip47Request<
+      ListTransactionsResponse,
+      Nip47ListTransactionsResponse
+    >(
+      "list_transactions",
+      args,
+      (results) =>
+        results.transactions.every(
+          (result) => !!result.invoice && !!result.preimage,
+        ),
+      (results) => results,
     );
   }
 
