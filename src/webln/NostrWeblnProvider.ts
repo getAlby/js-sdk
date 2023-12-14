@@ -36,6 +36,7 @@ const NWCs: Record<string, NostrWebLNOptions> = {
   },
 };
 
+// TODO: move to webln-types package
 interface ListTransactionsArgs {
   from?: number;
   until?: number;
@@ -45,7 +46,8 @@ interface ListTransactionsArgs {
   type?: string;
 }
 
-interface ListedInvoice {
+// TODO: move to webln-types package
+interface Transaction {
   type: string;
   invoice: string;
   description: string;
@@ -60,8 +62,9 @@ interface ListedInvoice {
   metadata?: Record<string, unknown>;
 }
 
+// TODO: move to webln-types package
 interface ListTransactionsResponse {
-  transactions: ListedInvoice[];
+  transactions: Transaction[];
 }
 
 interface NostrWebLNOptions {
@@ -87,7 +90,7 @@ type Nip47GetInfoResponse = {
 };
 
 type Nip47ListTransactionsResponse = {
-  transactions: ListedInvoice[];
+  transactions: Transaction[];
 };
 
 type Nip47PayResponse = {
