@@ -90,11 +90,16 @@ type Nip47ListTransactionsResponse = {
   transactions: ListedInvoice[];
 };
 
+type Nip47PayResponse = {
+  preimage: string;
+};
+
 const nip47ToWeblnRequestMap = {
   get_info: "getInfo",
   get_balance: "getBalance",
   make_invoice: "makeInvoice",
   pay_invoice: "sendPayment",
+  pay_keysend: "payKeysend",
   lookup_invoice: "lookupInvoice",
   list_transactions: "listTransactions",
 };
@@ -314,7 +319,7 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
   sendPayment(invoice: string) {
     this.checkConnected();
 
-    return this.executeNip47Request<SendPaymentResponse, { preimage: string }>(
+    return this.executeNip47Request<SendPaymentResponse, Nip47PayResponse>(
       "pay_invoice",
       {
         invoice,
@@ -324,10 +329,29 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
     );
   }
 
-  // not-yet implemented WebLN interface methods
-  keysend(args: KeysendArgs): Promise<SendPaymentResponse> {
-    throw new Error("Method not implemented.");
+  keysend(args: KeysendArgs) {
+    this.checkConnected();
+
+    return this.executeNip47Request<SendPaymentResponse, Nip47PayResponse>(
+      "pay_keysend",
+      {
+        amount: +args.amount * 1000, // NIP-47 uses msat
+        pubkey: args.destination,
+        tlv_records: args.customRecords
+          ? Object.entries(args.customRecords).map((v) => ({
+              type: parseInt(v[0]),
+              value: v[1],
+            }))
+          : [],
+        // TODO: support optional preimage
+        // preimage?: "123",
+      },
+      (result) => !!result.preimage,
+      (result) => ({ preimage: result.preimage }),
+    );
   }
+
+  // not-yet implemented WebLN interface methods
   lnurl(
     lnurl: string,
   ): Promise<{ status: "OK" } | { status: "ERROR"; reason: string }> {
