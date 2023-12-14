@@ -89,9 +89,7 @@ type Nip47GetInfoResponse = {
   methods: string[];
 };
 
-type Nip47ListTransactionsResponse = {
-  transactions: Transaction[];
-};
+type Nip47ListTransactionsResponse = ListTransactionsResponse;
 
 type Nip47PayResponse = {
   preimage: string;
@@ -410,11 +408,9 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
     >(
       "list_transactions",
       args,
-      (results) =>
-        results.transactions.every(
-          (result) => !!result.invoice && !!result.preimage,
-        ),
-      (results) => results,
+      (response) => !!response.transactions,
+      // TODO: consider mapping NWC response
+      (response) => response,
     );
   }
 
