@@ -43,7 +43,7 @@ interface ListTransactionsArgs {
   limit?: number;
   offset?: number;
   unpaid?: boolean;
-  type?: string;
+  type?: "incoming" | "outgoing";
 }
 
 // TODO: move to webln-types package
