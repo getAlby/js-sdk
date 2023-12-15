@@ -37,7 +37,7 @@ const NWCs: Record<string, NostrWebLNOptions> = {
 };
 
 // TODO: move to webln-types package
-interface ListTransactionsArgs {
+export interface ListTransactionsArgs {
   from?: number;
   until?: number;
   limit?: number;
@@ -47,7 +47,7 @@ interface ListTransactionsArgs {
 }
 
 // TODO: move to webln-types package
-interface Transaction {
+export interface Transaction {
   type: string;
   invoice: string;
   description: string;
@@ -63,7 +63,7 @@ interface Transaction {
 }
 
 // TODO: move to webln-types package
-interface ListTransactionsResponse {
+export interface ListTransactionsResponse {
   transactions: Transaction[];
 }
 
