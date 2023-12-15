@@ -414,6 +414,7 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
           ...transaction,
           // NWC uses msats - convert to sats for webln
           amount: Math.floor(transaction.amount / 1000),
+          fees_paid: Math.floor(transaction.fees_paid / 1000),
         })),
       }),
     );
