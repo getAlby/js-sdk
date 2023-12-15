@@ -19,12 +19,19 @@ const webln = new providers.NostrWebLNProvider({
 });
 await webln.enable();
 
-const response = await webln.lookupInvoice({
-  from: 1234567890,
-  until: 1236000000,
-  type: "incoming",
+const ONE_WEEK_IN_SECONDS = 60 * 60 * 24 * 7;
+const response = await webln.listTransactions({
+  from: Math.floor(new Date().getTime() / 1000 - ONE_WEEK_IN_SECONDS),
+  until: Math.ceil(new Date().getTime() / 1000),
+  limit: 30,
+  // type: "incoming",
 });
 
-console.info(response);
+console.info(
+  response.transactions.length + "transactions, ",
+  response.transactions.filter((t) => t.type === "incoming").length +
+    " incoming",
+  response,
+);
 
 webln.close();
