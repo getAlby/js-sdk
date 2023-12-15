@@ -409,8 +409,13 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
       "list_transactions",
       args,
       (response) => !!response.transactions,
-      // TODO: consider mapping NWC response
-      (response) => response,
+      (response) => ({
+        transactions: response.transactions.map((transaction) => ({
+          ...transaction,
+          // NWC uses msats - convert to sats for webln
+          amount: Math.floor(transaction.amount / 1000),
+        })),
+      }),
     );
   }
 
