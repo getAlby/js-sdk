@@ -635,7 +635,9 @@ function mapNip47TransactionToTransaction(
     ...transaction,
     // NWC uses msats - convert to sats for webln
     amount: Math.floor(transaction.amount / 1000),
-    fees_paid: Math.floor(transaction.fees_paid / 1000),
+    fees_paid: transaction.fees_paid
+      ? Math.floor(transaction.fees_paid / 1000)
+      : 0,
   };
 }
 
