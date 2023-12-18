@@ -152,6 +152,7 @@ export type BaseWebhookEndpointResponse = {
 };
 
 export type SwapInfoResponse = {
+  available: boolean;
   service_fee_percentage: number;
   network_fee: number;
   sats_per_vbyte: number;
