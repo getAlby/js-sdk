@@ -12,24 +12,26 @@ const rl = readline.createInterface({ input, output });
 const nwcUrl =
   process.env.NWC_URL ||
   (await rl.question("Nostr Wallet Connect URL (nostr+walletconnect://...): "));
-
-const invoiceOrPaymentHash = await rl.question("Invoice or payment hash: ");
 rl.close();
 
 const webln = new providers.NostrWebLNProvider({
   nostrWalletConnectUrl: nwcUrl,
 });
 await webln.enable();
-const response = await webln.lookupInvoice({
-  // provide one of the below
-  invoice: invoiceOrPaymentHash.startsWith("ln")
-    ? invoiceOrPaymentHash
-    : undefined,
-  payment_hash: !invoiceOrPaymentHash.startsWith("ln")
-    ? invoiceOrPaymentHash
-    : undefined,
+
+const ONE_WEEK_IN_SECONDS = 60 * 60 * 24 * 7;
+const response = await webln.listTransactions({
+  from: Math.floor(new Date().getTime() / 1000 - ONE_WEEK_IN_SECONDS),
+  until: Math.ceil(new Date().getTime() / 1000),
+  limit: 30,
+  // type: "incoming",
 });
 
-console.info(response);
+console.info(
+  response.transactions.length + "transactions, ",
+  response.transactions.filter((t) => t.type === "incoming").length +
+    " incoming",
+  response,
+);
 
 webln.close();

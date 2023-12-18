@@ -36,6 +36,37 @@ const NWCs: Record<string, NostrWebLNOptions> = {
   },
 };
 
+// TODO: move to webln-types package
+export interface ListTransactionsArgs {
+  from?: number;
+  until?: number;
+  limit?: number;
+  offset?: number;
+  unpaid?: boolean;
+  type?: "incoming" | "outgoing";
+}
+
+// TODO: move to webln-types package
+export interface Transaction {
+  type: string;
+  invoice: string;
+  description: string;
+  description_hash: string;
+  preimage: string;
+  payment_hash: string;
+  amount: number;
+  fees_paid: number;
+  settled_at: number;
+  created_at: number;
+  expires_at: number;
+  metadata?: Record<string, unknown>;
+}
+
+// TODO: move to webln-types package
+export interface ListTransactionsResponse {
+  transactions: Transaction[];
+}
+
 interface NostrWebLNOptions {
   authorizationUrl?: string; // the URL to the NWC interface for the user to confirm the session
   relayUrl: string;
@@ -58,6 +89,11 @@ type Nip47GetInfoResponse = {
   methods: string[];
 };
 
+type Nip47ListTransactionsResponse = {
+  transactions: Nip47Transaction[];
+};
+type Nip47Transaction = Transaction;
+
 type Nip47PayResponse = {
   preimage: string;
 };
@@ -69,6 +105,7 @@ const nip47ToWeblnRequestMap = {
   pay_invoice: "sendPayment",
   pay_keysend: "payKeysend",
   lookup_invoice: "lookupInvoice",
+  list_transactions: "listTransactions",
 };
 
 export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
@@ -336,7 +373,7 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
       throw new Error("No amount specified");
     }
 
-    return this.executeNip47Request<MakeInvoiceResponse, { invoice: string }>(
+    return this.executeNip47Request<MakeInvoiceResponse, Nip47Transaction>(
       "make_invoice",
       {
         amount: amount * 1000, // NIP-47 uses msat
@@ -353,14 +390,33 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
   lookupInvoice(args: LookupInvoiceArgs) {
     this.checkConnected();
 
-    return this.executeNip47Request<
-      LookupInvoiceResponse,
-      { invoice: string; paid: boolean }
-    >(
+    return this.executeNip47Request<LookupInvoiceResponse, Nip47Transaction>(
       "lookup_invoice",
       args,
-      (result) => result.invoice !== undefined && result.paid !== undefined,
-      (result) => ({ paymentRequest: result.invoice, paid: result.paid }),
+      (result) => !!result.invoice,
+      (result) => ({
+        paymentRequest: result.invoice,
+        paid: !!result.settled_at,
+      }),
+    );
+  }
+
+  listTransactions(args: ListTransactionsArgs) {
+    this.checkConnected();
+
+    // maybe we can tailor the response to our needs
+    return this.executeNip47Request<
+      ListTransactionsResponse,
+      Nip47ListTransactionsResponse
+    >(
+      "list_transactions",
+      args,
+      (response) => !!response.transactions,
+      (response) => ({
+        transactions: response.transactions.map(
+          mapNip47TransactionToTransaction,
+        ),
+      }),
     );
   }
 
@@ -532,7 +588,7 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
           }
           // @ts-ignore // event is still unknown in nostr-tools
           if (event.kind == 23195 && response.result) {
-            //console.log("NIP-47 result", response.result);
+            // console.info("NIP-47 result", response.result);
             if (resultValidator(response.result)) {
               resolve(resultMapper(response.result));
               this.notify(weblnMethod, response.result);
@@ -570,6 +626,19 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
       })();
     });
   }
+}
+
+function mapNip47TransactionToTransaction(
+  transaction: Nip47Transaction,
+): Transaction {
+  return {
+    ...transaction,
+    // NWC uses msats - convert to sats for webln
+    amount: Math.floor(transaction.amount / 1000),
+    fees_paid: transaction.fees_paid
+      ? Math.floor(transaction.fees_paid / 1000)
+      : 0,
+  };
 }
 
 export const NWC = NostrWebLNProvider;
