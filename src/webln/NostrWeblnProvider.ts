@@ -36,8 +36,18 @@ const NWCs: Record<string, NostrWebLNOptions> = {
   },
 };
 
-// TODO: move to webln-types package
-export interface ListTransactionsArgs {
+// TODO: review fields (replace with camelCase) and consider move to webln-types package
+export type Transaction = Nip47Transaction;
+
+// TODO: consider moving to webln-types package
+export type ListTransactionsResponse = {
+  transactions: Transaction[];
+};
+
+// TODO: consider moving to webln-types package
+export type ListTransactionsArgs = Nip47ListTransactionsArgs;
+
+interface Nip47ListTransactionsArgs {
   from?: number;
   until?: number;
   limit?: number;
@@ -46,8 +56,11 @@ export interface ListTransactionsArgs {
   type?: "incoming" | "outgoing";
 }
 
-// TODO: move to webln-types package
-export interface Transaction {
+type Nip47ListTransactionsResponse = {
+  transactions: Nip47Transaction[];
+};
+
+type Nip47Transaction = {
   type: string;
   invoice: string;
   description: string;
@@ -60,12 +73,7 @@ export interface Transaction {
   created_at: number;
   expires_at: number;
   metadata?: Record<string, unknown>;
-}
-
-// TODO: move to webln-types package
-export interface ListTransactionsResponse {
-  transactions: Transaction[];
-}
+};
 
 interface NostrWebLNOptions {
   authorizationUrl?: string; // the URL to the NWC interface for the user to confirm the session
@@ -88,11 +96,6 @@ type Nip47GetInfoResponse = {
   block_hash: string;
   methods: string[];
 };
-
-type Nip47ListTransactionsResponse = {
-  transactions: Nip47Transaction[];
-};
-type Nip47Transaction = Transaction;
 
 type Nip47PayResponse = {
   preimage: string;
@@ -392,9 +395,13 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
 
     return this.executeNip47Request<LookupInvoiceResponse, Nip47Transaction>(
       "lookup_invoice",
-      args,
+      {
+        invoice: args.paymentRequest,
+        payment_hash: args.paymentHash,
+      },
       (result) => !!result.invoice,
       (result) => ({
+        preimage: result.preimage,
         paymentRequest: result.invoice,
         paid: !!result.settled_at,
       }),
