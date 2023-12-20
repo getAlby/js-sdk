@@ -277,7 +277,10 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
     const version = "Alby JS SDK";
 
     try {
-      return this.executeNip47Request<GetInfoResponse, Nip47GetInfoResponse>(
+      const result = await this.executeNip47Request<
+        GetInfoResponse,
+        Nip47GetInfoResponse
+      >(
         "get_info",
         undefined,
         (result) => !!result.methods,
@@ -297,6 +300,7 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
           version,
         }),
       );
+      return result;
     } catch (error) {
       console.error("Failed to request get_info", error);
       return {
