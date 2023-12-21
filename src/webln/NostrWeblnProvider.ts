@@ -118,6 +118,7 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
   walletPubkey: string;
   options: NostrWebLNOptions;
   subscribers: Record<string, (payload: unknown) => void>;
+  private _enabled = false;
 
   static parseWalletConnectUrl(walletConnectUrl: string) {
     walletConnectUrl = walletConnectUrl
@@ -242,6 +243,7 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
   }
 
   async enable() {
+    this._enabled = true;
     return Promise.resolve();
   }
 
@@ -525,6 +527,11 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
   }
 
   private async checkConnected() {
+    if (!this._enabled) {
+      throw new Error(
+        "please call enable() and await the promise before calling this function",
+      );
+    }
     if (!this.secret) {
       throw new Error("Missing secret key");
     }
