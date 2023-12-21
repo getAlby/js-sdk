@@ -244,7 +244,6 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
 
   async enable() {
     this._enabled = true;
-    return Promise.resolve();
   }
 
   close() {
