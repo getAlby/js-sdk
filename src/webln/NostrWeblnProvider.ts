@@ -118,6 +118,7 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
   walletPubkey: string;
   options: NostrWebLNOptions;
   subscribers: Record<string, (payload: unknown) => void>;
+  private _enabled = false;
 
   static parseWalletConnectUrl(walletConnectUrl: string) {
     walletConnectUrl = walletConnectUrl
@@ -242,10 +243,7 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
   }
 
   async enable() {
-    if (this.connected) {
-      return Promise.resolve();
-    }
-    await this.relay.connect();
+    this._enabled = true;
   }
 
   close() {
@@ -271,7 +269,7 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
   // WebLN compatible response
   // TODO: use NIP-47 get_info call
   async getInfo(): Promise<GetInfoResponse> {
-    this.checkConnected();
+    await this.checkConnected();
 
     const supports = ["lightning", "nostr"];
     const version = "Alby JS SDK";
@@ -312,8 +310,8 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
     }
   }
 
-  getBalance() {
-    this.checkConnected();
+  async getBalance() {
+    await this.checkConnected();
 
     return this.executeNip47Request<GetBalanceResponse, { balance: number }>(
       "get_balance",
@@ -327,8 +325,8 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
     );
   }
 
-  sendPayment(invoice: string) {
-    this.checkConnected();
+  async sendPayment(invoice: string) {
+    await this.checkConnected();
 
     return this.executeNip47Request<SendPaymentResponse, Nip47PayResponse>(
       "pay_invoice",
@@ -340,8 +338,8 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
     );
   }
 
-  keysend(args: KeysendArgs) {
-    this.checkConnected();
+  async keysend(args: KeysendArgs) {
+    await this.checkConnected();
 
     return this.executeNip47Request<SendPaymentResponse, Nip47PayResponse>(
       "pay_keysend",
@@ -369,8 +367,8 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
     throw new Error("Method not implemented.");
   }
 
-  makeInvoice(args: string | number | RequestInvoiceArgs) {
-    this.checkConnected();
+  async makeInvoice(args: string | number | RequestInvoiceArgs) {
+    await this.checkConnected();
 
     const requestInvoiceArgs: RequestInvoiceArgs | undefined =
       typeof args === "object" ? (args as RequestInvoiceArgs) : undefined;
@@ -394,8 +392,8 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
     );
   }
 
-  lookupInvoice(args: LookupInvoiceArgs) {
-    this.checkConnected();
+  async lookupInvoice(args: LookupInvoiceArgs) {
+    await this.checkConnected();
 
     return this.executeNip47Request<LookupInvoiceResponse, Nip47Transaction>(
       "lookup_invoice",
@@ -412,8 +410,8 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
     );
   }
 
-  listTransactions(args: ListTransactionsArgs) {
-    this.checkConnected();
+  async listTransactions(args: ListTransactionsArgs) {
+    await this.checkConnected();
 
     // maybe we can tailor the response to our needs
     return this.executeNip47Request<
@@ -527,12 +525,16 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
     });
   }
 
-  private checkConnected() {
-    if (!this.connected) {
+  private async checkConnected() {
+    if (!this._enabled) {
       throw new Error(
         "please call enable() and await the promise before calling this function",
       );
     }
+    if (!this.secret) {
+      throw new Error("Missing secret key");
+    }
+    await this.relay.connect();
   }
 
   private executeNip47Request<T, R>(
