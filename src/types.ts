@@ -229,8 +229,14 @@ export type Invoice = {
   };
 } & Record<string, unknown>;
 
-export type GetNWCAuthorizationUrlOptions = {
+/**
+ * @deprecated please use NWCAuthorizationUrlOptions
+ */
+export type GetNWCAuthorizationUrlOptions = NWCAuthorizationUrlOptions;
+
+export type NWCAuthorizationUrlOptions = {
   name?: string;
+  requestMethods?: string[];
   returnTo?: string;
   expiresAt?: Date;
   maxAmount?: number;
