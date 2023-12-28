@@ -25,7 +25,7 @@ import {
   LookupInvoiceResponse,
 } from "@webbtc/webln-types";
 import { GetInfoResponse } from "@webbtc/webln-types";
-import { GetNWCAuthorizationUrlOptions } from "../types";
+import { NWCAuthorizationUrlOptions } from "../types";
 
 const NWCs: Record<string, NostrWebLNOptions> = {
   alby: {
@@ -439,13 +439,13 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
     throw new Error("Method not implemented.");
   }
 
-  getAuthorizationUrl(options?: GetNWCAuthorizationUrlOptions) {
+  getAuthorizationUrl(options?: NWCAuthorizationUrlOptions) {
     if (!this.options.authorizationUrl) {
       throw new Error("Missing authorizationUrl option");
     }
     const url = new URL(this.options.authorizationUrl);
     if (options?.name) {
-      url.searchParams.set("c", options?.name);
+      url.searchParams.set("name", options?.name);
     }
     url.searchParams.set("pubkey", this.publicKey);
     if (options?.returnTo) {
@@ -468,10 +468,14 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
       url.searchParams.set("editable", options.editable.toString());
     }
 
+    if (options?.requestMethods) {
+      url.searchParams.set("request_methods", options.requestMethods.join(" "));
+    }
+
     return url;
   }
 
-  initNWC(options: GetNWCAuthorizationUrlOptions = {}) {
+  initNWC(options: NWCAuthorizationUrlOptions = {}) {
     // here we assume an browser context and window/document is available
     // we set the location.host as a default name if none is given
     if (!options.name) {
@@ -585,13 +589,14 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
         const replyTimeoutCheck = setTimeout(replyTimeout, 60000);
 
         sub.on("event", async (event) => {
-          //console.log(`Received reply event: `, event);
+          // console.log(`Received reply event: `, event);
           clearTimeout(replyTimeoutCheck);
           sub.unsub();
           const decryptedContent = await this.decrypt(
             this.walletPubkey,
             event.content,
           );
+          // console.log(`Decrypted content: `, decryptedContent);
           let response;
           try {
             response = JSON.parse(decryptedContent);
