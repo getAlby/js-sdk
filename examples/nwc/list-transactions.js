@@ -25,10 +25,11 @@ const response = await webln.listTransactions({
   until: Math.ceil(new Date().getTime() / 1000),
   limit: 30,
   // type: "incoming",
+  // unpaid: true,
 });
 
 console.info(
-  response.transactions.length + "transactions, ",
+  response.transactions.length + " transactions, ",
   response.transactions.filter((t) => t.type === "incoming").length +
     " incoming",
   response,
