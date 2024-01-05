@@ -15,7 +15,6 @@ import {
   GetBalanceResponse,
   KeysendArgs,
   RequestInvoiceArgs,
-  MakeInvoiceResponse,
   SendPaymentResponse,
   SignMessageResponse,
   WebLNNode,
@@ -74,6 +73,11 @@ type Nip47Transaction = {
   expires_at: number;
   metadata?: Record<string, unknown>;
 };
+
+// TODO: update this in webln-types package
+interface MakeInvoiceResponse extends Nip47Transaction {
+  paymentRequest: string;
+}
 
 interface NostrWebLNOptions {
   authorizationUrl?: string; // the URL to the NWC interface for the user to confirm the session
@@ -388,7 +392,7 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
         //description_hash: "b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9"
       },
       (result) => !!result.invoice,
-      (result) => ({ paymentRequest: result.invoice }),
+      (result) => ({ paymentRequest: result.invoice, ...result }),
     );
   }
 
