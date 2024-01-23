@@ -38,12 +38,13 @@
     "prepare": "husky install"
   },
   "dependencies": {
-    "nostr-tools": "^1.17.0",
-    "events": "^3.3.0"
+    "events": "^3.3.0",
+    "nostr-tools": "^1.17.0"
   },
   "devDependencies": {
     "@commitlint/cli": "^17.7.1",
     "@commitlint/config-conventional": "^17.7.0",
+    "@getalby/lightning-tools": "^5.0.1",
     "@types/jest": "^29.5.5",
     "@types/node": "^20.8.6",
     "@typescript-eslint/eslint-plugin": "^6.3.0",

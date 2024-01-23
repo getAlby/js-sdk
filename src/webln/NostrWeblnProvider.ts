@@ -9,7 +9,6 @@ import {
   Event,
   UnsignedEvent,
   finishEvent,
-  Kind,
 } from "nostr-tools";
 import {
   GetBalanceResponse,
@@ -46,6 +45,12 @@ export type ListTransactionsResponse = {
 
 // TODO: consider moving to webln-types package
 export type ListTransactionsArgs = Nip47ListTransactionsArgs;
+
+// TODO: consider moving to webln-types package
+export type SendMultiPaymentResponse = {
+  payments: ({ paymentRequest: string } & SendPaymentResponse)[];
+  errors: { paymentRequest: string; message: string }[];
+};
 
 interface Nip47ListTransactionsArgs {
   from?: number;
@@ -109,6 +114,9 @@ const nip47ToWeblnRequestMap = {
   pay_keysend: "payKeysend",
   lookup_invoice: "lookupInvoice",
   list_transactions: "listTransactions",
+};
+const nip47ToWeblnMultiRequestMap = {
+  multi_pay_invoice: "sendMultiPayment",
 };
 
 export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
@@ -338,6 +346,45 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
     );
   }
 
+  // NOTE: this method may change - it has not been proposed to be added to the WebLN spec yet.
+  async sendMultiPayment(
+    paymentRequests: string[],
+  ): Promise<SendMultiPaymentResponse> {
+    await this.checkConnected();
+
+    const results = await this.executeMultiNip47Request<
+      { preimage: string; paymentRequest: string },
+      Nip47PayResponse
+    >(
+      "multi_pay_invoice",
+      {
+        invoices: paymentRequests.map((paymentRequest, index) => ({
+          invoice: paymentRequest,
+          id: index.toString(),
+        })),
+      },
+      paymentRequests.length,
+      (result) => !!result.preimage,
+      (result) => {
+        const paymentRequest = paymentRequests[parseInt(result.dTag)];
+        if (!paymentRequest) {
+          throw new Error(
+            "Could not find paymentRequest matching response d tag",
+          );
+        }
+        return {
+          paymentRequest,
+          preimage: result.preimage,
+        };
+      },
+    );
+
+    return {
+      payments: results,
+      errors: [],
+    };
+  }
+
   async keysend(args: KeysendArgs) {
     await this.checkConnected();
 
@@ -559,7 +606,7 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
           JSON.stringify(command),
         );
         const unsignedEvent: UnsignedEvent = {
-          kind: 23194 as Kind,
+          kind: 23194,
           created_at: Math.floor(Date.now() / 1000),
           tags: [["p", this.walletPubkey]],
           content: encryptedCommand,
@@ -604,7 +651,6 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
             reject({ error: "invalid response", code: "INTERNAL" });
             return;
           }
-          // @ts-ignore // event is still unknown in nostr-tools
           if (event.kind == 23195 && response.result) {
             // console.info("NIP-47 result", response.result);
             if (resultValidator(response.result)) {
@@ -619,6 +665,138 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
               });
             }
           } else {
+            reject({
+              error: response.error?.message,
+              code: response.error?.code,
+            });
+          }
+        });
+
+        function publishTimeout() {
+          //console.error(`Publish timeout: event ${event.id}`);
+          reject({ error: `Publish timeout: event ${event.id}` });
+        }
+        const publishTimeoutCheck = setTimeout(publishTimeout, 5000);
+
+        try {
+          await this.relay.publish(event);
+          clearTimeout(publishTimeoutCheck);
+          //console.debug(`Event ${event.id} for ${invoice} published`);
+        } catch (error) {
+          //console.error(`Failed to publish to ${this.relay.url}`, error);
+          clearTimeout(publishTimeoutCheck);
+          reject({ error: `Failed to publish request: ${error}` });
+        }
+      })();
+    });
+  }
+
+  // TODO: this method currently fails if any payment fails.
+  // this could be improved in the future.
+  // TODO: reduce duplication between executeNip47Request and executeMultiNip47Request
+  private executeMultiNip47Request<T, R>(
+    nip47Method: keyof typeof nip47ToWeblnMultiRequestMap,
+    params: unknown,
+    numPayments: number,
+    resultValidator: (result: R) => boolean,
+    resultMapper: (result: R & { dTag: string }) => T,
+  ) {
+    const weblnMethod = nip47ToWeblnMultiRequestMap[nip47Method];
+    const results: (R & { dTag: string })[] = [];
+    return new Promise<T[]>((resolve, reject) => {
+      (async () => {
+        const command = {
+          method: nip47Method,
+          params,
+        };
+        const encryptedCommand = await this.encrypt(
+          this.walletPubkey,
+          JSON.stringify(command),
+        );
+        const unsignedEvent: UnsignedEvent = {
+          kind: 23194,
+          created_at: Math.floor(Date.now() / 1000),
+          tags: [["p", this.walletPubkey]],
+          content: encryptedCommand,
+          pubkey: this.publicKey,
+        };
+
+        const event = await this.signEvent(unsignedEvent);
+        // subscribe to NIP_47_SUCCESS_RESPONSE_KIND and NIP_47_ERROR_RESPONSE_KIND
+        // that reference the request event (NIP_47_REQUEST_KIND)
+        const sub = this.relay.sub([
+          {
+            kinds: [23195],
+            authors: [this.walletPubkey],
+            "#e": [event.id],
+          },
+        ]);
+
+        function replyTimeout() {
+          sub.unsub();
+          //console.error(`Reply timeout: event ${event.id} `);
+          reject({
+            error: `reply timeout: event ${event.id}`,
+            code: "INTERNAL",
+          });
+        }
+
+        const replyTimeoutCheck = setTimeout(replyTimeout, 60000);
+
+        sub.on("event", async (event) => {
+          // console.log(`Received reply event: `, event);
+
+          const decryptedContent = await this.decrypt(
+            this.walletPubkey,
+            event.content,
+          );
+          // console.log(`Decrypted content: `, decryptedContent);
+          let response;
+          try {
+            response = JSON.parse(decryptedContent);
+          } catch (e) {
+            console.error(e);
+            clearTimeout(replyTimeoutCheck);
+            sub.unsub();
+            reject({ error: "invalid response", code: "INTERNAL" });
+            return;
+          }
+          if (event.kind == 23195 && response.result) {
+            // console.info("NIP-47 result", response.result);
+            try {
+              if (!resultValidator(response.result)) {
+                throw new Error(
+                  "Response from NWC failed validation: " +
+                    JSON.stringify(response.result),
+                );
+              }
+              const dTag = event.tags.find((tag) => tag[0] === "d")?.[1];
+              if (dTag === undefined) {
+                throw new Error("No d tag found in response event");
+              }
+              results.push({
+                ...response.result,
+                dTag,
+              });
+              if (results.length === numPayments) {
+                clearTimeout(replyTimeoutCheck);
+                sub.unsub();
+                //console.log("Received results", results);
+                resolve(results.map(resultMapper));
+                this.notify(weblnMethod, response.result);
+              }
+            } catch (error) {
+              console.error(error);
+              clearTimeout(replyTimeoutCheck);
+              sub.unsub();
+              reject({
+                error: (error as Error).message,
+                code: "INTERNAL",
+              });
+            }
+          } else {
+            clearTimeout(replyTimeoutCheck);
+            sub.unsub();
             reject({
               error: response.error?.message,
               code: response.error?.code,
