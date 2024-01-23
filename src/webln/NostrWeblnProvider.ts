@@ -346,6 +346,7 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
     );
   }
 
+  // NOTE: this method may change - it has not been proposed to be added to the WebLN spec yet.
   async sendMultiPayment(
     paymentRequests: string[],
   ): Promise<SendMultiPaymentResponse> {
@@ -773,7 +774,6 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
               if (dTag === undefined) {
                 throw new Error("No d tag found in response event");
               }
-              // console.info("dTag", dTag);
               results.push({
                 ...response.result,
                 dTag,
