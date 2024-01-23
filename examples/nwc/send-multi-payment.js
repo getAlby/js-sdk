@@ -38,8 +38,11 @@ const webln = new providers.NostrWebLNProvider({
   nostrWalletConnectUrl: nwcUrl,
 });
 await webln.enable();
-const response = await webln.sendMultiPayment(invoices);
-
-console.info(response);
+try {
+  const response = await webln.sendMultiPayment(invoices);
+  console.info(response);
+} catch (error) {
+  console.error("sendMultiPayment failed", error);
+}
 
 webln.close();

@@ -25,7 +25,6 @@ import {
 } from "@webbtc/webln-types";
 import { GetInfoResponse } from "@webbtc/webln-types";
 import { NWCAuthorizationUrlOptions } from "../types";
-import { Invoice } from "@getalby/lightning-tools";
 
 const NWCs: Record<string, NostrWebLNOptions> = {
   alby: {
@@ -352,28 +351,21 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
   ): Promise<SendMultiPaymentResponse> {
     await this.checkConnected();
 
-    // get payment hashes of the payment requests
-    const paymentHashToPaymentRequestMap: Record<string, string> = {};
-    for (const paymentRequest of paymentRequests) {
-      paymentHashToPaymentRequestMap[
-        new Invoice({ pr: paymentRequest }).paymentHash
-      ] = paymentRequest;
-    }
-
     const results = await this.executeMultiNip47Request<
       { preimage: string; paymentRequest: string },
       Nip47PayResponse
     >(
       "multi_pay_invoice",
       {
-        invoices: paymentRequests.map((paymentRequest) => ({
+        invoices: paymentRequests.map((paymentRequest, index) => ({
           invoice: paymentRequest,
+          id: index.toString(),
         })),
       },
       paymentRequests.length,
       (result) => !!result.preimage,
       (result) => {
-        const paymentRequest = paymentHashToPaymentRequestMap[result.dTag];
+        const paymentRequest = paymentRequests[parseInt(result.dTag)];
         if (!paymentRequest) {
           throw new Error(
             "Could not find paymentRequest matching response d tag",
@@ -709,7 +701,6 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
     resultMapper: (result: R & { dTag: string }) => T,
   ) {
     const weblnMethod = nip47ToWeblnMultiRequestMap[nip47Method];
-    let numPaymentsReceived = 0;
     const results: (R & { dTag: string })[] = [];
     return new Promise<T[]>((resolve, reject) => {
       (async () => {
@@ -752,7 +743,6 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
         const replyTimeoutCheck = setTimeout(replyTimeout, 60000);
 
         sub.on("event", async (event) => {
-          ++numPaymentsReceived;
           // console.log(`Received reply event: `, event);
 
           const decryptedContent = await this.decrypt(
@@ -780,7 +770,7 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
                 );
               }
               const dTag = event.tags.find((tag) => tag[0] === "d")?.[1];
-              if (!dTag) {
+              if (dTag === undefined) {
                 throw new Error("No d tag found in response event");
               }
               // console.info("dTag", dTag);
@@ -788,7 +778,7 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
                 ...response.result,
                 dTag,
               });
-              if (numPaymentsReceived === numPayments) {
+              if (results.length === numPayments) {
                 clearTimeout(replyTimeoutCheck);
                 sub.unsub();
                 //console.log("Received results", results);
