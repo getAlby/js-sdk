@@ -52,6 +52,12 @@ export type SendMultiPaymentResponse = {
   errors: { paymentRequest: string; message: string }[];
 };
 
+// TODO: consider moving to webln-types package
+export type MultiKeysendResponse = {
+  keysends: ({ keysend: KeysendArgs } & SendPaymentResponse)[];
+  errors: { keysend: KeysendArgs; message: string }[];
+};
+
 interface Nip47ListTransactionsArgs {
   from?: number;
   until?: number;
@@ -117,6 +123,7 @@ const nip47ToWeblnRequestMap = {
 };
 const nip47ToWeblnMultiRequestMap = {
   multi_pay_invoice: "sendMultiPayment",
+  multi_pay_keysend: "multiKeysend",
 };
 
 export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
@@ -381,6 +388,7 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
 
     return {
       payments: results,
+      // TODO: error handling
       errors: [],
     };
   }
@@ -390,21 +398,46 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
 
     return this.executeNip47Request<SendPaymentResponse, Nip47PayResponse>(
       "pay_keysend",
-      {
-        amount: +args.amount * 1000, // NIP-47 uses msat
-        pubkey: args.destination,
-        tlv_records: args.customRecords
-          ? Object.entries(args.customRecords).map((v) => ({
-              type: parseInt(v[0]),
-              value: v[1],
-            }))
-          : [],
-        // TODO: support optional preimage
-        // preimage?: "123",
-      },
+      mapKeysendToNip47Keysend(args),
       (result) => !!result.preimage,
       (result) => ({ preimage: result.preimage }),
     );
+  }
+
+  // NOTE: this method may change - it has not been proposed to be added to the WebLN spec yet.
+  async multiKeysend(keysends: KeysendArgs[]): Promise<MultiKeysendResponse> {
+    await this.checkConnected();
+
+    const results = await this.executeMultiNip47Request<
+      { preimage: string; keysend: KeysendArgs },
+      Nip47PayResponse
+    >(
+      "multi_pay_keysend",
+      {
+        keysends: keysends.map((keysend, index) => ({
+          ...mapKeysendToNip47Keysend(keysend),
+          id: index.toString(),
+        })),
+      },
+      keysends.length,
+      (result) => !!result.preimage,
+      (result) => {
+        const keysend = keysends[parseInt(result.dTag)];
+        if (!keysend) {
+          throw new Error("Could not find keysend matching response d tag");
+        }
+        return {
+          keysend,
+          preimage: result.preimage,
+        };
+      },
+    );
+
+    return {
+      keysends: results,
+      // TODO: error handling
+      errors: [],
+    };
   }
 
   // not-yet implemented WebLN interface methods
@@ -834,6 +867,21 @@ function mapNip47TransactionToTransaction(
     fees_paid: transaction.fees_paid
       ? Math.floor(transaction.fees_paid / 1000)
       : 0,
+  };
+}
+
+function mapKeysendToNip47Keysend(args: KeysendArgs) {
+  return {
+    amount: +args.amount * 1000, // NIP-47 uses msat
+    pubkey: args.destination,
+    tlv_records: args.customRecords
+      ? Object.entries(args.customRecords).map((v) => ({
+          type: parseInt(v[0]),
+          value: v[1],
+        }))
+      : [],
+    // TODO: support optional preimage
+    // preimage?: "123",
   };
 }
 

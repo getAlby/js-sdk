@@ -12,22 +12,37 @@ const rl = readline.createInterface({ input, output });
 const nwcUrl =
   process.env.NWC_URL ||
   (await rl.question("Nostr Wallet Connect URL (nostr+walletconnect://...): "));
-
 rl.close();
 
 const webln = new providers.NostrWebLNProvider({
   nostrWalletConnectUrl: nwcUrl,
 });
 await webln.enable();
-const response = await webln.keysend({
-  amount: 1,
-  destination:
-    "030a58b8653d32b99200a2334cfe913e51dc7d155aa0116c176657a4f1722677a3",
-  customRecords: {
-    696969: "017rsl75kNnSke4mMHYE", // hello@getalby.com
-  },
-});
 
-console.info(response);
+const keysends = [
+  {
+    destination:
+      "030a58b8653d32b99200a2334cfe913e51dc7d155aa0116c176657a4f1722677a3",
+    amount: 1,
+    customRecords: {
+      696969: "017rsl75kNnSke4mMHYE", // hello@getalby.com
+    },
+  },
+  {
+    destination:
+      "030a58b8653d32b99200a2334cfe913e51dc7d155aa0116c176657a4f1722677a3",
+    amount: 1,
+    customRecords: {
+      696969: "1KOZHzhLs2U7JIx3BmEY", // another Alby account
+    },
+  },
+];
+
+try {
+  const response = await webln.multiKeysend(keysends);
+  console.info(response);
+} catch (error) {
+  console.error("multiKeysend failed", error);
+}
 
 webln.close();
