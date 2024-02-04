@@ -11,6 +11,7 @@ import {
   LookupInvoiceArgs,
   LookupInvoiceResponse,
   WebLNMethod,
+  MakeInvoiceResponse,
 } from "@webbtc/webln-types";
 import { GetInfoResponse } from "@webbtc/webln-types";
 import { NWCAuthorizationUrlOptions } from "../types";
@@ -23,7 +24,8 @@ import {
   Nip47Transaction,
 } from "../NWCClient";
 
-// TODO: review fields (replace with camelCase) and consider move to webln-types package
+// TODO: review fields (replace with camelCase)
+// TODO: consider move to webln-types package
 export type Transaction = Nip47Transaction;
 
 // TODO: consider moving to webln-types package
@@ -243,7 +245,9 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
     return result;
   }
 
-  async makeInvoice(args: string | number | RequestInvoiceArgs) {
+  async makeInvoice(
+    args: string | number | RequestInvoiceArgs,
+  ): Promise<MakeInvoiceResponse> {
     await this.checkEnabled();
 
     const requestInvoiceArgs: RequestInvoiceArgs | undefined =
@@ -269,7 +273,7 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
     return result;
   }
 
-  async lookupInvoice(args: LookupInvoiceArgs) {
+  async lookupInvoice(args: LookupInvoiceArgs): Promise<LookupInvoiceResponse> {
     await this.checkEnabled();
 
     const nip47Result = await this._client.lookupInvoice({
@@ -288,7 +292,9 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
     return result;
   }
 
-  async listTransactions(args: ListTransactionsArgs) {
+  async listTransactions(
+    args: ListTransactionsArgs,
+  ): Promise<ListTransactionsResponse> {
     await this.checkEnabled();
 
     const nip47Result = await this._client.listTransactions(args);
