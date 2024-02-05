@@ -25,6 +25,7 @@ const response = await webln.keysend({
     "030a58b8653d32b99200a2334cfe913e51dc7d155aa0116c176657a4f1722677a3",
   customRecords: {
     696969: "017rsl75kNnSke4mMHYE", // hello@getalby.com
+    34349334: "example keysend message",
   },
 });
 

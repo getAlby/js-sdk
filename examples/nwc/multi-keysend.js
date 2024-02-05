@@ -26,6 +26,7 @@ const keysends = [
     amount: 1,
     customRecords: {
       696969: "017rsl75kNnSke4mMHYE", // hello@getalby.com
+      34349334: "First keysend",
     },
   },
   {
@@ -34,13 +35,14 @@ const keysends = [
     amount: 1,
     customRecords: {
       696969: "1KOZHzhLs2U7JIx3BmEY", // another Alby account
+      34349334: "second keysend",
     },
   },
 ];
 
 try {
   const response = await webln.multiKeysend(keysends);
-  console.info(response);
+  console.info(JSON.stringify(response));
 } catch (error) {
   console.error("multiKeysend failed", error);
 }
