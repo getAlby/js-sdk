@@ -133,7 +133,7 @@ export type SendBoostagramToAlbyRequestParams = {
 };
 
 /**
- * @deprecated please use SendBoostagramToAlbyRequestParams
+ * @deprecated please use SendBoostagramToAlbyRequestParams. Deprecated since v3.2.3. Will be removed in v4.0.0.
  */
 export type SendToAlbyRequestParams = SendBoostagramToAlbyRequestParams;
 
@@ -230,7 +230,7 @@ export type Invoice = {
 } & Record<string, unknown>;
 
 /**
- * @deprecated please use NWCAuthorizationUrlOptions
+ * @deprecated please use NWCAuthorizationUrlOptions. Deprecated since v3.2.3. Will be removed in v4.0.0.
  */
 export type GetNWCAuthorizationUrlOptions = NWCAuthorizationUrlOptions;
 

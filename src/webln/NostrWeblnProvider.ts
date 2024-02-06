@@ -75,24 +75,42 @@ const nip47ToWeblnRequestMap: Record<Nip47Method, WebLNMethod> = {
 };
 
 export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
-  private readonly _client: NWCClient;
   private _enabled = false;
+  readonly client: NWCClient;
   readonly subscribers: Record<string, (payload: unknown) => void>;
 
+  /**
+   * @deprecated please use client.relay. Deprecated since v3.2.3. Will be removed in v4.0.0.
+   */
   get relay(): Relay {
-    return this._client.relay;
+    console.warn("relay is deprecated. Please use client.relay instead.");
+    return this.client.relay;
   }
+  /**
+   * @deprecated please use client.relayUrl. Deprecated since v3.2.3. Will be removed in v4.0.0.
+   */
   get relayUrl(): string {
-    return this._client.relayUrl;
+    console.warn("relayUrl is deprecated. Please use client.relayUrl instead.");
+    return this.client.relayUrl;
   }
+  /**
+   * @deprecated please use client.walletPubkey. Deprecated since v3.2.3. Will be removed in v4.0.0.
+   */
   get walletPubkey(): string {
-    return this._client.walletPubkey;
+    console.warn(
+      "walletPubkey is deprecated. Please use client.walletPubkey instead.",
+    );
+    return this.client.walletPubkey;
   }
   get options(): NostrWebLNOptions {
-    return this._client.options;
+    return this.client.options;
   }
+  /**
+   * @deprecated please use client.secret. Deprecated since v3.2.3. Will be removed in v4.0.0.
+   */
   get secret(): string | undefined {
-    return this._client.secret;
+    console.warn("secret is deprecated. Please use client.secret instead.");
+    return this.client.secret;
   }
 
   static withNewSecret(
@@ -104,7 +122,7 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
   }
 
   constructor(options?: NewNWCClientOptions) {
-    this._client = new NWCClient(options);
+    this.client = new NWCClient(options);
 
     this.subscribers = {};
   }
@@ -121,31 +139,55 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
   }
 
   getNostrWalletConnectUrl(includeSecret = true) {
-    return this._client.getNostrWalletConnectUrl(includeSecret);
+    return this.client.getNostrWalletConnectUrl(includeSecret);
   }
 
+  /**
+   * @deprecated please use client.nostrWalletConnectUrl. Deprecated since v3.2.3. Will be removed in v4.0.0.
+   */
   get nostrWalletConnectUrl() {
-    return this._client.nostrWalletConnectUrl;
+    console.warn(
+      "nostrWalletConnectUrl is deprecated. Please use client.nostrWalletConnectUrl instead.",
+    );
+    return this.client.nostrWalletConnectUrl;
   }
 
+  /**
+   * @deprecated please use client.connected. Deprecated since v3.2.3. Will be removed in v4.0.0.
+   */
   get connected() {
-    return this._client.connected;
+    console.warn(
+      "connected is deprecated. Please use client.connected instead.",
+    );
+    return this.client.connected;
   }
 
+  /**
+   * @deprecated please use getPublicKey(). Deprecated since v3.2.3. Will be removed in v4.0.0.
+   */
   get publicKey() {
-    return this._client.publicKey;
+    console.warn(
+      "publicKey is deprecated. Please use client.publicKey instead.",
+    );
+    return this.client.publicKey;
   }
 
   getPublicKey(): Promise<string> {
-    return this._client.getPublicKey();
+    return this.client.getPublicKey();
   }
 
   signEvent(event: UnsignedEvent): Promise<Event> {
-    return this._client.signEvent(event);
+    return this.client.signEvent(event);
   }
 
+  /**
+   * @deprecated please use client.getEventHash. Deprecated since v3.2.3. Will be removed in v4.0.0.
+   */
   getEventHash(event: Event) {
-    return this._client.getEventHash(event);
+    console.warn(
+      "getEventHash is deprecated. Please use client.getEventHash instead.",
+    );
+    return this.client.getEventHash(event);
   }
 
   async enable() {
@@ -153,23 +195,41 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
   }
 
   close() {
-    return this._client.close();
+    return this.client.close();
   }
 
+  /**
+   * @deprecated please use client.encrypt. Deprecated since v3.2.3. Will be removed in v4.0.0.
+   */
   async encrypt(pubkey: string, content: string) {
-    return this._client.encrypt(pubkey, content);
+    console.warn("encrypt is deprecated. Please use client.encrypt instead.");
+    return this.client.encrypt(pubkey, content);
   }
 
+  /**
+   * @deprecated please use client.decrypt. Deprecated since v3.2.3. Will be removed in v4.0.0.
+   */
   async decrypt(pubkey: string, content: string) {
-    return this._client.decrypt(pubkey, content);
+    console.warn("decrypt is deprecated. Please use client.decrypt instead.");
+    return this.client.decrypt(pubkey, content);
   }
 
+  /**
+   * @deprecated please use client.getAuthorizationUrl. Deprecated since v3.2.3. Will be removed in v4.0.0.
+   */
   getAuthorizationUrl(options?: NWCAuthorizationUrlOptions) {
-    return this._client.getAuthorizationUrl(options);
+    console.warn(
+      "getAuthorizationUrl is deprecated. Please use client.getAuthorizationUrl instead.",
+    );
+    return this.client.getAuthorizationUrl(options);
   }
 
+  /**
+   * @deprecated please use client.initNWC. Deprecated since v3.2.3. Will be removed in v4.0.0.
+   */
   initNWC(options: NWCAuthorizationUrlOptions = {}) {
-    return this._client.initNWC(options);
+    console.warn("initNWC is deprecated. Please use client.initNWC instead.");
+    return this.client.initNWC(options);
   }
 
   async getInfo(): Promise<GetInfoResponse> {
@@ -179,7 +239,7 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
     const version = "Alby JS SDK";
 
     try {
-      const nip47Result = await this._client.getInfo();
+      const nip47Result = await this.client.getInfo();
 
       const result = {
         methods: nip47Result.methods.map(
@@ -210,7 +270,7 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
 
   async getBalance(): Promise<GetBalanceResponse> {
     await this.checkEnabled();
-    const nip47Result = await this._client.getBalance();
+    const nip47Result = await this.client.getBalance();
 
     const result = {
       // NWC uses msats - convert to sats for webln
@@ -224,7 +284,7 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
   async sendPayment(invoice: string): Promise<SendPaymentResponse> {
     await this.checkEnabled();
 
-    const nip47Result = await this._client.payInvoice({ invoice });
+    const nip47Result = await this.client.payInvoice({ invoice });
 
     const result = { preimage: nip47Result.preimage };
     this.notify("sendPayment", result);
@@ -235,7 +295,7 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
   async keysend(args: KeysendArgs): Promise<SendPaymentResponse> {
     await this.checkEnabled();
 
-    const nip47Result = await this._client.payKeysend(
+    const nip47Result = await this.client.payKeysend(
       mapKeysendToNip47Keysend(args),
     );
 
@@ -258,7 +318,7 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
       throw new Error("No amount specified");
     }
 
-    const nip47Result = await this._client.makeInvoice({
+    const nip47Result = await this.client.makeInvoice({
       amount: amount * 1000, // NIP-47 uses msat
       description: requestInvoiceArgs?.defaultMemo,
       // TODO: support additional fields below
@@ -276,7 +336,7 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
   async lookupInvoice(args: LookupInvoiceArgs): Promise<LookupInvoiceResponse> {
     await this.checkEnabled();
 
-    const nip47Result = await this._client.lookupInvoice({
+    const nip47Result = await this.client.lookupInvoice({
       invoice: args.paymentRequest,
       payment_hash: args.paymentHash,
     });
@@ -297,7 +357,7 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
   ): Promise<ListTransactionsResponse> {
     await this.checkEnabled();
 
-    const nip47Result = await this._client.listTransactions(args);
+    const nip47Result = await this.client.listTransactions(args);
 
     const result = {
       transactions: nip47Result.transactions.map(
@@ -316,7 +376,7 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
   ): Promise<SendMultiPaymentResponse> {
     await this.checkEnabled();
 
-    const nip47Result = await this._client.multiPayInvoice({
+    const nip47Result = await this.client.multiPayInvoice({
       invoices: paymentRequests.map((paymentRequest, index) => ({
         invoice: paymentRequest,
         id: index.toString(),
@@ -347,7 +407,7 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
   async multiKeysend(keysends: KeysendArgs[]): Promise<MultiKeysendResponse> {
     await this.checkEnabled();
 
-    const nip47Result = await this._client.multiPayKeysend({
+    const nip47Result = await this.client.multiPayKeysend({
       keysends: keysends.map((keysend, index) => ({
         ...mapKeysendToNip47Keysend(keysend),
         id: index.toString(),
