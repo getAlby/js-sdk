@@ -70,7 +70,7 @@ export type Nip47MultiPayKeysendResponse = {
   errors: []; // TODO: add error handling
 };
 
-export interface Nip47ListTransactionsArgs {
+export interface Nip47ListTransactionsRequest {
   from?: number;
   until?: number;
   limit?: number;
@@ -510,14 +510,14 @@ export class NWCClient {
   }
 
   async listTransactions(
-    args: Nip47ListTransactionsArgs,
+    request: Nip47ListTransactionsRequest,
   ): Promise<Nip47ListTransactionsResponse> {
     try {
       // maybe we can tailor the response to our needs
       const result =
         await this.executeNip47Request<Nip47ListTransactionsResponse>(
           "list_transactions",
-          args,
+          request,
           (response) => !!response.transactions,
         );
 
