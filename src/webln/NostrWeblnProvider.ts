@@ -138,7 +138,13 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
     }
   }
 
+  /**
+   * @deprecated please use client.getNostrWalletConnectUrl. Deprecated since v3.2.3. Will be removed in v4.0.0.
+   */
   getNostrWalletConnectUrl(includeSecret = true) {
+    console.warn(
+      "getNostrWalletConnectUrl is deprecated. Please use client.getNostrWalletConnectUrl instead.",
+    );
     return this.client.getNostrWalletConnectUrl(includeSecret);
   }
 
