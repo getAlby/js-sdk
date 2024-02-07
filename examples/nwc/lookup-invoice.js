@@ -22,10 +22,10 @@ const webln = new providers.NostrWebLNProvider({
 await webln.enable();
 const response = await webln.lookupInvoice({
   // provide one of the below
-  invoice: invoiceOrPaymentHash.startsWith("ln")
+  paymentRequest: invoiceOrPaymentHash.startsWith("ln")
     ? invoiceOrPaymentHash
     : undefined,
-  payment_hash: !invoiceOrPaymentHash.startsWith("ln")
+  paymentHash: !invoiceOrPaymentHash.startsWith("ln")
     ? invoiceOrPaymentHash
     : undefined,
 });
