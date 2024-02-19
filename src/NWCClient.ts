@@ -370,7 +370,7 @@ export class NWCClient {
     try {
       const result = await this.executeNip47Request<Nip47GetInfoResponse>(
         "get_info",
-        undefined,
+        {},
         (result) => !!result.methods,
       );
       return result;
@@ -384,7 +384,7 @@ export class NWCClient {
     try {
       const result = await this.executeNip47Request<Nip47GetBalanceResponse>(
         "get_balance",
-        undefined,
+        {},
         (result) => result.balance !== undefined,
       );
       return result;
