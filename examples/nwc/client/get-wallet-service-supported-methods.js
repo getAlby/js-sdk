@@ -14,8 +14,11 @@ const nwcUrl =
   (await rl.question("Nostr Wallet Connect URL (nostr+walletconnect://...): "));
 rl.close();
 
-const response = await nwc.NWCClient.getWalletServiceSupportedMethods(
-  nwc.NWCClient.parseWalletConnectUrl(nwcUrl),
-);
+const client = new nwc.NWCClient({
+  nostrWalletConnectUrl: nwcUrl,
+});
+const response = await client.getWalletServiceSupportedMethods();
 
 console.info(response);
+
+client.close();

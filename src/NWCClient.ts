@@ -181,35 +181,6 @@ export class NWCClient {
     return new NWCClient(options);
   }
 
-  static async getWalletServiceSupportedMethods(
-    options?: ConstructorParameters<typeof NWCClient>[0],
-  ): Promise<Nip47Method[]> {
-    const client = NWCClient.withNewSecret(options);
-    await client.relay.connect();
-
-    const events = await client.relay.list(
-      [
-        {
-          kinds: [13194],
-          limit: 1,
-          authors: [client.walletPubkey],
-        },
-      ],
-      {
-        eoseSubTimeout: 10000,
-      },
-    );
-
-    client.relay.close();
-
-    if (!events.length) {
-      throw new Error("no info event (kind 13194) returned from relay");
-    }
-    const result = events[0].content;
-    // delimiter is " " per spec, but Alby NWC originally returned ","
-    return result.split(/[ |,]/g) as Nip47Method[];
-  }
-
   constructor(options?: NewNWCClientOptions) {
     if (options && options.nostrWalletConnectUrl) {
       options = {
@@ -393,6 +364,30 @@ export class NWCClient {
       const popupChecker = setInterval(checkForPopup, 500);
       window.addEventListener("message", onMessage);
     });
+  }
+
+  async getWalletServiceSupportedMethods(): Promise<Nip47Method[]> {
+    await this._checkConnected();
+
+    const events = await this.relay.list(
+      [
+        {
+          kinds: [13194],
+          limit: 1,
+          authors: [this.walletPubkey],
+        },
+      ],
+      {
+        eoseSubTimeout: 10000,
+      },
+    );
+
+    if (!events.length) {
+      throw new Error("no info event (kind 13194) returned from relay");
+    }
+    const result = events[0].content;
+    // delimiter is " " per spec, but Alby NWC originally returned ","
+    return result.split(/[ |,]/g) as Nip47Method[];
   }
 
   async getInfo(): Promise<Nip47GetInfoResponse> {
