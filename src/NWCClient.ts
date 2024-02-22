@@ -366,6 +366,30 @@ export class NWCClient {
     });
   }
 
+  async getWalletServiceSupportedMethods(): Promise<Nip47Method[]> {
+    await this._checkConnected();
+
+    const events = await this.relay.list(
+      [
+        {
+          kinds: [13194],
+          limit: 1,
+          authors: [this.walletPubkey],
+        },
+      ],
+      {
+        eoseSubTimeout: 10000,
+      },
+    );
+
+    if (!events.length) {
+      throw new Error("no info event (kind 13194) returned from relay");
+    }
+    const result = events[0].content;
+    // delimiter is " " per spec, but Alby NWC originally returned ","
+    return result.split(/[ |,]/g) as Nip47Method[];
+  }
+
   async getInfo(): Promise<Nip47GetInfoResponse> {
     try {
       const result = await this.executeNip47Request<Nip47GetInfoResponse>(
