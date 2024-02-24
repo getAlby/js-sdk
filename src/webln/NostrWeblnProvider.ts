@@ -298,6 +298,17 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
     return result;
   }
 
+  async sendPaymentAsync(invoice: string): Promise<Record<string, never>> {
+    await this.checkEnabled();
+
+    // don't wait for the response'
+    this.client.payInvoice({ invoice });
+
+    this.notify("sendPaymentAsync", {});
+
+    return {};
+  }
+
   async keysend(args: KeysendArgs): Promise<SendPaymentResponse> {
     await this.checkEnabled();
 
