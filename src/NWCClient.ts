@@ -129,6 +129,19 @@ export interface NWCOptions {
   secret?: string;
 }
 
+export class Nip47Error extends Error {
+  /**
+   * @deprecated please use message. Deprecated since v3.3.2. Will be removed in v4.0.0.
+   */
+  error: string;
+  code: string;
+  constructor(message: string, code: string) {
+    super(message);
+    this.error = message;
+    this.code = code;
+  }
+}
+
 export const NWCs: Record<string, NWCOptions> = {
   alby: {
     authorizationUrl: "https://nwc.getalby.com/apps/new",
@@ -331,15 +344,14 @@ export class NWCClient {
         `height=${height},width=${width},top=${top},left=${left}`,
       );
       if (!popup) {
-        reject();
-        return;
-      } // only for TS?
+        throw new Error("failed to execute window.open");
+      }
 
       const checkForPopup = () => {
         if (popup && popup.closed) {
-          reject();
           clearInterval(popupChecker);
           window.removeEventListener("message", onMessage);
+          throw new Error("Popup closed");
         }
       };
 
@@ -558,7 +570,7 @@ export class NWCClient {
     resultValidator: (result: T) => boolean,
   ): Promise<T> {
     await this._checkConnected();
-    return new Promise<T>((resolve, reject) => {
+    return new Promise<T>((resolve) => {
       (async () => {
         const command = {
           method: nip47Method,
@@ -590,10 +602,7 @@ export class NWCClient {
         function replyTimeout() {
           sub.unsub();
           //console.error(`Reply timeout: event ${event.id} `);
-          reject({
-            error: `reply timeout: event ${event.id}`,
-            code: "INTERNAL",
-          });
+          throw new Nip47Error(`reply timeout: event ${event.id}`, "INTERNAL");
         }
 
         const replyTimeoutCheck = setTimeout(replyTimeout, 60000);
@@ -611,32 +620,35 @@ export class NWCClient {
           try {
             response = JSON.parse(decryptedContent);
           } catch (e) {
-            reject({ error: "invalid response", code: "INTERNAL" });
-            return;
+            clearTimeout(replyTimeoutCheck);
+            sub.unsub();
+            throw new Nip47Error("failed to deserialize response", "INTERNAL");
           }
           if (event.kind == 23195 && response.result) {
             // console.info("NIP-47 result", response.result);
             if (resultValidator(response.result)) {
               resolve(response.result);
             } else {
-              reject({
-                error:
-                  "Response from NWC failed validation: " +
+              throw new Nip47Error(
+                "response from NWC failed validation: " +
                   JSON.stringify(response.result),
-                code: "INTERNAL",
-              });
+                "INTERNAL",
+              );
             }
           } else {
-            reject({
-              error: response.error?.message,
-              code: response.error?.code,
-            });
+            clearTimeout(replyTimeoutCheck);
+            sub.unsub();
+            throw new Nip47Error(
+              response.error?.message || "unknown Error",
+              response.error?.code || "INTERNAL",
+            );
           }
         });
 
         function publishTimeout() {
+          sub.unsub();
           //console.error(`Publish timeout: event ${event.id}`);
-          reject({ error: `Publish timeout: event ${event.id}` });
+          throw new Nip47Error(`publish timeout: ${event.id}`, "INTERNAL");
         }
         const publishTimeoutCheck = setTimeout(publishTimeout, 5000);
 
@@ -647,7 +659,7 @@ export class NWCClient {
         } catch (error) {
           //console.error(`Failed to publish to ${this.relay.url}`, error);
           clearTimeout(publishTimeoutCheck);
-          reject({ error: `Failed to publish request: ${error}` });
+          throw new Nip47Error(`failed to publish: ${error}`, "INTERNAL");
         }
       })();
     });
@@ -664,7 +676,7 @@ export class NWCClient {
   ): Promise<(T & { dTag: string })[]> {
     await this._checkConnected();
     const results: (T & { dTag: string })[] = [];
-    return new Promise<(T & { dTag: string })[]>((resolve, reject) => {
+    return new Promise<(T & { dTag: string })[]>((resolve) => {
       (async () => {
         const command = {
           method: nip47Method,
@@ -696,10 +708,7 @@ export class NWCClient {
         function replyTimeout() {
           sub.unsub();
           //console.error(`Reply timeout: event ${event.id} `);
-          reject({
-            error: `reply timeout: event ${event.id}`,
-            code: "INTERNAL",
-          });
+          throw new Nip47Error(`reply timeout: event ${event.id}`, "INTERNAL");
         }
 
         const replyTimeoutCheck = setTimeout(replyTimeout, 60000);
@@ -719,8 +728,7 @@ export class NWCClient {
             console.error(e);
             clearTimeout(replyTimeoutCheck);
             sub.unsub();
-            reject({ error: "invalid response", code: "INTERNAL" });
-            return;
+            throw new Nip47Error("failed to deserialize response", "INTERNAL");
           }
           if (event.kind == 23195 && response.result) {
             // console.info("NIP-47 result", response.result);
@@ -749,24 +757,19 @@ export class NWCClient {
               console.error(error);
               clearTimeout(replyTimeoutCheck);
               sub.unsub();
-              reject({
-                error: (error as Error).message,
-                code: "INTERNAL",
-              });
+              throw new Nip47Error((error as Error).message, "INTERNAL");
             }
           } else {
             clearTimeout(replyTimeoutCheck);
             sub.unsub();
-            reject({
-              error: response.error?.message,
-              code: response.error?.code,
-            });
+            throw new Nip47Error(response.error?.message, response.error?.code);
           }
         });
 
         function publishTimeout() {
+          sub.unsub();
           //console.error(`Publish timeout: event ${event.id}`);
-          reject({ error: `Publish timeout: event ${event.id}` });
+          throw new Nip47Error(`Publish timeout: ${event.id}`, "INTERNAL");
         }
         const publishTimeoutCheck = setTimeout(publishTimeout, 5000);
 
@@ -777,7 +780,7 @@ export class NWCClient {
         } catch (error) {
           //console.error(`Failed to publish to ${this.relay.url}`, error);
           clearTimeout(publishTimeoutCheck);
-          reject({ error: `Failed to publish request: ${error}` });
+          throw new Nip47Error(`Failed to publish: ${error}`, "INTERNAL");
         }
       })();
     });
