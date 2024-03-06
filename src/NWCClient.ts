@@ -355,14 +355,15 @@ export class NWCClient {
         `height=${height},width=${width},top=${top},left=${left}`,
       );
       if (!popup) {
-        throw new Error("failed to execute window.open");
+        reject(new Error("failed to execute window.open"));
+        return;
       }
 
       const checkForPopup = () => {
         if (popup && popup.closed) {
           clearInterval(popupChecker);
           window.removeEventListener("message", onMessage);
-          throw new Error("Popup closed");
+          reject(new Error("Popup closed"));
         }
       };
 
