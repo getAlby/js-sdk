@@ -7,7 +7,7 @@ import {
   GenerateAuthUrlOptions,
 } from "./types";
 import { RequestOptions, rest } from "./request";
-import EventEmitter from "events";
+import EventEmitter from "eventemitter3";
 
 const AUTHORIZE_URL = "https://getalby.com/oauth";
 
