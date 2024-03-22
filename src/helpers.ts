@@ -17,6 +17,6 @@ export function keysendParamsFromBoostagram(
   return {
     destination: boostagramParams.recipient.address,
     amount: boostagramParams.amount,
-    customRecords: customRecords,
+    custom_records: customRecords,
   };
 }
