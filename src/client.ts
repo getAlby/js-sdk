@@ -186,10 +186,18 @@ export class Client {
     let endpoint, request_body;
     if (Array.isArray(args)) {
       endpoint = "/payments/keysend/multi";
-      request_body = { keysends: args };
+      request_body = {
+        keysends: args.map((args) => ({
+          ...args,
+          custom_records: args.customRecords,
+        })),
+      };
     } else {
       endpoint = "/payments/keysend";
-      request_body = args;
+      request_body = {
+        ...args,
+        custom_records: args.customRecords,
+      };
     }
     return rest({
       auth: this.auth,
@@ -259,7 +267,7 @@ export class Client {
     const params = {
       destination:
         "030a58b8653d32b99200a2334cfe913e51dc7d155aa0116c176657a4f1722677a3",
-      customRecords: {
+      custom_records: {
         "696969": args.account,
       },
       amount: args.amount,
