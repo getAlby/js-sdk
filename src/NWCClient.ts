@@ -578,6 +578,40 @@ export class NWCClient {
     }
   }
 
+  // TODO: add typings
+  async subscribeNotifications(
+    onNotification: (notification: unknown) => void,
+  ): Promise<() => void> {
+    const sub = this.relay.sub([
+      {
+        kinds: [23196],
+        authors: [this.walletPubkey],
+      },
+    ]);
+    await this._checkConnected();
+
+    sub.on("event", async (event) => {
+      const decryptedContent = await this.decrypt(
+        this.walletPubkey,
+        event.content,
+      );
+      let notification;
+      try {
+        notification = JSON.parse(decryptedContent);
+      } catch (e) {
+        console.error("Failed to parse decrypted event content", e);
+        return;
+      }
+      if (notification.result) {
+        onNotification(notification);
+      } else {
+        console.error("No result in response", notification);
+      }
+    });
+
+    return () => sub.unsub();
+  }
+
   private async executeNip47Request<T>(
     nip47Method: Nip47SingleMethod,
     params: unknown,
@@ -649,38 +683,27 @@ export class NWCClient {
             );
             return;
           }
-          if (event.kind == 23195) {
-            if (response.result) {
-              // console.info("NIP-47 result", response.result);
-              if (resultValidator(response.result)) {
-                resolve(response.result);
-              } else {
-                clearTimeout(replyTimeoutCheck);
-                sub.unsub();
-                reject(
-                  new Nip47ResponseValidationError(
-                    "response from NWC failed validation: " +
-                      JSON.stringify(response.result),
-                    "INTERNAL",
-                  ),
-                );
-              }
+          if (response.result) {
+            // console.info("NIP-47 result", response.result);
+            if (resultValidator(response.result)) {
+              resolve(response.result);
             } else {
               clearTimeout(replyTimeoutCheck);
               sub.unsub();
-              // console.error("Wallet error", response.error);
               reject(
-                new Nip47WalletError(
-                  response.error?.message || "unknown Error",
-                  response.error?.code || "INTERNAL",
+                new Nip47ResponseValidationError(
+                  "response from NWC failed validation: " +
+                    JSON.stringify(response.result),
+                  "INTERNAL",
                 ),
               );
             }
           } else {
             clearTimeout(replyTimeoutCheck);
             sub.unsub();
+            // console.error("Wallet error", response.error);
             reject(
-              new Nip47UnexpectedResponseError(
+              new Nip47WalletError(
                 response.error?.message || "unknown Error",
                 response.error?.code || "INTERNAL",
               ),
@@ -790,53 +813,41 @@ export class NWCClient {
               ),
             );
           }
-          if (event.kind == 23195) {
-            if (response.result) {
-              // console.info("NIP-47 result", response.result);
-              if (!resultValidator(response.result)) {
-                clearTimeout(replyTimeoutCheck);
-                sub.unsub();
-                reject(
-                  new Nip47ResponseValidationError(
-                    "Response from NWC failed validation: " +
-                      JSON.stringify(response.result),
-                    "INTERNAL",
-                  ),
-                );
-                return;
-              }
-              const dTag = event.tags.find((tag) => tag[0] === "d")?.[1];
-              if (dTag === undefined) {
-                clearTimeout(replyTimeoutCheck);
-                sub.unsub();
-                reject(
-                  new Nip47ResponseValidationError(
-                    "No d tag found in response event",
-                    "INTERNAL",
-                  ),
-                );
-                return;
-              }
-              results.push({
-                ...response.result,
-                dTag,
-              });
-              if (results.length === numPayments) {
-                clearTimeout(replyTimeoutCheck);
-                sub.unsub();
-                //console.log("Received results", results);
-                resolve(results);
-              }
-            } else {
+          if (response.result) {
+            // console.info("NIP-47 result", response.result);
+            if (!resultValidator(response.result)) {
               clearTimeout(replyTimeoutCheck);
               sub.unsub();
-              // console.error("Wallet error", response.error);
               reject(
-                new Nip47WalletError(
-                  response.error?.message,
-                  response.error?.code,
+                new Nip47ResponseValidationError(
+                  "Response from NWC failed validation: " +
+                    JSON.stringify(response.result),
+                  "INTERNAL",
                 ),
               );
+              return;
+            }
+            const dTag = event.tags.find((tag) => tag[0] === "d")?.[1];
+            if (dTag === undefined) {
+              clearTimeout(replyTimeoutCheck);
+              sub.unsub();
+              reject(
+                new Nip47ResponseValidationError(
+                  "No d tag found in response event",
+                  "INTERNAL",
+                ),
+              );
+              return;
+            }
+            results.push({
+              ...response.result,
+              dTag,
+            });
+            if (results.length === numPayments) {
+              clearTimeout(replyTimeoutCheck);
+              sub.unsub();
+              //console.log("Received results", results);
+              resolve(results);
             }
           } else {
             clearTimeout(replyTimeoutCheck);
