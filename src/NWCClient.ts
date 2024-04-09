@@ -586,6 +586,7 @@ export class NWCClient {
       {
         kinds: [23196],
         authors: [this.walletPubkey],
+        "#p": [this.publicKey],
       },
     ]);
     await this._checkConnected();
