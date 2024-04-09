@@ -9,6 +9,7 @@ import {
   Event,
   UnsignedEvent,
   finishEvent,
+  Sub,
 } from "nostr-tools";
 import { NWCAuthorizationUrlOptions } from "./types";
 
@@ -582,35 +583,74 @@ export class NWCClient {
   async subscribeNotifications(
     onNotification: (notification: unknown) => void,
   ): Promise<() => void> {
-    const sub = this.relay.sub([
-      {
-        kinds: [23196],
-        authors: [this.walletPubkey],
-        "#p": [this.publicKey],
-      },
-    ]);
-    await this._checkConnected();
+    let subscribed = true;
+    let endPromise: (() => void) | undefined;
+    let onRelayDisconnect: (() => void) | undefined;
+    let sub: Sub<23196> | undefined;
+    (async () => {
+      while (subscribed) {
+        try {
+          await this._checkConnected();
+          sub = this.relay.sub([
+            {
+              kinds: [23196],
+              authors: [this.walletPubkey],
+              "#p": [this.publicKey],
+            },
+          ]);
+          console.info("subscribed to relay", sub);
 
-    sub.on("event", async (event) => {
-      const decryptedContent = await this.decrypt(
-        this.walletPubkey,
-        event.content,
-      );
-      let notification;
-      try {
-        notification = JSON.parse(decryptedContent);
-      } catch (e) {
-        console.error("Failed to parse decrypted event content", e);
-        return;
-      }
-      if (notification.result) {
-        onNotification(notification);
-      } else {
-        console.error("No result in response", notification);
-      }
-    });
+          sub.on("event", async (event) => {
+            const decryptedContent = await this.decrypt(
+              this.walletPubkey,
+              event.content,
+            );
+            let notification;
+            try {
+              notification = JSON.parse(decryptedContent);
+            } catch (e) {
+              console.error("Failed to parse decrypted event content", e);
+              return;
+            }
+            if (notification.result) {
+              onNotification(notification);
+            } else {
+              console.error("No result in response", notification);
+            }
+          });
 
-    return () => sub.unsub();
+          await new Promise<void>((resolve) => {
+            endPromise = () => {
+              resolve();
+            };
+            onRelayDisconnect = () => {
+              console.info("relay disconnected");
+              endPromise?.();
+            };
+            this.relay.on("disconnect", onRelayDisconnect);
+          });
+          if (onRelayDisconnect !== undefined) {
+            this.relay.off("disconnect", onRelayDisconnect);
+          }
+        } catch (error) {
+          console.error(
+            "error subscribing to notifications",
+            error || "unknown relay error",
+          );
+        }
+        if (subscribed) {
+          // wait a second and try re-connecting
+          // any notifications during this period will be lost
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+        }
+      }
+    })();
+
+    return () => {
+      subscribed = false;
+      endPromise?.();
+      sub?.unsub();
+    };
   }
 
   private async executeNip47Request<T>(
