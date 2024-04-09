@@ -598,7 +598,7 @@ export class NWCClient {
               "#p": [this.publicKey],
             },
           ]);
-          console.info("subscribed to relay", sub);
+          console.info("subscribed to relay");
 
           sub.on("event", async (event) => {
             const decryptedContent = await this.decrypt(
@@ -612,10 +612,10 @@ export class NWCClient {
               console.error("Failed to parse decrypted event content", e);
               return;
             }
-            if (notification.result) {
+            if (notification.notification) {
               onNotification(notification);
             } else {
-              console.error("No result in response", notification);
+              console.error("No notification in response", notification);
             }
           });
 
