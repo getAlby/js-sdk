@@ -99,6 +99,11 @@ export type Nip47Transaction = {
   metadata?: Record<string, unknown>;
 };
 
+export type Nip47Notification = {
+  notification_type: "payment_received";
+  notification: Nip47Transaction;
+}; /* | { notification_type: "other_type", notification: OtherTypeHere } */
+
 export type Nip47PayInvoiceRequest = {
   invoice: string;
   amount?: number; // msats
@@ -579,9 +584,8 @@ export class NWCClient {
     }
   }
 
-  // TODO: add typings
   async subscribeNotifications(
-    onNotification: (notification: unknown) => void,
+    onNotification: (notification: Nip47Notification) => void,
   ): Promise<() => void> {
     let subscribed = true;
     let endPromise: (() => void) | undefined;
@@ -607,7 +611,7 @@ export class NWCClient {
             );
             let notification;
             try {
-              notification = JSON.parse(decryptedContent);
+              notification = JSON.parse(decryptedContent) as Nip47Notification;
             } catch (e) {
               console.error("Failed to parse decrypted event content", e);
               return;
