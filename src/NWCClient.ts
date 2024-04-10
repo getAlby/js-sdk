@@ -28,7 +28,8 @@ type Nip47SingleMethod =
   | "pay_invoice"
   | "pay_keysend"
   | "lookup_invoice"
-  | "list_transactions";
+  | "list_transactions"
+  | "sign_message";
 
 type Nip47MultiMethod = "multi_pay_invoice" | "multi_pay_keysend";
 
@@ -129,6 +130,15 @@ export type Nip47MakeInvoiceRequest = {
 export type Nip47LookupInvoiceRequest = {
   payment_hash?: string;
   invoice?: string;
+};
+
+export type Nip47SignMessageRequest = {
+  message: string;
+};
+
+export type Nip47SignMessageResponse = {
+  message: string;
+  signature: string;
 };
 
 export interface NWCOptions {
@@ -500,6 +510,22 @@ export class NWCClient {
       return result;
     } catch (error) {
       console.error("Failed to request pay_keysend", error);
+      throw error;
+    }
+  }
+  async signMessage(
+    request: Nip47SignMessageRequest,
+  ): Promise<Nip47SignMessageResponse> {
+    try {
+      const result = await this.executeNip47Request<Nip47SignMessageResponse>(
+        "sign_message",
+        request,
+        (result) => result.message === request.message && !!result.signature,
+      );
+
+      return result;
+    } catch (error) {
+      console.error("Failed to request sign_message", error);
       throw error;
     }
   }

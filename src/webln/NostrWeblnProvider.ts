@@ -72,6 +72,7 @@ const nip47ToWeblnRequestMap: Record<Nip47Method, WebLNMethod> = {
   list_transactions: "listTransactions",
   multi_pay_invoice: "sendMultiPayment",
   multi_pay_keysend: "multiKeysend",
+  sign_message: "signMessage",
 };
 
 export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
@@ -292,7 +293,7 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
 
     const nip47Result = await this.client.payInvoice({ invoice });
 
-    const result = { preimage: nip47Result.preimage };
+    const result: SendPaymentResponse = { preimage: nip47Result.preimage };
     this.notify("sendPayment", result);
 
     return result;
@@ -312,11 +313,27 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
   async keysend(args: KeysendArgs): Promise<SendPaymentResponse> {
     await this.checkEnabled();
 
-    const nip47Result = await this.client.payKeysend(
+    const nip47Result: SendPaymentResponse = await this.client.payKeysend(
       mapKeysendToNip47Keysend(args),
     );
 
-    const result = { preimage: nip47Result.preimage };
+    const result: SendPaymentResponse = { preimage: nip47Result.preimage };
+    this.notify("keysend", result);
+
+    return result;
+  }
+
+  async signMessage(message: string): Promise<SignMessageResponse> {
+    await this.checkEnabled();
+
+    const nip47Result = await this.client.signMessage({
+      message,
+    });
+
+    const result: SignMessageResponse = {
+      message: nip47Result.message,
+      signature: nip47Result.signature,
+    };
     this.notify("keysend", result);
 
     return result;
@@ -343,7 +360,7 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
       //description_hash: "b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9"
     });
 
-    const result = { paymentRequest: nip47Result.invoice };
+    const result: MakeInvoiceResponse = { paymentRequest: nip47Result.invoice };
 
     this.notify("makeInvoice", result);
 
@@ -376,7 +393,7 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
 
     const nip47Result = await this.client.listTransactions(args);
 
-    const result = {
+    const result: ListTransactionsResponse = {
       transactions: nip47Result.transactions.map(
         mapNip47TransactionToTransaction,
       ),
@@ -458,9 +475,6 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
   }
 
   request(method: WebLNRequestMethod, args?: unknown): Promise<unknown> {
-    throw new Error("Method not implemented.");
-  }
-  signMessage(message: string): Promise<SignMessageResponse> {
     throw new Error("Method not implemented.");
   }
   verifyMessage(signature: string, message: string): Promise<void> {
