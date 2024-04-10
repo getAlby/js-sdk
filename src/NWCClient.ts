@@ -34,6 +34,7 @@ type Nip47SingleMethod =
 type Nip47MultiMethod = "multi_pay_invoice" | "multi_pay_keysend";
 
 export type Nip47Method = Nip47SingleMethod | Nip47MultiMethod;
+export type Nip47Capability = Nip47Method | "notifications";
 
 export type Nip47GetInfoResponse = {
   alias: string;
@@ -99,6 +100,8 @@ export type Nip47Transaction = {
   expires_at: number;
   metadata?: Record<string, unknown>;
 };
+
+export type Nip47NotificationType = Nip47Notification["notification_type"];
 
 export type Nip47Notification = {
   notification_type: "payment_received";
@@ -408,7 +411,22 @@ export class NWCClient {
     });
   }
 
-  async getWalletServiceSupportedMethods(): Promise<Nip47Method[]> {
+  /**
+   * @deprecated please use getWalletServiceInfo. Deprecated since v3.5.0. Will be removed in v4.0.0.
+   */
+  async getWalletServiceSupportedMethods(): Promise<Nip47Capability[]> {
+    console.warn(
+      "getWalletServiceSupportedMethods is deprecated. Please use getWalletServiceInfo instead.",
+    );
+    const info = await this.getWalletServiceInfo();
+
+    return info.capabilities;
+  }
+
+  async getWalletServiceInfo(): Promise<{
+    capabilities: Nip47Capability[];
+    notifications: Nip47NotificationType[];
+  }> {
     await this._checkConnected();
 
     const events = await this.relay.list(
@@ -427,9 +445,16 @@ export class NWCClient {
     if (!events.length) {
       throw new Error("no info event (kind 13194) returned from relay");
     }
-    const result = events[0].content;
-    // delimiter is " " per spec, but Alby NWC originally returned ","
-    return result.split(/[ |,]/g) as Nip47Method[];
+    const content = events[0].content;
+    const notificationsTag = events[0].tags.find(
+      (t) => t[0] === "notifications",
+    );
+    return {
+      // delimiter is " " per spec, but Alby NWC originally returned ","
+      capabilities: content.split(/[ |,]/g) as Nip47Method[],
+      notifications: (notificationsTag?.[1]?.split(" ") ||
+        []) as Nip47NotificationType[],
+    };
   }
 
   async getInfo(): Promise<Nip47GetInfoResponse> {
