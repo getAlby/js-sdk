@@ -200,9 +200,13 @@ export class NWCClient {
   options: NWCOptions;
 
   static parseWalletConnectUrl(walletConnectUrl: string): NWCOptions {
+    // makes it possible to parse with URL in the different environments (browser/node/...)
+    // parses both new and legacy protocols, with or without "//"
     walletConnectUrl = walletConnectUrl
       .replace("nostrwalletconnect://", "http://")
-      .replace("nostr+walletconnect://", "http://"); // makes it possible to parse with URL in the different environments (browser/node/...)
+      .replace("nostr+walletconnect://", "http://")
+      .replace("nostrwalletconnect:", "http://")
+      .replace("nostr+walletconnect:", "http://");
     const url = new URL(walletConnectUrl);
     const relayUrl = url.searchParams.get("relay");
     if (!relayUrl) {
