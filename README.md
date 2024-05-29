@@ -20,7 +20,7 @@ or for use without any build tools:
 
 ```html
 <script type="module">
-  import { webln } from "https://esm.sh/@getalby/js-sdk@3.0.0"; // jsdelivr.net, skypack.dev also work
+  import { webln } from "https://esm.sh/@getalby/sdk@3.5.1"; // jsdelivr.net, skypack.dev also work
 
   // use webln normally...
   (async () => {
