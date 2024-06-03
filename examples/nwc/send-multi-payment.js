@@ -1,5 +1,4 @@
-import * as crypto from "node:crypto"; // required in node.js
-global.crypto = crypto; // required in node.js
+import "../crypto-polyfill.js";
 import "websocket-polyfill"; // required in node.js
 
 import { LightningAddress } from "@getalby/lightning-tools";
