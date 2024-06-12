@@ -103,10 +103,15 @@ export type Nip47Transaction = {
 
 export type Nip47NotificationType = Nip47Notification["notification_type"];
 
-export type Nip47Notification = {
-  notification_type: "payment_received";
-  notification: Nip47Transaction;
-}; /* | { notification_type: "other_type", notification: OtherTypeHere } */
+export type Nip47Notification =
+  | {
+      notification_type: "payment_received";
+      notification: Nip47Transaction;
+    }
+  | {
+      notification_type: "payment_sent";
+      notification: Nip47Transaction;
+    };
 
 export type Nip47PayInvoiceRequest = {
   invoice: string;
