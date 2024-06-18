@@ -29,7 +29,8 @@ type Nip47SingleMethod =
   | "pay_keysend"
   | "lookup_invoice"
   | "list_transactions"
-  | "sign_message";
+  | "sign_message"
+  | "notifications";
 
 type Nip47MultiMethod = "multi_pay_invoice" | "multi_pay_keysend";
 
