@@ -43,7 +43,8 @@ export type Nip47GetInfoResponse = {
   network: string;
   block_height: number;
   block_hash: string;
-  methods: string[];
+  methods: Nip47Method[];
+  notifications: Nip47NotificationType[];
 };
 
 export type Nip47GetBalanceResponse = {
@@ -646,7 +647,7 @@ export class NWCClient {
 
   async subscribeNotifications(
     onNotification: (notification: Nip47Notification) => void,
-    notificationTypes?: Nip47Notification["notification_type"],
+    notificationTypes?: Nip47NotificationType[],
   ): Promise<() => void> {
     let subscribed = true;
     let endPromise: (() => void) | undefined;
