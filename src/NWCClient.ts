@@ -646,6 +646,7 @@ export class NWCClient {
 
   async subscribeNotifications(
     onNotification: (notification: Nip47Notification) => void,
+    notificationTypes?: Nip47Notification["notification_type"],
   ): Promise<() => void> {
     let subscribed = true;
     let endPromise: (() => void) | undefined;
@@ -677,7 +678,12 @@ export class NWCClient {
               return;
             }
             if (notification.notification) {
-              onNotification(notification);
+              if (
+                !notificationTypes ||
+                notificationTypes.indexOf(notification.notification_type) > -1
+              ) {
+                onNotification(notification);
+              }
             } else {
               console.error("No notification in response", notification);
             }
