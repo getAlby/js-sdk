@@ -43,7 +43,8 @@ export type Nip47GetInfoResponse = {
   network: string;
   block_height: number;
   block_hash: string;
-  methods: string[];
+  methods: Nip47Method[];
+  notifications: Nip47NotificationType[];
 };
 
 export type Nip47GetBalanceResponse = {
@@ -103,10 +104,15 @@ export type Nip47Transaction = {
 
 export type Nip47NotificationType = Nip47Notification["notification_type"];
 
-export type Nip47Notification = {
-  notification_type: "payment_received";
-  notification: Nip47Transaction;
-}; /* | { notification_type: "other_type", notification: OtherTypeHere } */
+export type Nip47Notification =
+  | {
+      notification_type: "payment_received";
+      notification: Nip47Transaction;
+    }
+  | {
+      notification_type: "payment_sent";
+      notification: Nip47Transaction;
+    };
 
 export type Nip47PayInvoiceRequest = {
   invoice: string;
@@ -641,6 +647,7 @@ export class NWCClient {
 
   async subscribeNotifications(
     onNotification: (notification: Nip47Notification) => void,
+    notificationTypes?: Nip47NotificationType[],
   ): Promise<() => void> {
     let subscribed = true;
     let endPromise: (() => void) | undefined;
@@ -672,7 +679,12 @@ export class NWCClient {
               return;
             }
             if (notification.notification) {
-              onNotification(notification);
+              if (
+                !notificationTypes ||
+                notificationTypes.indexOf(notification.notification_type) > -1
+              ) {
+                onNotification(notification);
+              }
             } else {
               console.error("No notification in response", notification);
             }
