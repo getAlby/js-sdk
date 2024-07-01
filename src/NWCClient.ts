@@ -34,7 +34,6 @@ type Nip47SingleMethod =
 type Nip47MultiMethod = "multi_pay_invoice" | "multi_pay_keysend";
 
 export type Nip47Method = Nip47SingleMethod | Nip47MultiMethod;
-export type Nip47Capability = Nip47Method | "notifications";
 
 export type Nip47GetInfoResponse = {
   alias: string;
@@ -421,20 +420,8 @@ export class NWCClient {
     });
   }
 
-  /**
-   * @deprecated please use getWalletServiceInfo. Deprecated since v3.5.0. Will be removed in v4.0.0.
-   */
-  async getWalletServiceSupportedMethods(): Promise<Nip47Capability[]> {
-    console.warn(
-      "getWalletServiceSupportedMethods is deprecated. Please use getWalletServiceInfo instead.",
-    );
-    const info = await this.getWalletServiceInfo();
-
-    return info.capabilities;
-  }
-
   async getWalletServiceInfo(): Promise<{
-    capabilities: Nip47Capability[];
+    methods: Nip47Method[];
     notifications: Nip47NotificationType[];
   }> {
     await this._checkConnected();
@@ -461,7 +448,7 @@ export class NWCClient {
     );
     return {
       // delimiter is " " per spec, but Alby NWC originally returned ","
-      capabilities: content.split(/[ |,]/g) as Nip47Method[],
+      methods: content.split(/[ |,]/g) as Nip47Method[],
       notifications: (notificationsTag?.[1]?.split(" ") ||
         []) as Nip47NotificationType[],
     };
