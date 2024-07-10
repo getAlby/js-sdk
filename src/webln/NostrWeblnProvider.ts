@@ -23,6 +23,7 @@ import {
   Nip47PayKeysendRequest,
   Nip47Transaction,
 } from "../NWCClient";
+import { toHexString } from "../utils";
 
 // TODO: review fields (replace with camelCase)
 // TODO: consider move to webln-types package
@@ -509,7 +510,7 @@ function mapKeysendToNip47Keysend(args: KeysendArgs): Nip47PayKeysendRequest {
     tlv_records: args.customRecords
       ? Object.entries(args.customRecords).map((v) => ({
           type: parseInt(v[0]),
-          value: v[1],
+          value: toHexString(new TextEncoder().encode(v[1])),
         }))
       : [],
     // TODO: support optional preimage
