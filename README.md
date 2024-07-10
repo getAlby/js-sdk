@@ -20,7 +20,7 @@ or for use without any build tools:
 
 ```html
 <script type="module">
-  import { webln } from "https://esm.sh/@getalby/sdk@3.6.0"; // jsdelivr.net, skypack.dev also work
+  import { webln } from "https://esm.sh/@getalby/sdk@3.6.1"; // jsdelivr.net, skypack.dev also work
 
   (async () => {
     const client = new nwc.NWCClient({
@@ -112,25 +112,12 @@ const client = nwc.NWCClient.withNewSecret({
 await client.initNWC();
 ```
 
-#### sendPayment(invice: string)
-
-Takes a bolt11 invoice and calls the NWC `pay_invoice` function.
-It returns a promise object that is resolved with an object with the preimage or is rejected with an error
-
-##### Example
-
-```js
-const client = new nwc.NWCClient({ nostrWalletConnectUrl: loadNWCUrl() });
-const response = await client.payInvoice({ invoice });
-console.log(response);
-```
-
-#### getNostrWalletConnectUrl()
+#### `getNostrWalletConnectUrl()`
 
 Returns the `nostr+walletconnect://` URL which includes all the connection information (`walletPubkey`, `relayUrl`, `secret`)
 This can be used to get and persist the string for later use.
 
-#### initNWC({name: string})
+#### `initNWC({ name: string })`
 
 Opens a new window prompt with the `getAuthorizationUrl()` (the user's NWC UI) to ask the user to authorize the app connection.
 The promise resolves when the connection is authorized and the popup sends a `nwc:success` message or rejects when the prompt is closed.
@@ -152,6 +139,21 @@ try {
   console.error(e.error || e);
 }
 ```
+
+#### `payInvoice({ invoice: string })`
+
+Takes a bolt11 invoice and calls the NWC `pay_invoice` function.
+It returns a promise object that is resolved with an object with the preimage or is rejected with an error
+
+##### Example
+
+```js
+const client = new nwc.NWCClient({ nostrWalletConnectUrl: loadNWCUrl() });
+const response = await client.payInvoice({ invoice });
+console.log(response);
+```
+
+See other [NIP-47 method examples](https://github.com/getAlby/js-sdk/tree/master/examples/nwc/client).
 
 #### For Node.js
 
@@ -273,7 +275,7 @@ const nwc = NostrWebLNProvider.withNewSecret();
 await nwc.initNWC();
 ```
 
-#### sendPayment(invice: string)
+#### sendPayment(invoice: string)
 
 Takes a bolt11 invoice and calls the NWC `pay_invoice` function.
 It returns a promise object that is resolved with an object with the preimage or is rejected with an error
