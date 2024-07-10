@@ -20,7 +20,7 @@ or for use without any build tools:
 
 ```html
 <script type="module">
-  import { webln } from "https://esm.sh/@getalby/sdk@3.6.1"; // jsdelivr.net, skypack.dev also work
+  import { nwc } from "https://esm.sh/@getalby/sdk@3.6.1"; // jsdelivr.net, skypack.dev also work
 
   (async () => {
     const client = new nwc.NWCClient({
@@ -29,16 +29,24 @@ or for use without any build tools:
     const balanceResponse = await client.getBalance();
     console.log("Wallet balance", balanceResponse.balance);
     client.close();
+  })();
+</script>
+```
 
-    // Alternatively, use NostrWebLNProvider
+Alternatively, use `NostrWebLNProvider`
 
-    // const nwc = new webln.NostrWebLNProvider({
-    //   nostrWalletConnectUrl: YOUR_NWC_URL,
-    // });
-    // await nwc.enable();
-    // const balanceResponse = await nwc.getBalance();
-    // console.log("Wallet balance", balanceResponse.balance);
-    // nwc.close();
+```html
+<script type="module">
+  import { webln } from "https://esm.sh/@getalby/sdk@3.6.1"; // jsdelivr.net, skypack.dev also work
+
+  (async () => {
+    const nwc = new webln.NostrWebLNProvider({
+      nostrWalletConnectUrl: YOUR_NWC_URL,
+    });
+    await nwc.enable();
+    const balanceResponse = await nwc.getBalance();
+    console.log("Wallet balance", balanceResponse.balance);
+    nwc.close();
   })();
 </script>
 ```
