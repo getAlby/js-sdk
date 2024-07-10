@@ -29,7 +29,7 @@ const boost = {
   episode: "Episode 104: A New Dump",
   ts: 21,
   name: "⚡ WebLN Demo",
-  sender_name: "Sathoshi Nakamoto",
+  sender_name: "Satoshi Nakamoto",
   message: "Go podcasting!",
 };
 
