@@ -20,17 +20,25 @@ or for use without any build tools:
 
 ```html
 <script type="module">
-  import { webln } from "https://esm.sh/@getalby/sdk@3.5.1"; // jsdelivr.net, skypack.dev also work
+  import { webln } from "https://esm.sh/@getalby/sdk@3.6.0"; // jsdelivr.net, skypack.dev also work
 
-  // use webln normally...
   (async () => {
-    const nwc = new webln.NostrWebLNProvider({
+    const client = new nwc.NWCClient({
       nostrWalletConnectUrl: YOUR_NWC_URL,
     });
-    await nwc.enable();
-    const balanceResponse = await nwc.getBalance();
+    const balanceResponse = await client.getBalance();
     console.log("Wallet balance", balanceResponse.balance);
-    nwc.close();
+    client.close();
+
+    // Alternatively, use NostrWebLNProvider
+
+    // const nwc = new webln.NostrWebLNProvider({
+    //   nostrWalletConnectUrl: YOUR_NWC_URL,
+    // });
+    // await nwc.enable();
+    // const balanceResponse = await nwc.getBalance();
+    // console.log("Wallet balance", balanceResponse.balance);
+    // nwc.close();
   })();
 </script>
 ```
@@ -45,15 +53,173 @@ or for use without any build tools:
 
 ## Nostr Wallet Connect Documentation
 
-Nostr Wallet Connect is an open protocol enabling applications to interact with bitcoin lightning wallets. It allows users to connect their existing wallets to your application allowing developers to easily integrate bitcoin lightning functionality.
+[Nostr Wallet Connect](https://nwc.dev) is an open protocol enabling applications to interact with bitcoin lightning wallets. It allows users to connect their existing wallets to your application allowing developers to easily integrate bitcoin lightning functionality.
 
 The Alby JS SDK allows you to easily integrate Nostr Wallet Connect into any JavaScript based application.
+
+### NWCClient
+
+### Options
+
+- `providerName`: name of the provider to load the default options. currently `alby` (default)
+- `nostrWalletConnectUrl`: full Nostr Wallet Connect URL as defined by the [spec](https://github.com/getAlby/nips/blob/master/47.md)
+- `relayUrl`: URL of the Nostr relay to be used (e.g. wss://nostr-relay.getalby.com)
+- `walletPubkey`: pubkey of the Nostr Wallet Connect app
+- `secret`: secret key to sign the request event (if not available window.nostr will be used)
+- `authorizationUrl`: URL to the NWC interface for the user to and the app connection
+
+### Quick start example
+
+```js
+import { nwc } from "@getalby/sdk";
+const nwc = new nwc.NWCClient({
+  nostrWalletConnectUrl: loadNWCUrl(),
+}); // loadNWCUrl is some function to get the NWC URL from some (encrypted) storage
+
+// now you can send payments by passing in the invoice in an object
+const response = await nwc.payInvoice({ invoice });
+```
+
+That's it! Unlike WebLN, you don't even have to enable to connect to the relay.
+
+### NWCClient Functions
+
+The `NWCClient` exposes all the methods listed in [NIP-47](https://github.com/nostr-protocol/nips/blob/master/47.md). You can check the usage of each method as listed in the [examples](https://github.com/getAlby/js-sdk/tree/master/examples/nwc/client).
+
+Please note that although `NWCClient` supports all methods, the NWC connection URI might not have support for some. You can check what all methods are supported by the Wallet Service by using the `getWalletServiceInfo` method like this:
+
+```js
+import { nwc } from "@getalby/sdk";
+const nwc = new nwc.NWCClient({
+  nostrWalletConnectUrl: loadNWCUrl(),
+});
+
+const response = await nwc.getWalletServiceInfo();
+
+console.info(response); // { capabilities: ['pay_invoice', 'pay_keysend', 'get_balance', 'get_info', 'make_invoice', 'lookup_invoice', 'list_transactions', 'sign_message', 'notifications'], notifications: ['payment_sent', 'payment_received'] }
+```
+
+#### `static withNewSecret()`
+
+Initializes a new `NWCClient` instance but generates a new random secret. The pubkey of that secret then needs to be authorized by the user (this can be initiated by redirecting the user to the `getAuthorizationUrl()` URL or calling `initNWC()` to open an authorization popup).
+
+##### Example
+
+```js
+const client = nwc.NWCClient.withNewSecret({
+  authorizationUrl: "https://nwc.getalby.com/apps/new",
+});
+await client.initNWC();
+```
+
+#### sendPayment(invice: string)
+
+Takes a bolt11 invoice and calls the NWC `pay_invoice` function.
+It returns a promise object that is resolved with an object with the preimage or is rejected with an error
+
+##### Example
+
+```js
+const client = new nwc.NWCClient({ nostrWalletConnectUrl: loadNWCUrl() });
+const response = await client.payInvoice({ invoice });
+console.log(response);
+```
+
+#### getNostrWalletConnectUrl()
+
+Returns the `nostr+walletconnect://` URL which includes all the connection information (`walletPubkey`, `relayUrl`, `secret`)
+This can be used to get and persist the string for later use.
+
+#### initNWC({name: string})
+
+Opens a new window prompt with the `getAuthorizationUrl()` (the user's NWC UI) to ask the user to authorize the app connection.
+The promise resolves when the connection is authorized and the popup sends a `nwc:success` message or rejects when the prompt is closed.
+Pass a `name` to the NWC provider describing the application.
+
+```js
+const client = nwc.NWCClient.withNewSecret();
+try {
+  await client.initNWC({ name: "ACME app" });
+} catch (e) {
+  console.warn("Prompt closed");
+}
+let response;
+try {
+  response = await client.payInvoice({ invoice });
+  // if success then the response.preimage will be only
+  console.info(`payment successful, the preimage is ${response.preimage}`);
+} catch (e) {
+  console.error(e.error || e);
+}
+```
+
+#### For Node.js
+
+To use this on Node.js you first must install `websocket-polyfill` and import it:
+
+```js
+import "websocket-polyfill";
+// or: require('websocket-polyfill');
+```
+
+if you get an `crypto is not defined` error, either upgrade to node.js 20 or above, or import it manually:
+
+```js
+import * as crypto from 'crypto'; // or 'node:crypto'
+globalThis.crypto = crypto as any;
+//or: global.crypto = require('crypto');
+```
+
+### Examples
+
+#### Use a custom, user provided Nostr Wallet Connect URL
+
+```js
+import { nwc } from '@getalby/sdk';
+
+const client = new nwc.NWCClient({ nostrWalletConnectUrl: 'nostr+walletconnect://69effe7b49a6dd5cf525bd0905917a5005ffe480b58eeb8e861418cf3ae760d9?relay=wss://nostr.bitcoiner.social&secret=c60320b3ecb6c15557510d1518ef41194e9f9337c82621ddef3f979f668bfebd');
+const response = await client.payInvoice({ invoice });
+console.log(response.preimage);
+
+client.close(); // close the websocket connection
+```
+
+#### Generate a new NWC connect url using a locally-generated secret
+
+```js
+// same options can be provided to .withNewSecret() as creating a new NWCClient()
+const client = nwc.NWCClient.withNewSecret();
+
+// use the `initNWC` helper which opens a popup to initiate the connection flow.
+// the promise resolves once the NWC app returned.
+await client.initNWC({
+  name: `My app name`,
+});
+
+// ... enable and send a payment
+
+// if you want to get the connect url with the secret:
+// const nostrWalletConnectUrl = client.getNostrWalletConnectUrl(true)
+```
+
+##### NWC Authorization URL Options
+
+initNWC accepts the following parameters while creating an app
+
+- `name`: name of the app
+- `requestMethods`: NIP-47 request methods required by the app connection
+- `returnTo`: string;
+- `expiresAt`: app expiration in epoch seconds;
+- `maxAmount`: max budget if the app requires `pay_invoice`;
+- `budgetRenewal`: renewal of the budget amount if the app requires `pay_invoice`;
+
+### NostrWebLNProvider (aliased as NWC)
 
 The `NostrWebLNProvider` exposes the [WebLN](webln.guide/) interface to execute lightning wallet functionality through Nostr Wallet Connect, such as sending payments, making invoices and getting the node balance.
 
 (Note: in the future more WebLN functions will be added to Nostr Wallet Connect)
 
-### NostrWebLNProvider (aliased as NWC) Options
+### Options
 
 - `providerName`: name of the provider to load the default options. currently `alby` (default)
 - `nostrWalletConnectUrl`: full Nostr Wallet Connect URL as defined by the [spec](https://github.com/getAlby/nips/blob/master/47.md)
@@ -98,7 +264,7 @@ The goal of the Nostr Wallet Connect provider is to be API compatible with [webl
 
 #### `static withNewSecret()`
 
-Initialized a new `NostrWebLNProvider` instance but generates a new random secret. The pubkey of that secret then needs to be authorized by the user (this can be initiated by redirecting the user to the `getAuthorizationUrl()` URL or calling `initNWC()` to open an authorization popup.
+Initialized a new `NostrWebLNProvider` instance but generates a new random secret. The pubkey of that secret then needs to be authorized by the user (this can be initiated by redirecting the user to the `getAuthorizationUrl()` URL or calling `initNWC()` to open an authorization popup).
 
 ##### Example
 
@@ -135,8 +301,8 @@ Pass a `name` to the NWC provider describing the application.
 ```js
 const nwc = NostrWebLNProvider.withNewSecret();
 try {
-  await nwc.initNWC({name: 'ACME app' );
-} catch(e) {
+  await nwc.initNWC({ name: "ACME app" });
+} catch (e) {
   console.warn("Prompt closed");
 }
 await nwc.enable();
@@ -145,8 +311,7 @@ try {
   response = await nwc.sendPayment(invoice);
   // if success then the response.preimage will be only
   console.info(`payment successful, the preimage is ${response.preimage}`);
-}
-catch (e) {
+} catch (e) {
   console.error(e.error || e);
 }
 ```
@@ -223,7 +388,7 @@ await webln.initNWC("alby", {
 // ... enable and send a payment
 
 // if you want to get the connect url with the secret:
-// const nostrWalletConnectUrl nwc.getNostrWalletConnectUrl(true)
+// const nostrWalletConnectUrl = nwc.getNostrWalletConnectUrl(true)
 ```
 
 ## OAuth API Documentation
