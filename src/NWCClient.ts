@@ -131,6 +131,7 @@ export type Nip47MakeInvoiceRequest = {
   description?: string;
   description_hash?: string;
   expiry?: number; // in seconds
+  metadata?: unknown;
 };
 
 export type Nip47LookupInvoiceRequest = {
