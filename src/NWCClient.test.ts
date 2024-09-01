@@ -1,5 +1,5 @@
 import "websocket-polyfill";
-import { NWCClient } from "../NWCClient";
+import { NWCClient } from "./NWCClient";
 
 // this has no funds on it, I think ;-)
 const exampleNwcUrl =
