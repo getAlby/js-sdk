@@ -204,6 +204,7 @@ export class NWCClient {
   relay: Relay;
   relayUrl: string;
   secret: string | undefined;
+  lud16: string | undefined;
   walletPubkey: string;
   options: NWCOptions;
 
@@ -264,6 +265,7 @@ export class NWCClient {
           : this.options.secret
       ) as string;
     }
+    this.lud16 = this.options.lud16;
     this.walletPubkey = (
       this.options.walletPubkey.toLowerCase().startsWith("npub")
         ? nip19.decode(this.options.walletPubkey).data

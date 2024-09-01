@@ -42,3 +42,17 @@ describe("parseWalletConnectUrl", () => {
     expect(parsed.relayUrl).toBe("wss://relay.getalby.com/v1");
   });
 });
+
+describe("NWCClient", () => {
+  test("standard protocol", () => {
+    const nwcClient = new NWCClient({ nostrWalletConnectUrl: exampleNwcUrl });
+    expect(nwcClient.walletPubkey).toBe(
+      "69effe7b49a6dd5cf525bd0905917a5005ffe480b58eeb8e861418cf3ae760d9",
+    );
+    expect(nwcClient.secret).toBe(
+      "e839faf78693765b3833027fefa5a305c78f6965d0a5d2e47a3fcb25aa7cc45b",
+    );
+    expect(nwcClient.lud16).toBe("hello@getalby.com");
+    expect(nwcClient.options.lud16).toBe("hello@getalby.com");
+  });
+});
