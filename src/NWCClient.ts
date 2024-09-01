@@ -131,7 +131,7 @@ export type Nip47MakeInvoiceRequest = {
   description?: string;
   description_hash?: string;
   expiry?: number; // in seconds
-  metadata?: unknown;
+  metadata?: unknown; // TODO: update to also include known keys (payerData, nostr, comment)
 };
 
 export type Nip47LookupInvoiceRequest = {
