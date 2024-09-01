@@ -152,6 +152,7 @@ export interface NWCOptions {
   relayUrl: string;
   walletPubkey: string;
   secret?: string;
+  lud16?: string;
 }
 
 export class Nip47Error extends Error {
@@ -226,6 +227,10 @@ export class NWCClient {
     const secret = url.searchParams.get("secret");
     if (secret) {
       options.secret = secret;
+    }
+    const lud16 = url.searchParams.get("lud16");
+    if (lud16) {
+      options.lud16 = lud16;
     }
     return options;
   }
