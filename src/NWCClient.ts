@@ -29,7 +29,11 @@ type Nip47SingleMethod =
   | "pay_keysend"
   | "lookup_invoice"
   | "list_transactions"
-  | "sign_message";
+  | "sign_message"
+  | "lookup_user"
+  | "fetch_quote"
+  | "execute_quote"
+  | "pay_to_address";
 
 type Nip47MultiMethod = "multi_pay_invoice" | "multi_pay_keysend";
 
@@ -45,10 +49,17 @@ export type Nip47GetInfoResponse = {
   block_hash: string;
   methods: Nip47Method[];
   notifications: Nip47NotificationType[];
+  lud16?: string;
+  currencies?: Nip47Currency[];
+};
+
+export type Nip47GetBalanceRequest = {
+  currency_code?: string;
 };
 
 export type Nip47GetBalanceResponse = {
-  balance: number; // msats
+  balance: number; // msats or currency if specified.
+  currency_code?: string;
 };
 
 export type Nip47PayResponse = {
@@ -87,6 +98,16 @@ export type Nip47ListTransactionsResponse = {
   transactions: Nip47Transaction[];
 };
 
+export type Nip47TransactionFx = {
+  receiving_currency_code: string;
+  total_receiving_amount: number;
+  multiplier: number;
+  // Remaining fields only available for outgoing payments:
+  sending_currency_code?: string;
+  total_sending_amount?: number;
+  fees?: number;
+};
+
 export type Nip47Transaction = {
   type: string;
   invoice: string;
@@ -99,7 +120,18 @@ export type Nip47Transaction = {
   settled_at: number;
   created_at: number;
   expires_at: number;
+  fx?: Nip47TransactionFx;
   metadata?: Record<string, unknown>;
+};
+
+export type Nip47Currency = {
+  code: string;
+  name: string;
+  symbol: string;
+  multiplier: number;
+  min: number;
+  max: number;
+  decimals: number;
 };
 
 export type Nip47NotificationType = Nip47Notification["notification_type"];
@@ -146,6 +178,60 @@ export type Nip47SignMessageRequest = {
 export type Nip47SignMessageResponse = {
   message: string;
   signature: string;
+};
+
+// Note: It is expected that exactly one of the fields is set.
+export type Nip47Receiver = {
+  lud16?: string;
+  bolt12?: string;
+};
+
+export type Nip47LookupUserRequest = {
+  lud16: string;
+};
+
+export type Nip47LookupUserResponse = {
+  lud16: string;
+  currencies: Nip47Currency[];
+};
+
+export type Nip47FetchQuoteRequest = {
+  receiver: Nip47Receiver;
+  sending_currency_code: string;
+  receiving_currency_code: string;
+  locked_currency_side: "SENDING" | "RECEIVING";
+  locked_currency_amount: number;
+};
+
+export type Nip47Quote = {
+  payment_hash: string;
+  sending_currency_code: string;
+  receiving_currency_code: string;
+  locked_currency_side: "SENDING" | "RECEIVING";
+  total_receiving_amount: number;
+  total_sending_amount: number;
+  multiplier: number; // receiving unit per sending unit
+  fees: number; // in sending currency
+  expires_at: number;
+};
+
+export type Nip47ExecuteQuoteRequest = {
+  payment_hash: string;
+};
+
+export type Nip47ExecuteQuoteResponse = {
+  preimage: string;
+};
+
+export type Nip47PayToAddressRequest = {
+  receiver: Nip47Receiver;
+  sending_currency_code: string;
+  sending_currency_amount: number;
+  receiving_currency_code?: string;
+};
+
+export type Nip47PayToAddressResponse = {
+  preimage: string;
 };
 
 export interface NWCOptions {
@@ -489,11 +575,13 @@ export class NWCClient {
     }
   }
 
-  async getBalance(): Promise<Nip47GetBalanceResponse> {
+  async getBalance(
+    request: Nip47GetBalanceRequest = {},
+  ): Promise<Nip47GetBalanceResponse> {
     try {
       const result = await this.executeNip47Request<Nip47GetBalanceResponse>(
         "get_balance",
-        {},
+        request,
         (result) => result.balance !== undefined,
       );
       return result;
@@ -649,6 +737,72 @@ export class NWCClient {
       return result;
     } catch (error) {
       console.error("Failed to request list_transactions", error);
+      throw error;
+    }
+  }
+
+  async lookupUser(
+    request: Nip47LookupUserRequest,
+  ): Promise<Nip47LookupUserResponse> {
+    try {
+      const result = await this.executeNip47Request<Nip47LookupUserResponse>(
+        "lookup_user",
+        request,
+        (response) => !!response.currencies,
+      );
+
+      return result;
+    } catch (error) {
+      console.error("Failed to request lookup_user", error);
+      throw error;
+    }
+  }
+
+  async fetchQuote(request: Nip47FetchQuoteRequest): Promise<Nip47Quote> {
+    try {
+      const result = await this.executeNip47Request<Nip47Quote>(
+        "fetch_quote",
+        request,
+        (response) => !!response.multiplier,
+      );
+
+      return result;
+    } catch (error) {
+      console.error("Failed to request fetch_quote", error);
+      throw error;
+    }
+  }
+
+  async executeQuote(
+    request: Nip47ExecuteQuoteRequest,
+  ): Promise<Nip47ExecuteQuoteResponse> {
+    try {
+      const result = await this.executeNip47Request<Nip47ExecuteQuoteResponse>(
+        "execute_quote",
+        request,
+        (response) => !!response.preimage,
+      );
+
+      return result;
+    } catch (error) {
+      console.error("Failed to request execute_quote", error);
+      throw error;
+    }
+  }
+
+  async payToAddress(
+    request: Nip47PayToAddressRequest,
+  ): Promise<Nip47PayToAddressResponse> {
+    try {
+      const result = await this.executeNip47Request<Nip47PayToAddressResponse>(
+        "pay_to_address",
+        request,
+        (response) => !!response.preimage,
+      );
+
+      return result;
+    } catch (error) {
+      console.error("Failed to request pay_to_address", error);
       throw error;
     }
   }
