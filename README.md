@@ -6,13 +6,13 @@ This JavaScript SDK for the Alby OAuth2 Wallet API and the Nostr Wallet Connect 
 
 ## Installing
 
-```
+```bash
 npm install @getalby/sdk
 ```
 
 or
 
-```
+```bash
 yarn add @getalby/sdk
 ```
 
@@ -20,20 +20,13 @@ or for use without any build tools:
 
 ```html
 <script type="module">
-  import { webln } from "https://esm.sh/@getalby/sdk@3.5.1"; // jsdelivr.net, skypack.dev also work
+  import { nwc, webln } from "https://esm.sh/@getalby/sdk@3.7.0"; // jsdelivr.net, skypack.dev also work
 
-  // use webln normally...
-  (async () => {
-    const nwc = new webln.NostrWebLNProvider({
-      nostrWalletConnectUrl: YOUR_NWC_URL,
-    });
-    await nwc.enable();
-    const balanceResponse = await nwc.getBalance();
-    console.log("Wallet balance", balanceResponse.balance);
-    nwc.close();
-  })();
+  // ... then use nwc.NWCClient or webln.NWC (see documentation below)
 </script>
 ```
+
+### NodeJS
 
 **This library relies on a global fetch() function which will work in browsers and node v18.x or newer.** (In older versions you have to use a polyfill.)
 
@@ -45,13 +38,39 @@ or for use without any build tools:
 
 ## Nostr Wallet Connect Documentation
 
-Nostr Wallet Connect is an open protocol enabling applications to interact with bitcoin lightning wallets. It allows users to connect their existing wallets to your application allowing developers to easily integrate bitcoin lightning functionality.
+[Nostr Wallet Connect](https://nwc.dev) is an open protocol enabling applications to interact with bitcoin lightning wallets. It allows users to connect their existing wallets to your application allowing developers to easily integrate bitcoin lightning functionality.
 
 The Alby JS SDK allows you to easily integrate Nostr Wallet Connect into any JavaScript based application.
 
-The `NostrWebLNProvider` exposes the [WebLN](webln.guide/) interface to execute lightning wallet functionality through Nostr Wallet Connect, such as sending payments, making invoices and getting the node balance.
+There are two interfaces you can use to access NWC:
 
-(Note: in the future more WebLN functions will be added to Nostr Wallet Connect)
+- The `NWCClient` exposes the [NWC](https://nwc.dev/) interface directly, which is more powerful than the WebLN interface and is recommended if you plan to create an application outside of the web (e.g. native mobile/command line/server backend etc.). You can explore all the examples [here](./examples/nwc/client/).
+- The `NostrWebLNProvider` exposes the [WebLN](https://webln.guide/) interface to execute lightning wallet functionality through Nostr Wallet Connect, such as sending payments, making invoices and getting the node balance. You can explore all the examples [here](./examples/nwc/). See also [Bitcoin Connect](https://github.com/getAlby/bitcoin-connect/) if you are developing a frontend web application.
+
+### NWCClient
+
+#### Initialization Options
+
+- `providerName`: name of the provider to load the default options. currently `alby` (default)
+- `nostrWalletConnectUrl`: full Nostr Wallet Connect URL as defined by the [spec](https://github.com/getAlby/nips/blob/master/47.md)
+- `relayUrl`: URL of the Nostr relay to be used (e.g. wss://nostr-relay.getalby.com)
+- `walletPubkey`: pubkey of the Nostr Wallet Connect app
+- `secret`: secret key to sign the request event (if not available window.nostr will be used)
+- `authorizationUrl`: URL to the NWC interface for the user to and the app connection
+
+#### Quick start example
+
+```js
+import { nwc } from "@getalby/sdk";
+const nwc = new nwc.NWCClient({
+  nostrWalletConnectUrl: loadNWCUrl(),
+}); // loadNWCUrl is some function to get the NWC URL from some (encrypted) storage
+
+// now you can send payments by passing in the invoice in an object
+const response = await nwc.payInvoice({ invoice });
+```
+
+See [the NWC client examples directory](./examples/nwc/client) for a full list of examples.
 
 ### NostrWebLNProvider (aliased as NWC) Options
 
