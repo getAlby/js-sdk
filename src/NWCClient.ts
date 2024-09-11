@@ -44,7 +44,7 @@ export type Nip47GetInfoResponse = {
   block_height: number;
   block_hash: string;
   methods: Nip47Method[];
-  notifications: Nip47NotificationType[];
+  notifications?: Nip47NotificationType[];
 };
 
 export type Nip47GetBalanceResponse = {
