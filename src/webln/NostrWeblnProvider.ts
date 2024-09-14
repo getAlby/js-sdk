@@ -74,6 +74,10 @@ const nip47ToWeblnRequestMap: Record<Nip47Method, WebLNMethod> = {
   multi_pay_invoice: "sendMultiPayment",
   multi_pay_keysend: "multiKeysend",
   sign_message: "signMessage",
+  lookup_user: "lookupUser",
+  fetch_quote: "fetchQuote",
+  execute_quote: "executeQuote",
+  pay_to_address: "payToAddress",
 };
 
 export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
