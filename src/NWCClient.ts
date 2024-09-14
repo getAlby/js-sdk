@@ -48,7 +48,8 @@ export type Nip47GetInfoResponse = {
   block_height: number;
   block_hash: string;
   methods: Nip47Method[];
-  notifications: Nip47NotificationType[];
+
+  notifications?: Nip47NotificationType[];
   lud16?: string;
   currencies?: Nip47Currency[];
 };
@@ -267,6 +268,7 @@ export class Nip47PublishError extends Nip47Error {}
 export class Nip47ResponseDecodingError extends Nip47Error {}
 export class Nip47ResponseValidationError extends Nip47Error {}
 export class Nip47UnexpectedResponseError extends Nip47Error {}
+export class Nip47NetworkError extends Nip47Error {}
 
 export const NWCs: Record<string, NWCOptions> = {
   alby: {
@@ -1165,6 +1167,14 @@ export class NWCClient {
     if (!this.secret) {
       throw new Error("Missing secret key");
     }
-    await this.relay.connect();
+    try {
+      await this.relay.connect();
+    } catch (_ /* error is always undefined */) {
+      console.error("failed to connect to relay", this.relayUrl);
+      throw new Nip47NetworkError(
+        "Failed to connect to " + this.relayUrl,
+        "OTHER",
+      );
+    }
   }
 }
