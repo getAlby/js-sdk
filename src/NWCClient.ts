@@ -24,6 +24,7 @@ type WithOptionalId = {
 type Nip47SingleMethod =
   | "get_info"
   | "get_balance"
+  | "get_budget"
   | "make_invoice"
   | "pay_invoice"
   | "pay_keysend"
@@ -46,6 +47,16 @@ export type Nip47GetInfoResponse = {
   methods: Nip47Method[];
   notifications?: Nip47NotificationType[];
 };
+
+export type Nip47GetBudgetResponse =
+  | {
+      used_budget: number; // msats
+      total_budget: number; // msats
+      renews_at?: number; // timestamp
+      renewal_period: "daily" | "weekly" | "monthly" | "yearly" | "never";
+    }
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  | {};
 
 export type Nip47GetBalanceResponse = {
   balance: number; // msats
@@ -486,6 +497,20 @@ export class NWCClient {
       return result;
     } catch (error) {
       console.error("Failed to request get_info", error);
+      throw error;
+    }
+  }
+
+  async getBudget(): Promise<Nip47GetBudgetResponse> {
+    try {
+      const result = await this.executeNip47Request<Nip47GetBudgetResponse>(
+        "get_budget",
+        {},
+        (result) => result !== undefined,
+      );
+      return result;
+    } catch (error) {
+      console.error("Failed to request get_balance", error);
       throw error;
     }
   }
