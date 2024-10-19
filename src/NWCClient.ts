@@ -510,7 +510,7 @@ export class NWCClient {
       );
       return result;
     } catch (error) {
-      console.error("Failed to request get_balance", error);
+      console.error("Failed to request get_budget", error);
       throw error;
     }
   }
