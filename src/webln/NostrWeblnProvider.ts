@@ -63,7 +63,10 @@ type Nip07Provider = {
   signEvent(event: UnsignedEvent): Promise<Event>;
 };
 
-const nip47ToWeblnRequestMap: Record<Nip47Method, WebLNMethod> = {
+const nip47ToWeblnRequestMap: Record<
+  Exclude<Nip47Method, "get_budget">,
+  WebLNMethod
+> = {
   get_info: "getInfo",
   get_balance: "getBalance",
   make_invoice: "makeInvoice",
