@@ -7,7 +7,7 @@ import {
   GenerateAuthUrlOptions,
 } from "./types";
 import { RequestOptions, rest } from "./request";
-import EventEmitter from "eventemitter3";
+import Emittery from "emittery";
 
 const AUTHORIZE_URL = "https://getalby.com/oauth";
 
@@ -50,10 +50,10 @@ export class OAuth2User implements OAuthClient {
   code_verifier?: string;
   code_challenge?: string;
   private _refreshAccessTokenPromise: Promise<{ token: Token }> | null;
-  private _tokenEvents: EventEmitter;
+  private _tokenEvents: Emittery;
 
   constructor(options: OAuth2UserOptions) {
-    this._tokenEvents = new EventEmitter();
+    this._tokenEvents = new Emittery();
     const { token, ...defaultOptions } = options;
     this.options = { client_secret: "", ...defaultOptions };
     this.token = token;
