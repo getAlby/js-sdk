@@ -127,6 +127,7 @@ export type Nip47Notification =
 
 export type Nip47PayInvoiceRequest = {
   invoice: string;
+  metadata?: unknown;
   amount?: number; // msats
 };
 
