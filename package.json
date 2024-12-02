@@ -39,7 +39,7 @@
   },
   "dependencies": {
     "emittery": "^1.0.3",
-    "nostr-tools": "^1.17.0"
+    "nostr-tools": "^2.10.4"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.4.1",
