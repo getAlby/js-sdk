@@ -461,7 +461,6 @@ export class NWCClient {
     await this._checkConnected();
     const events = await new Promise<Event[]>((resolve, reject) => {
       const events: Event[] = [];
-      // TODO: test with different timeouts to see if this works
       const sub = this.relay.subscribe(
         [
           {
