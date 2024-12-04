@@ -1,4 +1,3 @@
-import "../crypto-polyfill.js";
 import "websocket-polyfill"; // required in node.js
 
 import { LightningAddress } from "@getalby/lightning-tools";
