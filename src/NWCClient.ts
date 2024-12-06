@@ -100,6 +100,7 @@ export type Nip47ListTransactionsResponse = {
 
 export type Nip47Transaction = {
   type: string;
+  state: "settled" | "pending" | "failed";
   invoice: string;
   description: string;
   description_hash: string;
