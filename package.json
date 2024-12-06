@@ -1,6 +1,6 @@
 {
   "name": "@getalby/sdk",
-  "version": "3.8.0",
+  "version": "3.8.1",
   "description": "The SDK to integrate with Nostr Wallet Connect and the Alby API",
   "repository": "https://github.com/getAlby/js-sdk.git",
   "bugs": "https://github.com/getAlby/js-sdk/issues",
@@ -39,7 +39,7 @@
   },
   "dependencies": {
     "emittery": "^1.0.3",
-    "nostr-tools": "^1.17.0"
+    "nostr-tools": "2.9.4"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.4.1",

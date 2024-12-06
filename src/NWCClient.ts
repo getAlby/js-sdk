@@ -1,17 +1,17 @@
 import {
   nip04,
-  relayInit,
-  getEventHash,
   nip19,
-  generatePrivateKey,
+  finalizeEvent,
+  generateSecretKey,
+  getEventHash,
   getPublicKey,
-  Relay,
   Event,
-  UnsignedEvent,
-  finishEvent,
-  Sub,
+  EventTemplate,
+  Relay,
 } from "nostr-tools";
 import { NWCAuthorizationUrlOptions } from "./types";
+import { hexToBytes, bytesToHex } from "@noble/hashes/utils";
+import { Subscription } from "nostr-tools/lib/types/abstract-relay";
 
 type WithDTag = {
   dTag: string;
@@ -252,7 +252,7 @@ export class NWCClient {
 
   static withNewSecret(options?: ConstructorParameters<typeof NWCClient>[0]) {
     options = options || {};
-    options.secret = generatePrivateKey();
+    options.secret = bytesToHex(generateSecretKey());
     return new NWCClient(options);
   }
 
@@ -270,7 +270,7 @@ export class NWCClient {
     } as NWCOptions;
 
     this.relayUrl = this.options.relayUrl;
-    this.relay = relayInit(this.relayUrl);
+    this.relay = new Relay(this.relayUrl);
     if (this.options.secret) {
       this.secret = (
         this.options.secret.toLowerCase().startsWith("nsec")
@@ -306,26 +306,26 @@ export class NWCClient {
   }
 
   get connected() {
-    return this.relay.status === 1;
+    return this.relay.connected;
   }
 
   get publicKey() {
     if (!this.secret) {
       throw new Error("Missing secret key");
     }
-    return getPublicKey(this.secret);
+    return getPublicKey(hexToBytes(this.secret));
   }
 
   getPublicKey(): Promise<string> {
     return Promise.resolve(this.publicKey);
   }
 
-  signEvent(event: UnsignedEvent): Promise<Event> {
+  signEvent(event: EventTemplate): Promise<Event> {
     if (!this.secret) {
       throw new Error("Missing secret key");
     }
 
-    return Promise.resolve(finishEvent(event, this.secret));
+    return Promise.resolve(finalizeEvent(event, hexToBytes(this.secret)));
   }
 
   getEventHash(event: Event) {
@@ -459,19 +459,30 @@ export class NWCClient {
     notifications: Nip47NotificationType[];
   }> {
     await this._checkConnected();
-
-    const events = await this.relay.list(
-      [
+    const events = await new Promise<Event[]>((resolve, reject) => {
+      const events: Event[] = [];
+      const sub = this.relay.subscribe(
+        [
+          {
+            kinds: [13194],
+            limit: 1,
+            authors: [this.walletPubkey],
+          },
+        ],
         {
-          kinds: [13194],
-          limit: 1,
-          authors: [this.walletPubkey],
+          eoseTimeout: 10000,
         },
-      ],
-      {
-        eoseSubTimeout: 10000,
-      },
-    );
+      );
+
+      sub.onevent = (event) => {
+        events.push(event);
+      };
+
+      sub.oneose = () => {
+        sub.close();
+        resolve(events);
+      };
+    });
 
     if (!events.length) {
       throw new Error("no info event (kind 13194) returned from relay");
@@ -687,21 +698,25 @@ export class NWCClient {
     let subscribed = true;
     let endPromise: (() => void) | undefined;
     let onRelayDisconnect: (() => void) | undefined;
-    let sub: Sub<23196> | undefined;
+    let sub: Subscription | undefined;
     (async () => {
       while (subscribed) {
         try {
           await this._checkConnected();
-          sub = this.relay.sub([
-            {
-              kinds: [23196],
-              authors: [this.walletPubkey],
-              "#p": [this.publicKey],
-            },
-          ]);
+
+          sub = this.relay.subscribe(
+            [
+              {
+                kinds: [23196],
+                authors: [this.walletPubkey],
+                "#p": [this.publicKey],
+              },
+            ],
+            {},
+          );
           console.info("subscribed to relay");
 
-          sub.on("event", async (event) => {
+          sub.onevent = async (event) => {
             const decryptedContent = await this.decrypt(
               this.walletPubkey,
               event.content,
@@ -723,7 +738,7 @@ export class NWCClient {
             } else {
               console.error("No notification in response", notification);
             }
-          });
+          };
 
           await new Promise<void>((resolve) => {
             endPromise = () => {
@@ -733,10 +748,10 @@ export class NWCClient {
               console.info("relay disconnected");
               endPromise?.();
             };
-            this.relay.on("disconnect", onRelayDisconnect);
+            this.relay.onclose = onRelayDisconnect;
           });
           if (onRelayDisconnect !== undefined) {
-            this.relay.off("disconnect", onRelayDisconnect);
+            this.relay.onclose = null;
           }
         } catch (error) {
           console.error(
@@ -755,7 +770,7 @@ export class NWCClient {
     return () => {
       subscribed = false;
       endPromise?.();
-      sub?.unsub();
+      sub?.close();
     };
   }
 
@@ -775,27 +790,29 @@ export class NWCClient {
           this.walletPubkey,
           JSON.stringify(command),
         );
-        const unsignedEvent: UnsignedEvent = {
+        const eventTemplate: EventTemplate = {
           kind: 23194,
           created_at: Math.floor(Date.now() / 1000),
           tags: [["p", this.walletPubkey]],
           content: encryptedCommand,
-          pubkey: this.publicKey,
         };
 
-        const event = await this.signEvent(unsignedEvent);
+        const event = await this.signEvent(eventTemplate);
         // subscribe to NIP_47_SUCCESS_RESPONSE_KIND and NIP_47_ERROR_RESPONSE_KIND
         // that reference the request event (NIP_47_REQUEST_KIND)
-        const sub = this.relay.sub([
-          {
-            kinds: [23195],
-            authors: [this.walletPubkey],
-            "#e": [event.id],
-          },
-        ]);
+        const sub = this.relay.subscribe(
+          [
+            {
+              kinds: [23195],
+              authors: [this.walletPubkey],
+              "#e": [event.id],
+            },
+          ],
+          {},
+        );
 
         function replyTimeout() {
-          sub.unsub();
+          sub.close();
           //console.error(`Reply timeout: event ${event.id} `);
           reject(
             new Nip47ReplyTimeoutError(
@@ -807,10 +824,10 @@ export class NWCClient {
 
         const replyTimeoutCheck = setTimeout(replyTimeout, 60000);
 
-        sub.on("event", async (event) => {
+        sub.onevent = async (event) => {
           // console.log(`Received reply event: `, event);
           clearTimeout(replyTimeoutCheck);
-          sub.unsub();
+          sub.close();
           const decryptedContent = await this.decrypt(
             this.walletPubkey,
             event.content,
@@ -821,7 +838,7 @@ export class NWCClient {
             response = JSON.parse(decryptedContent);
           } catch (e) {
             clearTimeout(replyTimeoutCheck);
-            sub.unsub();
+            sub.close();
             reject(
               new Nip47ResponseDecodingError(
                 "failed to deserialize response",
@@ -836,7 +853,7 @@ export class NWCClient {
               resolve(response.result);
             } else {
               clearTimeout(replyTimeoutCheck);
-              sub.unsub();
+              sub.close();
               reject(
                 new Nip47ResponseValidationError(
                   "response from NWC failed validation: " +
@@ -847,7 +864,7 @@ export class NWCClient {
             }
           } else {
             clearTimeout(replyTimeoutCheck);
-            sub.unsub();
+            sub.close();
             // console.error("Wallet error", response.error);
             reject(
               new Nip47WalletError(
@@ -856,10 +873,10 @@ export class NWCClient {
               ),
             );
           }
-        });
+        };
 
         function publishTimeout() {
-          sub.unsub();
+          sub.close();
           //console.error(`Publish timeout: event ${event.id}`);
           reject(
             new Nip47PublishTimeoutError(
@@ -906,27 +923,29 @@ export class NWCClient {
           this.walletPubkey,
           JSON.stringify(command),
         );
-        const unsignedEvent: UnsignedEvent = {
+        const eventTemplate: EventTemplate = {
           kind: 23194,
           created_at: Math.floor(Date.now() / 1000),
           tags: [["p", this.walletPubkey]],
           content: encryptedCommand,
-          pubkey: this.publicKey,
         };
 
-        const event = await this.signEvent(unsignedEvent);
+        const event = await this.signEvent(eventTemplate);
         // subscribe to NIP_47_SUCCESS_RESPONSE_KIND and NIP_47_ERROR_RESPONSE_KIND
         // that reference the request event (NIP_47_REQUEST_KIND)
-        const sub = this.relay.sub([
-          {
-            kinds: [23195],
-            authors: [this.walletPubkey],
-            "#e": [event.id],
-          },
-        ]);
+        const sub = this.relay.subscribe(
+          [
+            {
+              kinds: [23195],
+              authors: [this.walletPubkey],
+              "#e": [event.id],
+            },
+          ],
+          {},
+        );
 
         function replyTimeout() {
-          sub.unsub();
+          sub.close();
           //console.error(`Reply timeout: event ${event.id} `);
           reject(
             new Nip47ReplyTimeoutError(
@@ -938,7 +957,7 @@ export class NWCClient {
 
         const replyTimeoutCheck = setTimeout(replyTimeout, 60000);
 
-        sub.on("event", async (event) => {
+        sub.onevent = async (event) => {
           // console.log(`Received reply event: `, event);
 
           const decryptedContent = await this.decrypt(
@@ -952,7 +971,7 @@ export class NWCClient {
           } catch (e) {
             // console.error(e);
             clearTimeout(replyTimeoutCheck);
-            sub.unsub();
+            sub.close();
             reject(
               new Nip47ResponseDecodingError(
                 "failed to deserialize response",
@@ -964,7 +983,7 @@ export class NWCClient {
             // console.info("NIP-47 result", response.result);
             if (!resultValidator(response.result)) {
               clearTimeout(replyTimeoutCheck);
-              sub.unsub();
+              sub.close();
               reject(
                 new Nip47ResponseValidationError(
                   "Response from NWC failed validation: " +
@@ -977,7 +996,7 @@ export class NWCClient {
             const dTag = event.tags.find((tag) => tag[0] === "d")?.[1];
             if (dTag === undefined) {
               clearTimeout(replyTimeoutCheck);
-              sub.unsub();
+              sub.close();
               reject(
                 new Nip47ResponseValidationError(
                   "No d tag found in response event",
@@ -992,13 +1011,13 @@ export class NWCClient {
             });
             if (results.length === numPayments) {
               clearTimeout(replyTimeoutCheck);
-              sub.unsub();
+              sub.close();
               //console.log("Received results", results);
               resolve(results);
             }
           } else {
             clearTimeout(replyTimeoutCheck);
-            sub.unsub();
+            sub.close();
             reject(
               new Nip47UnexpectedResponseError(
                 response.error?.message,
@@ -1006,10 +1025,10 @@ export class NWCClient {
               ),
             );
           }
-        });
+        };
 
         function publishTimeout() {
-          sub.unsub();
+          sub.close();
           //console.error(`Publish timeout: event ${event.id}`);
           reject(
             new Nip47PublishTimeoutError(
@@ -1038,8 +1057,13 @@ export class NWCClient {
     if (!this.secret) {
       throw new Error("Missing secret key");
     }
+    if (!this.relayUrl) {
+      throw new Error("Missing relay url");
+    }
     try {
-      await this.relay.connect();
+      if (!this.relay.connected) {
+        await this.relay.connect();
+      }
     } catch (_ /* error is always undefined */) {
       console.error("failed to connect to relay", this.relayUrl);
       throw new Nip47NetworkError(
