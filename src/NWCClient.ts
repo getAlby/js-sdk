@@ -91,6 +91,14 @@ export interface Nip47ListTransactionsRequest {
   limit?: number;
   offset?: number;
   unpaid?: boolean;
+  /**
+   * NOTE: non-NIP-47 spec compliant
+   */
+  unpaid_outgoing?: boolean;
+  /**
+   * NOTE: non-NIP-47 spec compliant
+   */
+  unpaid_incoming?: boolean;
   type?: "incoming" | "outgoing";
 }
 
@@ -100,6 +108,9 @@ export type Nip47ListTransactionsResponse = {
 
 export type Nip47Transaction = {
   type: string;
+  /**
+   * NOTE: non-NIP-47 spec compliant
+   */
   state: "settled" | "pending" | "failed";
   invoice: string;
   description: string;
