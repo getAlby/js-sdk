@@ -742,11 +742,13 @@ export class NWCClient {
       while (subscribed) {
         try {
           await this._checkConnected();
-
+          await this._checkCompatibility();
           sub = this.relay.subscribe(
             [
               {
-                kinds: [...(this.supportedVersion ? [23196] : [23197])],
+                kinds: [
+                  ...(this.supportedVersion === "0.0" ? [23196] : [23197]),
+                ],
                 authors: [this.walletPubkey],
                 "#p": [this.publicKey],
               },
