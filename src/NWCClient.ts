@@ -1,6 +1,7 @@
 import {
   nip04,
   nip19,
+  nip44,
   finalizeEvent,
   generateSecretKey,
   getEventHash,
@@ -9,7 +10,6 @@ import {
   EventTemplate,
   Relay,
 } from "nostr-tools";
-import * as nip44 from "./nip44";
 import { NWCAuthorizationUrlOptions } from "./types";
 import { hexToBytes, bytesToHex } from "@noble/hashes/utils";
 import { Subscription } from "nostr-tools/lib/types/abstract-relay";
