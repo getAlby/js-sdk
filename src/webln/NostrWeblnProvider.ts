@@ -65,7 +65,7 @@ type Nip07Provider = {
 };
 
 const nip47ToWeblnRequestMap: Record<
-  Exclude<Nip47Method, "get_budget">,
+  Exclude<Nip47Method, "get_budget" | "create_connection">,
   WebLNMethod
 > = {
   get_info: "getInfo",
