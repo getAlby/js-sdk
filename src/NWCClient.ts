@@ -1135,6 +1135,11 @@ export class NWCClient {
           "UNSUPPORTED_VERSION",
         );
       }
+      if (compatibleVersion === "0.0") {
+        console.warn(
+          "NIP-04 encryption is about to be deprecated. Please upgrade your wallet service to use NIP-44 instead.",
+        );
+      }
       this.version = compatibleVersion;
     }
   }
