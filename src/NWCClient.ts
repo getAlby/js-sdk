@@ -1147,38 +1147,11 @@ export class NWCClient {
   private selectHighestCompatibleVersion(
     walletVersions: string[],
   ): string | null {
-    const parseVersions = (versions: string[]) =>
-      versions.map((v) => v.split(".").map(Number));
-
-    const walletParsed = parseVersions(walletVersions);
-    const clientParsed = parseVersions(NWCClient.SUPPORTED_VERSIONS);
-
-    const walletMajors: number[] = walletParsed
-      .map(([major]) => major)
-      .filter((value, index, self) => self.indexOf(value) === index);
-
-    const clientMajors: number[] = clientParsed
-      .map(([major]) => major)
-      .filter((value, index, self) => self.indexOf(value) === index);
-
-    const commonMajors = walletMajors
-      .filter((major) => clientMajors.includes(major))
-      .sort((a, b) => b - a);
-
-    for (const major of commonMajors) {
-      const walletMinors = walletParsed
-        .filter(([m]) => m === major)
-        .map(([, minor]) => minor);
-      const clientMinors = clientParsed
-        .filter(([m]) => m === major)
-        .map(([, minor]) => minor);
-
-      const highestMinor = Math.min(
-        Math.max(...walletMinors),
-        Math.max(...clientMinors),
-      );
-
-      return `${major}.${highestMinor}`;
+    if (walletVersions.includes("1.0")) {
+      return "1.0";
+    }
+    if (walletVersions.includes("0.0")) {
+      return "0.0";
     }
     return null;
   }
