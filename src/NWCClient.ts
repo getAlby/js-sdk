@@ -47,6 +47,7 @@ export type Nip47GetInfoResponse = {
   block_hash: string;
   methods: Nip47Method[];
   notifications?: Nip47NotificationType[];
+  metadata?: unknown;
 };
 
 export type Nip47GetBudgetResponse =
