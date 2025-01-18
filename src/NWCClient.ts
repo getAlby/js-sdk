@@ -213,6 +213,7 @@ export type NewNWCClientOptions = {
   secret?: string;
   walletPubkey?: string;
   nostrWalletConnectUrl?: string;
+  lud16?: string;
 };
 
 export class NWCClient {
