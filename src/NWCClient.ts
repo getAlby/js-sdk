@@ -31,12 +31,19 @@ type Nip47SingleMethod =
   | "pay_keysend"
   | "lookup_invoice"
   | "list_transactions"
-  | "sign_message";
+  | "sign_message"
+  | "create_connection";
 
 type Nip47MultiMethod = "multi_pay_invoice" | "multi_pay_keysend";
 
 export type Nip47Method = Nip47SingleMethod | Nip47MultiMethod;
 export type Nip47Capability = Nip47Method | "notifications";
+export type BudgetRenewalPeriod =
+  | "daily"
+  | "weekly"
+  | "monthly"
+  | "yearly"
+  | "never";
 
 export type Nip47GetInfoResponse = {
   alias: string;
@@ -54,7 +61,7 @@ export type Nip47GetBudgetResponse =
       used_budget: number; // msats
       total_budget: number; // msats
       renews_at?: number; // timestamp
-      renewal_period: "daily" | "weekly" | "monthly" | "yearly" | "never";
+      renewal_period: BudgetRenewalPeriod;
     }
   // eslint-disable-next-line @typescript-eslint/ban-types
   | {};
@@ -166,6 +173,20 @@ export type Nip47LookupInvoiceRequest = {
 
 export type Nip47SignMessageRequest = {
   message: string;
+};
+
+export type Nip47CreateConnectionRequest = {
+  pubkey: string;
+  name: string;
+  methods: string[];
+  budget?: { budget: number; renewal_period: BudgetRenewalPeriod };
+  expires_at?: number;
+  isolated?: boolean;
+  metadata: unknown;
+};
+
+export type Nip47CreateConnectionResponse = {
+  wallet_pubkey: string;
 };
 
 export type Nip47SignMessageResponse = {
@@ -621,6 +642,7 @@ export class NWCClient {
       throw error;
     }
   }
+
   async signMessage(
     request: Nip47SignMessageRequest,
   ): Promise<Nip47SignMessageResponse> {
@@ -634,6 +656,24 @@ export class NWCClient {
       return result;
     } catch (error) {
       console.error("Failed to request sign_message", error);
+      throw error;
+    }
+  }
+
+  async createConnection(
+    request: Nip47CreateConnectionRequest,
+  ): Promise<Nip47CreateConnectionResponse> {
+    try {
+      const result =
+        await this.executeNip47Request<Nip47CreateConnectionResponse>(
+          "create_connection",
+          request,
+          (result) => !!result.wallet_pubkey,
+        );
+
+      return result;
+    } catch (error) {
+      console.error("Failed to request create_connection", error);
       throw error;
     }
   }
