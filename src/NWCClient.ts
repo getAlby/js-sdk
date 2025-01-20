@@ -177,6 +177,7 @@ export type Nip47SignMessageRequest = {
 
 export type Nip47CreateConnectionRequest = {
   pubkey: string;
+  nwaSecret?: string; // if connection is initiated through NWA
   name: string;
   methods: string[];
   budget?: { budget: number; renewal_period: BudgetRenewalPeriod };

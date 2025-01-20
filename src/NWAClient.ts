@@ -1,10 +1,10 @@
 import { bytesToHex, hexToBytes } from "@noble/hashes/utils";
 import { generateSecretKey, getPublicKey, nip44, Relay } from "nostr-tools";
-import { Nip47Method, Nip47NetworkError, NWCClient } from "./NWCClient";
+import { Nip47NetworkError, NWCClient } from "./NWCClient";
 
 export type NWAOptions = {
   relayUrl: string;
-  appSecretKey: string;
+  appSecretKey?: string;
   appPubkey: string;
   nwaSecret: string;
 };
@@ -15,8 +15,8 @@ export type NewNWAClientOptions = {
 };
 
 export class NWAClient {
-  private options: NWAOptions;
-  private relay: Relay;
+  options: NWAOptions;
+  relay: Relay;
 
   constructor(options: NewNWAClientOptions) {
     const appSecretKey =
@@ -41,11 +41,45 @@ export class NWAClient {
   }
 
   // TODO: add commands, budget, etc.
+  // TODO: construct a proper url and then replace the scheme
+  // TODO: add tests
   /**
    * returns the NWA connection URI which should be given to the wallet
    */
   get connectionUri() {
-    return `nostr+walletauth://${this.options.appPubkey}?relay=${this.options.relayUrl}&secret=${this.options.nwaSecret}`;
+    return `nostr+walletauth://${this.options.appPubkey}?relay=${encodeURIComponent(this.options.relayUrl)}&secret=${this.options.nwaSecret}`;
+  }
+
+  static parseWalletAuthUrl(walletAuthUrl: string): NWAOptions {
+    // makes it possible to parse with URL in the different environments (browser/node/...)
+    // parses with or without "//"
+    walletAuthUrl = walletAuthUrl
+      .replace("nostr+walletconnect://", "http://")
+      .replace("nostr+walletconnect:", "http://");
+    const url = new URL(walletAuthUrl);
+
+    const appPubkey = url.host;
+    if (appPubkey?.length !== 64) {
+      throw new Error("Incorrect app pubkey found in connection string");
+    }
+
+    const relayUrl = url.searchParams.get("relay");
+    if (!relayUrl) {
+      throw new Error("No relay URL found in connection string");
+    }
+
+    const nwaSecret = url.searchParams.get("secret");
+    if (!nwaSecret) {
+      throw new Error("No secret found in connection string");
+    }
+
+    // TODO: support other params (commands/methods, budgets, limits etc.)
+
+    return {
+      relayUrl,
+      appPubkey,
+      nwaSecret,
+    };
   }
 
   /**
@@ -87,13 +121,14 @@ export class NWAClient {
         }
 
         const decryptedContent = await this.decrypt(
-          this.options.appPubkey,
+          event.pubkey,
           event.content,
         );
 
         type NWAContent = {
           secret: string;
-          commands: Nip47Method[];
+          // TODO: should commands be included here? they can be fetched from get_info or the info event?
+          // commands: Nip47Method[];
           lud16: string;
         };
 
@@ -121,6 +156,10 @@ export class NWAClient {
   }
 
   private decrypt(walletServicePubkey: string, content: string) {
+    if (!this.options.appSecretKey) {
+      throw new Error("No app secret key set");
+    }
+
     const key = nip44.getConversationKey(
       hexToBytes(this.options.appSecretKey),
       walletServicePubkey,
