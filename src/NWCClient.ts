@@ -67,6 +67,11 @@ export type Nip47PayResponse = {
   preimage: string;
 };
 
+type Nip47TimeoutValues = {
+  replyTimeout?: number;
+  publishTimeout?: number;
+};
+
 export type Nip47MultiPayInvoiceRequest = {
   invoices: (Nip47PayInvoiceRequest & WithOptionalId)[];
 };
@@ -544,6 +549,7 @@ export class NWCClient {
         "get_info",
         {},
         (result) => !!result.methods,
+        { replyTimeout: 10000 },
       );
       return result;
     } catch (error) {
@@ -819,6 +825,7 @@ export class NWCClient {
     nip47Method: Nip47SingleMethod,
     params: unknown,
     resultValidator: (result: T) => boolean,
+    timeoutValues?: Nip47TimeoutValues,
   ): Promise<T> {
     await this._checkConnected();
     await this._checkCompatibility();
@@ -867,7 +874,10 @@ export class NWCClient {
           );
         }
 
-        const replyTimeoutCheck = setTimeout(replyTimeout, 60000);
+        const replyTimeoutCheck = setTimeout(
+          replyTimeout,
+          timeoutValues?.replyTimeout || 60000,
+        );
 
         sub.onevent = async (event) => {
           // console.log(`Received reply event: `, event);
@@ -930,7 +940,10 @@ export class NWCClient {
             ),
           );
         }
-        const publishTimeoutCheck = setTimeout(publishTimeout, 5000);
+        const publishTimeoutCheck = setTimeout(
+          publishTimeout,
+          timeoutValues?.publishTimeout || 5000,
+        );
 
         try {
           await this.relay.publish(event);
