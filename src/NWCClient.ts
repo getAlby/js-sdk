@@ -564,6 +564,7 @@ export class NWCClient {
         "get_budget",
         {},
         (result) => result !== undefined,
+        { replyTimeout: 10000 },
       );
       return result;
     } catch (error) {
@@ -578,6 +579,7 @@ export class NWCClient {
         "get_balance",
         {},
         (result) => result.balance !== undefined,
+        { replyTimeout: 10000 },
       );
       return result;
     } catch (error) {
@@ -727,6 +729,7 @@ export class NWCClient {
           "list_transactions",
           request,
           (response) => !!response.transactions,
+          { replyTimeout: 10000 },
         );
 
       return result;
