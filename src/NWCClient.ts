@@ -971,6 +971,7 @@ export class NWCClient {
     params: unknown,
     numPayments: number,
     resultValidator: (result: T) => boolean,
+    timeoutValues?: Nip47TimeoutValues,
   ): Promise<(T & { dTag: string })[]> {
     await this._checkConnected();
     await this._checkCompatibility();
@@ -1020,7 +1021,10 @@ export class NWCClient {
           );
         }
 
-        const replyTimeoutCheck = setTimeout(replyTimeout, 60000);
+        const replyTimeoutCheck = setTimeout(
+          replyTimeout,
+          timeoutValues?.replyTimeout || 60000,
+        );
 
         sub.onevent = async (event) => {
           // console.log(`Received reply event: `, event);
@@ -1102,7 +1106,10 @@ export class NWCClient {
             ),
           );
         }
-        const publishTimeoutCheck = setTimeout(publishTimeout, 5000);
+        const publishTimeoutCheck = setTimeout(
+          publishTimeout,
+          timeoutValues?.publishTimeout || 5000,
+        );
 
         try {
           await this.relay.publish(event);
