@@ -15,7 +15,6 @@ import {
   MakeInvoiceResponse,
 } from "@webbtc/webln-types";
 import { GetInfoResponse } from "@webbtc/webln-types";
-import { NWCAuthorizationUrlOptions } from "../types";
 import {
   NWCClient,
   NWCOptions,
@@ -224,24 +223,6 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
   async decrypt(pubkey: string, content: string) {
     console.warn("decrypt is deprecated. Please use client.decrypt instead.");
     return this.client.decrypt(pubkey, content);
-  }
-
-  /**
-   * @deprecated please use client.getAuthorizationUrl. Deprecated since v3.2.3. Will be removed in v4.0.0.
-   */
-  getAuthorizationUrl(options?: NWCAuthorizationUrlOptions) {
-    console.warn(
-      "getAuthorizationUrl is deprecated. Please use client.getAuthorizationUrl instead.",
-    );
-    return this.client.getAuthorizationUrl(options);
-  }
-
-  /**
-   * @deprecated please use client.initNWC. Deprecated since v3.2.3. Will be removed in v4.0.0.
-   */
-  initNWC(options: NWCAuthorizationUrlOptions = {}) {
-    console.warn("initNWC is deprecated. Please use client.initNWC instead.");
-    return this.client.initNWC(options);
   }
 
   async getInfo(): Promise<GetInfoResponse> {
