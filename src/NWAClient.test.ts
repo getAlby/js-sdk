@@ -8,7 +8,7 @@ describe("NWA URI", () => {
     });
 
     expect(nwaClient.connectionUri).toEqual(
-      `nostr+walletauth://${nwaClient.options.appPubkey}?relay=${encodeURIComponent(nwaClient.options.relayUrl)}&secret=${nwaClient.options.nwaSecret}`,
+      `nostr+walletauth://${nwaClient.options.appPubkey}?relay=${encodeURIComponent(nwaClient.options.relayUrl)}`,
     );
   });
 
@@ -21,8 +21,5 @@ describe("NWA URI", () => {
       "e73575d76c731102aefd4eb6fb0ddfaaf335eabe60255a22e6ca5e7074eb4992",
     );
     expect(nwaOptions.relayUrl).toEqual("wss://relay.getalby.com/v1");
-    expect(nwaOptions.nwaSecret).toEqual(
-      "1d7d477e495e26851ec0a01d633ceb74fe3cee78a850186a3a978f0e63b285d4",
-    );
   });
 });

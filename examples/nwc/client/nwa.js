@@ -27,7 +27,7 @@ console.info("Waiting for connection...");
 
 await nwaClient.subscribe({
   onSuccess: async (nwcClient) => {
-    console.info("NWA successful");
+    console.info("NWA successful", nwcClient.options);
     const response = await nwcClient.getInfo();
 
     console.info(response);

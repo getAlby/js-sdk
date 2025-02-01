@@ -33,7 +33,6 @@ const nwaOptions = nwa.NWAClient.parseWalletAuthUrl(nwaUrl);
 
 const createAppResponse = await client.createConnection({
   pubkey: nwaOptions.appPubkey,
-  nwaSecret: nwaOptions.nwaSecret,
   // TODO: below should come from nwaOptions
   name: "NWA test " + new Date().toISOString(),
   methods: [
