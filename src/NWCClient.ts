@@ -213,6 +213,7 @@ export type NewNWCClientOptions = {
   secret?: string;
   walletPubkey?: string;
   nostrWalletConnectUrl?: string;
+  lud16?: string;
 };
 
 export class NWCClient {
@@ -459,7 +460,9 @@ export class NWCClient {
       const onMessage = (message: {
         data?: {
           type: "nwc:success" | unknown;
-          nostrWalletConnectUrl?: string;
+          relayUrl?: string;
+          walletPubkey?: string;
+          lud16?: string;
         };
         origin: string;
       }) => {
@@ -469,13 +472,18 @@ export class NWCClient {
           data.type === "nwc:success" &&
           message.origin === `${url.protocol}//${url.host}`
         ) {
-          if (!data.nostrWalletConnectUrl) {
-            reject(new Error("no nostrWalletConnectUrl in response"));
+          if (!data.relayUrl) {
+            reject(new Error("no relayUrl in response"));
+          }
+          if (!data.walletPubkey) {
+            reject(new Error("no walletPubkey in response"));
           }
           resolve(
             new NWCClient({
-              nostrWalletConnectUrl: data.nostrWalletConnectUrl,
+              relayUrl: data.relayUrl,
+              walletPubkey: data.walletPubkey,
               secret,
+              lud16: data.lud16,
             }),
           );
           clearInterval(popupChecker);
