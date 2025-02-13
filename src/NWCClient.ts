@@ -208,7 +208,7 @@ export class Nip47ResponseDecodingError extends Nip47Error {}
 export class Nip47ResponseValidationError extends Nip47Error {}
 export class Nip47UnexpectedResponseError extends Nip47Error {}
 export class Nip47NetworkError extends Nip47Error {}
-export class Nip47UnsupportedVersionError extends Nip47Error {}
+export class Nip47UnsupportedEncryptionError extends Nip47Error {}
 
 export const NWCs: Record<string, NWCOptions> = {
   alby: {
@@ -235,9 +235,9 @@ export class NWCClient {
   lud16: string | undefined;
   walletPubkey: string;
   options: NWCOptions;
-  version: string | undefined;
+  encryption: string | undefined;
 
-  static SUPPORTED_VERSIONS = ["0.0", "1.0"];
+  static SUPPORTED_ENCRYPTIONS = ["nip04", "nip44_v2"];
 
   static parseWalletConnectUrl(walletConnectUrl: string): NWCOptions {
     // makes it possible to parse with URL in the different environments (browser/node/...)
@@ -334,11 +334,11 @@ export class NWCClient {
     return getPublicKey(hexToBytes(this.secret));
   }
 
-  get supportedVersion(): string {
-    if (!this.version) {
-      throw new Error("Missing version");
+  get supportedEncryption(): string {
+    if (!this.encryption) {
+      throw new Error("Missing encryption mode");
     }
-    return this.version;
+    return this.encryption;
   }
 
   getPublicKey(): Promise<string> {
@@ -366,7 +366,7 @@ export class NWCClient {
       throw new Error("Missing secret");
     }
     let encrypted;
-    if (this.supportedVersion === "0.0") {
+    if (this.supportedEncryption === "nip04") {
       encrypted = await nip04.encrypt(this.secret, pubkey, content);
     } else {
       const key = nip44.getConversationKey(hexToBytes(this.secret), pubkey);
@@ -380,7 +380,7 @@ export class NWCClient {
       throw new Error("Missing secret");
     }
     let decrypted;
-    if (this.supportedVersion === "0.0") {
+    if (this.supportedEncryption === "nip04") {
       decrypted = await nip04.decrypt(this.secret, pubkey, content);
     } else {
       const key = nip44.getConversationKey(hexToBytes(this.secret), pubkey);
@@ -492,7 +492,7 @@ export class NWCClient {
   }
 
   async getWalletServiceInfo(): Promise<{
-    versions: string[];
+    encryptions: string[];
     capabilities: Nip47Capability[];
     notifications: Nip47NotificationType[];
   }> {
@@ -529,9 +529,9 @@ export class NWCClient {
     const notificationsTag = events[0].tags.find(
       (t) => t[0] === "notifications",
     );
-    const versionsTag = events[0].tags.find((t) => t[0] === "v");
+    const encryptionTag = events[0].tags.find((t) => t[0] === "encryption");
     return {
-      versions: versionsTag ? versionsTag[1]?.split(" ") : ["0.0"],
+      encryptions: encryptionTag ? encryptionTag[1]?.split(" ") : ["nip04"],
       // delimiter is " " per spec, but Alby NWC originally returned ","
       capabilities: content.split(/[ |,]/g) as Nip47Method[],
       notifications: (notificationsTag?.[1]?.split(" ") ||
@@ -748,7 +748,7 @@ export class NWCClient {
             [
               {
                 kinds: [
-                  ...(this.supportedVersion === "0.0" ? [23196] : [23197]),
+                  ...(this.supportedEncryption === "nip04" ? [23196] : [23197]),
                 ],
                 authors: [this.walletPubkey],
                 "#p": [this.publicKey],
@@ -838,7 +838,7 @@ export class NWCClient {
           created_at: Math.floor(Date.now() / 1000),
           tags: [
             ["p", this.walletPubkey],
-            ["v", this.supportedVersion],
+            ["encryption", this.supportedEncryption],
           ],
           content: encryptedCommand,
         };
@@ -975,7 +975,7 @@ export class NWCClient {
           created_at: Math.floor(Date.now() / 1000),
           tags: [
             ["p", this.walletPubkey],
-            ["v", this.supportedVersion],
+            ["encryption", this.supportedEncryption],
           ],
           content: encryptedCommand,
         };
@@ -1125,34 +1125,30 @@ export class NWCClient {
   }
 
   private async _checkCompatibility() {
-    if (!this.version) {
+    if (!this.encryption) {
       const walletServiceInfo = await this.getWalletServiceInfo();
-      const compatibleVersion = this.selectHighestCompatibleVersion(
-        walletServiceInfo.versions,
-      );
-      if (!compatibleVersion) {
-        throw new Nip47UnsupportedVersionError(
-          `no compatible version found between wallet and client`,
-          "UNSUPPORTED_VERSION",
+      const encryption = this.selectEncryption(walletServiceInfo.encryptions);
+      if (!encryption) {
+        throw new Nip47UnsupportedEncryptionError(
+          `no compatible encryption mode found between wallet and client`,
+          "UNSUPPORTED_ENCRYPTION",
         );
       }
-      if (compatibleVersion === "0.0") {
+      if (encryption === "nip04") {
         console.warn(
           "NIP-04 encryption is about to be deprecated. Please upgrade your wallet service to use NIP-44 instead.",
         );
       }
-      this.version = compatibleVersion;
+      this.encryption = encryption;
     }
   }
 
-  private selectHighestCompatibleVersion(
-    walletVersions: string[],
-  ): string | null {
-    if (walletVersions.includes("1.0")) {
-      return "1.0";
+  private selectEncryption(encryptions: string[]): string | null {
+    if (encryptions.includes("nip44_v2")) {
+      return "nip44_v2";
     }
-    if (walletVersions.includes("0.0")) {
-      return "0.0";
+    if (encryptions.includes("nip04")) {
+      return "nip04";
     }
     return null;
   }
