@@ -1,13 +1,15 @@
-import { buildQueryString, basicAuthHeader, toHexString } from "./utils";
-import {
-  OAuthClient,
-  AuthHeader,
-  GetTokenResponse,
-  Token,
-  GenerateAuthUrlOptions,
-} from "./types";
+import { EventEmitter } from "./eventEmitter/EventEmitter";
 import { RequestOptions, rest } from "./request";
-import Emittery from "emittery";
+import {
+  AuthHeader,
+  EventName,
+  EventListener,
+  GenerateAuthUrlOptions,
+  GetTokenResponse,
+  OAuthClient,
+  Token,
+} from "./types";
+import { basicAuthHeader, buildQueryString, toHexString } from "./utils";
 
 const AUTHORIZE_URL = "https://getalby.com/oauth";
 
@@ -29,11 +31,6 @@ export interface OAuth2UserOptions {
   token?: Token;
 }
 
-export type TokenRefreshedListener = (tokens: Token) => void;
-export type TokenRefreshFailedListener = (error: Error) => void;
-export type EventName = "tokenRefreshed" | "tokenRefreshFailed";
-export type EventListener = TokenRefreshedListener | TokenRefreshFailedListener;
-
 function processTokenResponse(token: GetTokenResponse): Token {
   const { expires_in, ...rest } = token;
   return {
@@ -50,10 +47,10 @@ export class OAuth2User implements OAuthClient {
   code_verifier?: string;
   code_challenge?: string;
   private _refreshAccessTokenPromise: Promise<{ token: Token }> | null;
-  private _tokenEvents: Emittery;
+  private _tokenEvents: EventEmitter;
 
   constructor(options: OAuth2UserOptions) {
-    this._tokenEvents = new Emittery();
+    this._tokenEvents = new EventEmitter();
     const { token, ...defaultOptions } = options;
     this.options = { client_secret: "", ...defaultOptions };
     this.token = token;
@@ -111,7 +108,7 @@ export class OAuth2User implements OAuthClient {
       } catch (error) {
         console.error(error);
         reject(error);
-        this._tokenEvents.emit("tokenRefreshFailed", error);
+        this._tokenEvents.emit("tokenRefreshFailed", error as Error);
       } finally {
         this._refreshAccessTokenPromise = null;
       }

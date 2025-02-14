@@ -4,6 +4,11 @@ import { RequestOptions } from "./request";
 export type SuccessStatus = 200 | 201;
 export type ResponseType = "application/json";
 
+export type TokenRefreshedListener = (tokens: Token) => void;
+export type TokenRefreshFailedListener = (error: Error) => void;
+export type EventName = "tokenRefreshed" | "tokenRefreshFailed";
+export type EventListener = TokenRefreshedListener | TokenRefreshFailedListener;
+
 export interface AuthHeader {
   Authorization: string;
 }
