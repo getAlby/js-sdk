@@ -491,11 +491,18 @@ export class NWCClient {
     return info.capabilities;
   }
 
-  async getWalletServiceInfo(): Promise<{
-    encryptions: string[];
-    capabilities: Nip47Capability[];
-    notifications: Nip47NotificationType[];
-  }> {
+  async getWalletServiceInfo(): Promise<
+    | {
+        encryptions: string[];
+        capabilities: Nip47Capability[];
+        notifications: Nip47NotificationType[];
+      }
+    | {
+        versions: string[];
+        capabilities: Nip47Capability[];
+        notifications: Nip47NotificationType[];
+      }
+  > {
     await this._checkConnected();
     const events = await new Promise<Event[]>((resolve, reject) => {
       const events: Event[] = [];
@@ -529,9 +536,15 @@ export class NWCClient {
     const notificationsTag = events[0].tags.find(
       (t) => t[0] === "notifications",
     );
+    // TODO: Remove version tag on 01-06-2025
+    const versionsTag = events[0].tags.find((t) => t[0] === "v");
     const encryptionTag = events[0].tags.find((t) => t[0] === "encryption");
     return {
-      encryptions: encryptionTag ? encryptionTag[1]?.split(" ") : ["nip04"],
+      ...(encryptionTag
+        ? { encryptions: encryptionTag[1]?.split(" ") }
+        : versionsTag
+          ? { versions: versionsTag[1]?.split(" ") }
+          : { encryptions: ["nip04"] }),
       // delimiter is " " per spec, but Alby NWC originally returned ","
       capabilities: content.split(/[ |,]/g) as Nip47Method[],
       notifications: (notificationsTag?.[1]?.split(" ") ||
@@ -1127,7 +1140,11 @@ export class NWCClient {
   private async _checkCompatibility() {
     if (!this.encryption) {
       const walletServiceInfo = await this.getWalletServiceInfo();
-      const encryption = this.selectEncryption(walletServiceInfo.encryptions);
+      const encryption = this.selectEncryption(
+        "encryptions" in walletServiceInfo
+          ? walletServiceInfo.encryptions
+          : walletServiceInfo.versions,
+      );
       if (!encryption) {
         throw new Nip47UnsupportedEncryptionError(
           `no compatible encryption mode found between wallet and client`,
@@ -1143,11 +1160,17 @@ export class NWCClient {
     }
   }
 
-  private selectEncryption(encryptions: string[]): string | null {
-    if (encryptions.includes("nip44_v2")) {
+  private selectEncryption(encryptionsOrVersions: string[]): string | null {
+    if (
+      encryptionsOrVersions.includes("nip44_v2") ||
+      encryptionsOrVersions.includes("1.0")
+    ) {
       return "nip44_v2";
     }
-    if (encryptions.includes("nip04")) {
+    if (
+      encryptionsOrVersions.includes("nip04") ||
+      encryptionsOrVersions.includes("0.0")
+    ) {
       return "nip04";
     }
     return null;
