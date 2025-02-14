@@ -1,8 +1,7 @@
-import { EventName, EventListener, Token } from "../types";
+import { EventListener, EventName } from "../types";
 
 export class EventEmitter {
-  // eslint-disable-next-line @typescript-eslint/ban-types
-  private events: { [key: string]: Function[] } = {};
+  private events: { [key: string]: EventListener[] } = {};
 
   on(event: EventName, listener: EventListener) {
     if (!this.events[event]) {
@@ -16,7 +15,7 @@ export class EventEmitter {
     this.events[event] = this.events[event].filter((l) => l !== listener);
   }
 
-  emit(event: EventName, payload: Token | Error) {
+  emit(event: EventName, payload: any) {
     if (!this.events[event]) return;
     this.events[event].forEach((listener) => listener(payload));
   }
