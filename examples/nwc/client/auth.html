@@ -1,10 +1,8 @@
 <script type="module">
-  // TODO: change to proper package
-  import { nwc } from "https://esm.sh/rolznz-test5@3.9.0"; // jsdelivr.net, skypack.dev also work
+  import { nwc } from "https://esm.sh/@getalby/sdk@4.0.0"; // jsdelivr.net, skypack.dev also work
   window.launchNwc = async () => {
     try {
-      // TODO: change default to my.albyhub.com
-      const authUrl = prompt("Auth URL", "http://localhost:5173/apps/new");
+      const authUrl = prompt("Auth URL", "https://my.albyhub.com/apps/new");
       const nwcClient = await nwc.NWCClient.fromAuthorizationUrl(authUrl, {
         name: "Deeplink " + Date.now(),
       });
