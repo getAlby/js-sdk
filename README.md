@@ -58,6 +58,21 @@ There are two interfaces you can use to access NWC:
 - `secret`: secret key to sign the request event (if not available window.nostr will be used)
 - `authorizationUrl`: URL to the NWC interface for the user to and the app connection
 
+#### `static newClientFromAuthorizationUrl()`
+
+Initialized a new `NWCClient` instance but generates a new random secret. The pubkey of that secret then needs to be authorized by the user (this can be initiated by redirecting the user to the `getAuthorizationUrl()` URL or calling `fromAuthorizationUrl()` to open an authorization popup.
+
+##### Example
+
+```js
+const nwcClient = await nwc.NWCClient.fromAuthorizationUrl(
+  "https://my.albyhub.com/apps/new",
+  {
+    name: "My app name",
+  },
+);
+```
+
 #### Quick start example
 
 ```js
@@ -114,17 +129,6 @@ if (!window.webln) {
 ### NostrWebLNProvider Functions
 
 The goal of the Nostr Wallet Connect provider is to be API compatible with [webln](https://www.webln.guide/). Currently not all methods are supported - see the examples/nwc directory for a list of supported methods.
-
-#### `static withNewSecret()`
-
-Initialized a new `NostrWebLNProvider` instance but generates a new random secret. The pubkey of that secret then needs to be authorized by the user (this can be initiated by redirecting the user to the `getAuthorizationUrl()` URL or calling `initNWC()` to open an authorization popup.
-
-##### Example
-
-```js
-const nwc = NostrWebLNProvider.withNewSecret();
-await nwc.initNWC();
-```
 
 #### sendPayment(invice: string)
 
