@@ -154,7 +154,7 @@ Pass a `name` to the NWC provider describing the application.
 ```js
 const nwc = NostrWebLNProvider.withNewSecret();
 try {
-  await nwc.initNWC({name: 'ACME app' );
+  await nwc.initNWC({name: 'ACME app'});
 } catch(e) {
   console.warn("Prompt closed");
 }
