@@ -1,4 +1,4 @@
-import { EventListener, EventName } from "../types";
+import { EventListener, EventName, Token } from "../types";
 
 export class EventEmitter {
   private events: { [key: string]: EventListener[] } = {};
@@ -15,8 +15,10 @@ export class EventEmitter {
     this.events[event] = this.events[event].filter((l) => l !== listener);
   }
 
-  emit(event: EventName, payload: any) {
+  emit(event: EventName, payload: Token | Error) {
     if (!this.events[event]) return;
-    this.events[event].forEach((listener) => listener(payload));
+    this.events[event].forEach((listener) =>
+      listener(payload as Token & Error),
+    );
   }
 }

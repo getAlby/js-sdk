@@ -56,3 +56,44 @@ describe("NWCClient", () => {
     expect(nwcClient.options.lud16).toBe("hello@getalby.com");
   });
 });
+
+describe("getAuthorizationUrl", () => {
+  test("standard url", () => {
+    const pubkey =
+      "c5dc47856f533dad6c016b979ee3b21f83f88ae0f0058001b67a4b348339fe94";
+
+    expect(
+      NWCClient.getAuthorizationUrl(
+        "https://nwc.getalby.com/apps/new",
+        {
+          budgetRenewal: "weekly",
+          editable: false,
+          expiresAt: new Date("2023-07-21"),
+          maxAmount: 100,
+          name: "TestApp",
+          returnTo: "https://example.com",
+          requestMethods: ["pay_invoice", "get_balance"],
+        },
+        pubkey,
+      ).toString(),
+    ).toEqual(
+      `https://nwc.getalby.com/apps/new?name=TestApp&pubkey=${pubkey}&return_to=https%3A%2F%2Fexample.com&budget_renewal=weekly&expires_at=1689897600&max_amount=100&editable=false&request_methods=pay_invoice+get_balance`,
+    );
+  });
+
+  test("hash router url is not supported", () => {
+    const pubkey =
+      "c5dc47856f533dad6c016b979ee3b21f83f88ae0f0058001b67a4b348339fe94";
+
+    try {
+      NWCClient.getAuthorizationUrl(
+        "https://my.albyhub.com/#/apps/new",
+        {},
+        pubkey,
+      );
+      fail("error should have been thrown");
+    } catch (error) {
+      expect("" + error).toEqual("Error: hash router paths not supported");
+    }
+  });
+});
