@@ -205,12 +205,12 @@ globalThis.crypto = crypto as any;
 ```js
 import { webln } from "@getalby/sdk";
 
-const webln_relay = new webln.NostrWebLNProvider(); // use defaults (connects to Alby's relay, will use window.nostr to sign the request)
-await webln_relay.enable(); // connect to the relay
-const response = await webln_relay.sendPayment(invoice);
+const nwc = new webln.NostrWebLNProvider(); // use defaults (connects to Alby's relay, will use window.nostr to sign the request)
+await nwc.enable(); // connect to the relay
+const response = await nwc.sendPayment(invoice);
 console.log(response.preimage);
 
-webln_relay.close(); // close the websocket connection
+nwc.close(); // close the websocket connection
 ```
 
 #### Use a custom, user provided Nostr Wallet Connect URL
@@ -226,7 +226,7 @@ await nwc.enable(); // connect to the relay
 const response = await nwc.sendPayment(invoice);
 console.log(response.preimage);
 
-webln_relay.close(); // close the websocket connection
+nwc.close(); // close the websocket connection
 ```
 
 #### Generate a new NWC connect url using a locally-generated secret
