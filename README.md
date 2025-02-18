@@ -77,12 +77,12 @@ const nwcClient = await nwc.NWCClient.fromAuthorizationUrl(
 
 ```js
 import { nwc } from "@getalby/sdk";
-const nwc = new nwc.NWCClient({
+const nwcClient = new nwc.NWCClient({
   nostrWalletConnectUrl: loadNWCUrl(),
 }); // loadNWCUrl is some function to get the NWC URL from some (encrypted) storage
 
 // now you can send payments by passing in the invoice in an object
-const response = await nwc.payInvoice({ invoice });
+const response = await nwcClient.payInvoice({ invoice });
 ```
 
 See [the NWC client examples directory](./examples/nwc/client) for a full list of examples.
@@ -157,7 +157,7 @@ Pass a `name` to the NWC provider describing the application.
 
 ```js
 try {
-  const nwc = await nwc.NostrWebLNProvider.fromAuthorizationUrl(
+  const nwc = await webln.NostrWebLNProvider.fromAuthorizationUrl(
     "https://my.albyhub.com/apps/new",
     {
       name: "My app name",
@@ -216,9 +216,12 @@ webln.close(); // close the websocket connection
 #### Use a custom, user provided Nostr Wallet Connect URL
 
 ```js
-import { NostrWebLNProvider } from '@getalby/sdk';
+import { NostrWebLNProvider } from "@getalby/sdk";
 
-const webln = new NostrWebLNProvider({ nostrWalletConnectUrl: 'nostr+walletconnect://69effe7b49a6dd5cf525bd0905917a5005ffe480b58eeb8e861418cf3ae760d9?relay=wss://nostr.bitcoiner.social&secret=c60320b3ecb6c15557510d1518ef41194e9f9337c82621ddef3f979f668bfebd'); // use defaults
+const webln = new NostrWebLNProvider({
+  nostrWalletConnectUrl:
+    "nostr+walletconnect://69effe7b49a6dd5cf525bd0905917a5005ffe480b58eeb8e861418cf3ae760d9?relay=wss://nostr.bitcoiner.social&secret=c60320b3ecb6c15557510d1518ef41194e9f9337c82621ddef3f979f668bfebd",
+}); // use defaults
 await webln.enable(); // connect to the relay
 const response = await webln.sendPayment(invoice);
 console.log(response.preimage);
@@ -242,7 +245,7 @@ webln.getConnectUrl({
 
 // or use the `fromAuthorizationUrl` helper which opens a popup to initiate the connection flow.
 // the promise resolves once the NWC app returned.
-const webln = await nwc.NostrWebLNProvider.fromAuthorizationUrl(
+const nwc = await webln.NostrWebLNProvider.fromAuthorizationUrl(
   "https://my.albyhub.com/apps/new",
   {
     name: "My app name",
