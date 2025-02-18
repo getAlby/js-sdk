@@ -122,7 +122,8 @@ Initialized a new `NostrWebLNProvider` instance but generates a new random secre
 ##### Example
 
 ```js
-const nwc = NostrWebLNProvider.withNewSecret();
+import { webln } from "@getalby/sdk";
+const nwc = webln.NostrWebLNProvider.withNewSecret();
 await nwc.initNWC();
 ```
 
@@ -134,7 +135,8 @@ It returns a promise object that is resolved with an object with the preimage or
 ##### Example
 
 ```js
-const nwc = new NostrWebLNProvider({ nostrWalletConnectUrl: loadNWCUrl });
+import { webln } from "@getalby/sdk";
+const nwc = new webln.NostrWebLNProvider({ nostrWalletConnectUrl: loadNWCUrl });
 await nwc.enable();
 const response = await nwc.sendPayment(invoice);
 console.log(response);
@@ -152,7 +154,9 @@ The promise resolves when the connection is authorized and the popup sends a `nw
 Pass a `name` to the NWC provider describing the application.
 
 ```js
-const nwc = NostrWebLNProvider.withNewSecret();
+import { webln } from "@getalby/sdk";
+
+const nwc = webln.NostrWebLNProvider.withNewSecret();
 try {
   await nwc.initNWC({name: 'ACME app'});
 } catch(e) {
@@ -196,27 +200,27 @@ globalThis.crypto = crypto as any;
 #### Defaults
 
 ```js
-import { NostrWebLNProvider } from "@getalby/sdk";
+import { webln } from "@getalby/sdk";
 
-const webln = new NostrWebLNProvider(); // use defaults (connects to Alby's relay, will use window.nostr to sign the request)
-await webln.enable(); // connect to the relay
-const response = await webln.sendPayment(invoice);
+const webln_relay = new webln.NostrWebLNProvider(); // use defaults (connects to Alby's relay, will use window.nostr to sign the request)
+await webln_relay.enable(); // connect to the relay
+const response = await webln_relay.sendPayment(invoice);
 console.log(response.preimage);
 
-webln.close(); // close the websocket connection
+webln_relay.close(); // close the websocket connection
 ```
 
 #### Use a custom, user provided Nostr Wallet Connect URL
 
 ```js
-import { NostrWebLNProvider } from '@getalby/sdk';
+import { webln } from '@getalby/sdk';
 
-const webln = new NostrWebLNProvider({ nostrWalletConnectUrl: 'nostr+walletconnect://69effe7b49a6dd5cf525bd0905917a5005ffe480b58eeb8e861418cf3ae760d9?relay=wss://nostr.bitcoiner.social&secret=c60320b3ecb6c15557510d1518ef41194e9f9337c82621ddef3f979f668bfebd'}); // use defaults
-await webln.enable(); // connect to the relay
-const response = await webln.sendPayment(invoice);
+const webln_relay = new webln.NostrWebLNProvider({ nostrWalletConnectUrl: 'nostr+walletconnect://69effe7b49a6dd5cf525bd0905917a5005ffe480b58eeb8e861418cf3ae760d9?relay=wss://nostr.bitcoiner.social&secret=c60320b3ecb6c15557510d1518ef41194e9f9337c82621ddef3f979f668bfebd'}); // use defaults
+await webln_relay.enable(); // connect to the relay
+const response = await webln_relay.sendPayment(invoice);
 console.log(response.preimage);
 
-webln.close(); // close the websocket connection
+webln_relay.close(); // close the websocket connection
 ```
 
 #### Generate a new NWC connect url using a locally-generated secret
