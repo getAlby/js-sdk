@@ -137,11 +137,6 @@ export type SendBoostagramToAlbyRequestParams = {
   memo?: string;
 };
 
-/**
- * @deprecated please use SendBoostagramToAlbyRequestParams. Deprecated since v3.2.3. Will be removed in v4.0.0.
- */
-export type SendToAlbyRequestParams = SendBoostagramToAlbyRequestParams;
-
 export type CreateWebhookEndpointParams = {
   url: string;
   description?: string;
@@ -233,11 +228,6 @@ export type Invoice = {
     zap_request?: unknown;
   };
 } & Record<string, unknown>;
-
-/**
- * @deprecated please use NWCAuthorizationUrlOptions. Deprecated since v3.2.3. Will be removed in v4.0.0.
- */
-export type GetNWCAuthorizationUrlOptions = NWCAuthorizationUrlOptions;
 
 export type NWCAuthorizationUrlOptions = {
   name?: string;
