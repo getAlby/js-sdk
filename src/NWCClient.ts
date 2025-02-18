@@ -181,14 +181,9 @@ export interface NWCOptions {
 }
 
 export class Nip47Error extends Error {
-  /**
-   * @deprecated please use message. Deprecated since v3.3.2. Will be removed in v4.0.0.
-   */
-  error: string;
   code: string;
   constructor(message: string, code: string) {
     super(message);
-    this.error = message;
     this.code = code;
   }
 }
@@ -496,18 +491,6 @@ export class NWCClient {
       const popupChecker = setInterval(checkForPopup, 500);
       window.addEventListener("message", onMessage);
     });
-  }
-
-  /**
-   * @deprecated please use getWalletServiceInfo. Deprecated since v3.5.0. Will be removed in v4.0.0.
-   */
-  async getWalletServiceSupportedMethods(): Promise<Nip47Capability[]> {
-    console.warn(
-      "getWalletServiceSupportedMethods is deprecated. Please use getWalletServiceInfo instead.",
-    );
-    const info = await this.getWalletServiceInfo();
-
-    return info.capabilities;
   }
 
   async getWalletServiceInfo(): Promise<{
