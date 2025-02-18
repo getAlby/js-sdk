@@ -1,4 +1,4 @@
-import { Relay, Event, UnsignedEvent, generateSecretKey } from "nostr-tools";
+import { Event, UnsignedEvent, generateSecretKey } from "nostr-tools";
 import { bytesToHex } from "@noble/hashes/utils";
 import {
   GetBalanceResponse,
@@ -15,7 +15,6 @@ import {
   MakeInvoiceResponse,
 } from "@webbtc/webln-types";
 import { GetInfoResponse } from "@webbtc/webln-types";
-import { NWCAuthorizationUrlOptions } from "../types";
 import {
   NWCClient,
   NWCOptions,
@@ -25,6 +24,7 @@ import {
   Nip47Transaction,
 } from "../NWCClient";
 import { toHexString } from "../utils";
+import { NWCAuthorizationUrlOptions } from "../types";
 
 // TODO: review fields (replace with camelCase)
 // TODO: consider move to webln-types package
@@ -80,43 +80,17 @@ const nip47ToWeblnRequestMap: Record<
   sign_message: "signMessage",
 };
 
+type NewNostrWeblnProviderOptions = NewNWCClientOptions & {
+  client?: NWCClient;
+};
+
 export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
   private _enabled = false;
   readonly client: NWCClient;
   readonly subscribers: Record<string, (payload: unknown) => void>;
 
-  /**
-   * @deprecated please use client.relay. Deprecated since v3.2.3. Will be removed in v4.0.0.
-   */
-  get relay(): Relay {
-    console.warn("relay is deprecated. Please use client.relay instead.");
-    return this.client.relay;
-  }
-  /**
-   * @deprecated please use client.relayUrl. Deprecated since v3.2.3. Will be removed in v4.0.0.
-   */
-  get relayUrl(): string {
-    console.warn("relayUrl is deprecated. Please use client.relayUrl instead.");
-    return this.client.relayUrl;
-  }
-  /**
-   * @deprecated please use client.walletPubkey. Deprecated since v3.2.3. Will be removed in v4.0.0.
-   */
-  get walletPubkey(): string {
-    console.warn(
-      "walletPubkey is deprecated. Please use client.walletPubkey instead.",
-    );
-    return this.client.walletPubkey;
-  }
   get options(): NostrWebLNOptions {
     return this.client.options;
-  }
-  /**
-   * @deprecated please use client.secret. Deprecated since v3.2.3. Will be removed in v4.0.0.
-   */
-  get secret(): string | undefined {
-    console.warn("secret is deprecated. Please use client.secret instead.");
-    return this.client.secret;
   }
 
   static withNewSecret(
@@ -127,8 +101,23 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
     return new NostrWebLNProvider(options);
   }
 
-  constructor(options?: NewNWCClientOptions) {
-    this.client = new NWCClient(options);
+  static async fromAuthorizationUrl(
+    authorizationBasePath: string,
+    options: NWCAuthorizationUrlOptions = {},
+    secret?: string,
+  ) {
+    const client = await NWCClient.fromAuthorizationUrl(
+      authorizationBasePath,
+      options,
+      secret,
+    );
+    return new NostrWebLNProvider({
+      client,
+    });
+  }
+
+  constructor(options?: NewNostrWeblnProviderOptions) {
+    this.client = options?.client || new NWCClient(options);
 
     this.subscribers = {};
   }
@@ -144,46 +133,6 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
     }
   }
 
-  /**
-   * @deprecated please use client.getNostrWalletConnectUrl. Deprecated since v3.2.3. Will be removed in v4.0.0.
-   */
-  getNostrWalletConnectUrl(includeSecret = true) {
-    console.warn(
-      "getNostrWalletConnectUrl is deprecated. Please use client.getNostrWalletConnectUrl instead.",
-    );
-    return this.client.getNostrWalletConnectUrl(includeSecret);
-  }
-
-  /**
-   * @deprecated please use client.nostrWalletConnectUrl. Deprecated since v3.2.3. Will be removed in v4.0.0.
-   */
-  get nostrWalletConnectUrl() {
-    console.warn(
-      "nostrWalletConnectUrl is deprecated. Please use client.nostrWalletConnectUrl instead.",
-    );
-    return this.client.nostrWalletConnectUrl;
-  }
-
-  /**
-   * @deprecated please use client.connected. Deprecated since v3.2.3. Will be removed in v4.0.0.
-   */
-  get connected() {
-    console.warn(
-      "connected is deprecated. Please use client.connected instead.",
-    );
-    return this.client.connected;
-  }
-
-  /**
-   * @deprecated please use getPublicKey(). Deprecated since v3.2.3. Will be removed in v4.0.0.
-   */
-  get publicKey() {
-    console.warn(
-      "publicKey is deprecated. Please use client.publicKey instead.",
-    );
-    return this.client.publicKey;
-  }
-
   getPublicKey(): Promise<string> {
     return this.client.getPublicKey();
   }
@@ -192,56 +141,12 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
     return this.client.signEvent(event);
   }
 
-  /**
-   * @deprecated please use client.getEventHash. Deprecated since v3.2.3. Will be removed in v4.0.0.
-   */
-  getEventHash(event: Event) {
-    console.warn(
-      "getEventHash is deprecated. Please use client.getEventHash instead.",
-    );
-    return this.client.getEventHash(event);
-  }
-
   async enable() {
     this._enabled = true;
   }
 
   close() {
     return this.client.close();
-  }
-
-  /**
-   * @deprecated please use client.encrypt. Deprecated since v3.2.3. Will be removed in v4.0.0.
-   */
-  async encrypt(pubkey: string, content: string) {
-    console.warn("encrypt is deprecated. Please use client.encrypt instead.");
-    return this.client.encrypt(pubkey, content);
-  }
-
-  /**
-   * @deprecated please use client.decrypt. Deprecated since v3.2.3. Will be removed in v4.0.0.
-   */
-  async decrypt(pubkey: string, content: string) {
-    console.warn("decrypt is deprecated. Please use client.decrypt instead.");
-    return this.client.decrypt(pubkey, content);
-  }
-
-  /**
-   * @deprecated please use client.getAuthorizationUrl. Deprecated since v3.2.3. Will be removed in v4.0.0.
-   */
-  getAuthorizationUrl(options?: NWCAuthorizationUrlOptions) {
-    console.warn(
-      "getAuthorizationUrl is deprecated. Please use client.getAuthorizationUrl instead.",
-    );
-    return this.client.getAuthorizationUrl(options);
-  }
-
-  /**
-   * @deprecated please use client.initNWC. Deprecated since v3.2.3. Will be removed in v4.0.0.
-   */
-  initNWC(options: NWCAuthorizationUrlOptions = {}) {
-    console.warn("initNWC is deprecated. Please use client.initNWC instead.");
-    return this.client.initNWC(options);
   }
 
   async getInfo(): Promise<GetInfoResponse> {

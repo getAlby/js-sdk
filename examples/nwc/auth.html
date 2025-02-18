@@ -1,0 +1,23 @@
+<script type="module">
+  import { webln } from "https://esm.sh/@getalby/sdk@4.0.0"; // jsdelivr.net, skypack.dev also work
+  window.launchNwc = async () => {
+    try {
+      const authUrl = prompt("Auth URL", "https://hub.getalby.com/apps/new");
+      const nwcWebln = await webln.NostrWebLNProvider.fromAuthorizationUrl(
+        authUrl,
+        {
+          name: "Deeplink " + Date.now(),
+        },
+      );
+      // connect to the relay
+      await nwcWebln.enable();
+      const result = await nwcWebln.getInfo();
+      alert("Info response: " + JSON.stringify(result));
+    } catch (error) {
+      console.error(error);
+      alert("Something went wrong: " + error);
+    }
+  };
+</script>
+
+<button onclick="window.launchNwc()">Connect NWC</button>
