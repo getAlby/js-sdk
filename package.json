@@ -49,7 +49,6 @@
     "@typescript-eslint/eslint-plugin": "^7.0.0",
     "@typescript-eslint/parser": "^6.3.0",
     "@webbtc/webln-types": "^3.0.0",
-    "browserify": "^17.0.0",
     "eslint": "^8.46.0",
     "eslint-config-prettier": "^10.0.1",
     "express": "^4.18.2",
