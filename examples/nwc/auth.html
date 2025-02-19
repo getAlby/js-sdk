@@ -2,7 +2,7 @@
   import { webln } from "https://esm.sh/@getalby/sdk@4.0.0"; // jsdelivr.net, skypack.dev also work
   window.launchNwc = async () => {
     try {
-      const authUrl = prompt("Auth URL", "https://hub.getalby.com/apps/new");
+      const authUrl = prompt("Auth URL", "https://my.albyhub.com/apps/new");
       const nwcWebln = await webln.NostrWebLNProvider.fromAuthorizationUrl(
         authUrl,
         {
