@@ -268,6 +268,7 @@ Please have a look a the Alby OAuth2 Wallet API:
 
 - accountBalance
 - accountSummary
+- signMessage
 - accountInformation
 - accountValue4Value
 - invoices

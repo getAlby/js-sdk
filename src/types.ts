@@ -255,6 +255,10 @@ export type GetAccountBalanceResponse = {
   unit: string;
 };
 
+export type SignMessageRequestParams = {
+  message: string;
+};
+
 export type GetAccountInformationResponse = {
   identifier: string;
   email: string;
