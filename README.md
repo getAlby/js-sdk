@@ -56,7 +56,7 @@ There are two interfaces you can use to access NWC:
 - `walletPubkey`: pubkey of the Nostr Wallet Connect app
 - `secret`: secret key to sign the request event (if not available window.nostr will be used)
 
-#### `static newClientFromAuthorizationUrl()`
+#### `static fromAuthorizationUrl()`
 
 Initialized a new `NWCClient` instance but generates a new random secret. The pubkey of that secret then needs to be authorized by the user (this can be initiated by redirecting the user to the `getAuthorizationUrl()` URL or calling `fromAuthorizationUrl()` to open an authorization popup.
 
@@ -70,6 +70,8 @@ const nwcClient = await nwc.NWCClient.fromAuthorizationUrl(
   },
 );
 ```
+
+The same options can be provided to getAuthorizationUrl() as fromAuthorizationUrl() - see [Manual Auth example](./examples/nwc/client/auth_manual.html)
 
 #### Quick start example
 
@@ -232,18 +234,7 @@ nwc.close(); // close the websocket connection
 #### Generate a new NWC connect url using a locally-generated secret
 
 ```js
-// same options can be provided to .withNewSecret() as creating a new NostrWebLNProvider()
-const webln = webln.NostrWebLNProvider.withNewSecret();
-
-// get the connect URL to the interface where the user has to enable the connection
-webln.getConnectUrl({ name: `My app name` });
-// an optional return_to parameter can be passed in
-webln.getConnectUrl({
-  name: `My app name`,
-  returnTo: document.location.toString(),
-});
-
-// or use the `fromAuthorizationUrl` helper which opens a popup to initiate the connection flow.
+// use the `fromAuthorizationUrl` helper which opens a popup to initiate the connection flow.
 // the promise resolves once the NWC app returned.
 const nwc = await webln.NostrWebLNProvider.fromAuthorizationUrl(
   "https://my.albyhub.com/apps/new",
@@ -257,6 +248,8 @@ const nwc = await webln.NostrWebLNProvider.fromAuthorizationUrl(
 // if you want to get the connect url with the secret:
 // const nostrWalletConnectUrl nwc.getNostrWalletConnectUrl(true)
 ```
+
+The same options can be provided to getAuthorizationUrl() as fromAuthorizationUrl() - see [Manual Auth example](./examples/nwc/auth_manual.html)
 
 ## OAuth API Documentation
 
