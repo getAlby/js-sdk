@@ -35,7 +35,7 @@
     "clean": "rm -rf dist",
     "build": "microbundle --no-sourcemap",
     "dev": "microbundle watch",
-    "prepare": "husky install"
+    "prepare": "husky"
   },
   "dependencies": {
     "nostr-tools": "2.9.4"
