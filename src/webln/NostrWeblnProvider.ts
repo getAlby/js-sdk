@@ -1,5 +1,4 @@
-import { Event, UnsignedEvent, generateSecretKey } from "nostr-tools";
-import { bytesToHex } from "@noble/hashes/utils";
+import { Event, UnsignedEvent } from "nostr-tools";
 import {
   GetBalanceResponse,
   KeysendArgs,
@@ -91,14 +90,6 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
 
   get options(): NostrWebLNOptions {
     return this.client.options;
-  }
-
-  static withNewSecret(
-    options?: ConstructorParameters<typeof NostrWebLNProvider>[0],
-  ) {
-    options = options || {};
-    options.secret = bytesToHex(generateSecretKey());
-    return new NostrWebLNProvider(options);
   }
 
   static async fromAuthorizationUrl(

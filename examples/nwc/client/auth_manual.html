@@ -1,0 +1,77 @@
+<button id="connect-button" onclick="window.launchNwc()">Connect NWC</button>
+<button id="reset-button" onclick="window.resetNwc()">Reset</button>
+
+<script type="module">
+  import { nwc } from "https://esm.sh/@getalby/sdk@4.0.0"; // jsdelivr.net, skypack.dev also work
+  import {
+    generateSecretKey,
+    getPublicKey,
+  } from "https://esm.sh/nostr-tools@2.9.4"; // jsdelivr.net, skypack.dev also work
+  import {
+    bytesToHex,
+    hexToBytes,
+  } from "https://esm.sh/@noble/hashes@1.3.1/utils"; // jsdelivr.net, skypack.dev also work
+
+  const params = new URL(window.location.href).searchParams;
+  const walletPubkey = params.get("pubkey");
+  const relayUrl = params.get("relay");
+  const lud16 = params.get("lud16");
+  const secret = window.localStorage.getItem("demo_secret");
+
+  if (walletPubkey && relayUrl) {
+    try {
+      if (!secret) {
+        throw new Error("No secret saved locally");
+      }
+      window.document.getElementById("connect-button").remove();
+      const nwcClient = new nwc.NWCClient({
+        secret,
+        walletPubkey,
+        relayUrl,
+        lud16,
+      });
+      const result = await nwcClient.getInfo();
+      alert("Info response: " + JSON.stringify(result) + " lud16: " + lud16);
+    } catch (error) {
+      console.error(error);
+      alert("Something went wrong: " + error);
+    }
+  } else {
+    window.document.getElementById("reset-button").remove();
+  }
+
+  window.resetNwc = async () => {
+    window.localStorage.removeItem("demo_secret");
+    window.location.href = window.origin;
+  };
+
+  window.launchNwc = async () => {
+    try {
+      if (!window.origin.startsWith("http")) {
+        alert(
+          "Please use a webserver from this directory e.g. python3 -m http.server",
+        );
+      }
+
+      const secret = bytesToHex(generateSecretKey());
+      const pubkey = getPublicKey(hexToBytes(secret));
+      window.localStorage.setItem("demo_secret", secret);
+      const authorizationBasePath = prompt(
+        "Auth URL",
+        "https://my.albyhub.com/apps/new",
+      );
+      const authUrl = await nwc.NWCClient.getAuthorizationUrl(
+        authorizationBasePath,
+        {
+          name: "Deeplink " + Date.now(),
+          returnTo: window.location.href,
+        },
+        pubkey,
+      );
+      window.location = authUrl;
+    } catch (error) {
+      console.error(error);
+      alert("Something went wrong: " + error);
+    }
+  };
+</script>
