@@ -1,3 +1,4 @@
+import { SignMessageResponse } from "@webbtc/webln-types";
 import { OAuth2Bearer } from "./auth";
 import { keysendParamsFromBoostagram } from "./helpers";
 import { RequestOptions, rest } from "./request";
@@ -20,6 +21,7 @@ import {
   SendPaymentResponse,
   SendBoostagramToAlbyRequestParams,
   SwapInfoResponse,
+  SignMessageRequestParams,
 } from "./types";
 
 export class Client {
@@ -49,6 +51,20 @@ export class Client {
       endpoint: `/balance`,
       params,
       method: "GET",
+    });
+  }
+
+  signMessage(
+    message: SignMessageRequestParams,
+    request_options?: Partial<RequestOptions>,
+  ): Promise<SignMessageResponse> {
+    return rest({
+      auth: this.auth,
+      ...this.defaultRequestOptions,
+      ...request_options,
+      endpoint: `/signatures`,
+      request_body: message,
+      method: "POST",
     });
   }
 
