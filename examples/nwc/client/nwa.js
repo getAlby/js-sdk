@@ -16,6 +16,7 @@ rl.close();
 
 const nwaClient = new nwa.NWAClient({
   relayUrl,
+  requestMethods: ["get_info"],
 });
 
 console.info(

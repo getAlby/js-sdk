@@ -33,18 +33,14 @@ const nwaOptions = nwa.NWAClient.parseWalletAuthUrl(nwaUrl);
 
 const createAppResponse = await client.createConnection({
   pubkey: nwaOptions.appPubkey,
-  // TODO: below should come from nwaOptions
-  name: "NWA test " + new Date().toISOString(),
-  methods: [
-    "get_info",
-    "get_balance",
-    "get_budget",
-    "make_invoice",
-    "pay_invoice",
-    "lookup_invoice",
-    "list_transactions",
-    "sign_message",
-  ],
+  name: nwaOptions.name || "NWA test " + new Date().toISOString(),
+  request_methods: nwaOptions.requestMethods,
+  notification_types: nwaOptions.notificationTypes,
+  max_amount: nwaOptions.maxAmount,
+  budget_renewal: nwaOptions.budgetRenewal,
+  expires_at: nwaOptions.expiresAt,
+  isolated: nwaOptions.isolated,
+  metadata: nwaOptions.metadata,
 });
 
 console.info(createAppResponse);

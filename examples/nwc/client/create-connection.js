@@ -25,7 +25,7 @@ let pubkey = getPublicKey(secretKey);
 const response = await client.createConnection({
   pubkey,
   name: "Test created app from JS SDK " + new Date().toISOString(),
-  methods: [
+  request_methods: [
     "get_info",
     "get_balance",
     "get_budget",
