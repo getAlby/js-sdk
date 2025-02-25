@@ -20,7 +20,7 @@ or for use without any build tools:
 
 ```html
 <script type="module">
-  import { nwc, webln } from "https://esm.sh/@getalby/sdk@3.7.0"; // jsdelivr.net, skypack.dev also work
+  import { nwc, webln } from "https://esm.sh/@getalby/sdk@4.0.0"; // jsdelivr.net, skypack.dev also work
 
   // ... then use nwc.NWCClient or webln.NWC (see documentation below)
 </script>
@@ -51,12 +51,27 @@ There are two interfaces you can use to access NWC:
 
 #### Initialization Options
 
-- `providerName`: name of the provider to load the default options. currently `alby` (default)
 - `nostrWalletConnectUrl`: full Nostr Wallet Connect URL as defined by the [spec](https://github.com/getAlby/nips/blob/master/47.md)
 - `relayUrl`: URL of the Nostr relay to be used (e.g. wss://nostr-relay.getalby.com)
 - `walletPubkey`: pubkey of the Nostr Wallet Connect app
 - `secret`: secret key to sign the request event (if not available window.nostr will be used)
-- `authorizationUrl`: URL to the NWC interface for the user to and the app connection
+
+#### `static fromAuthorizationUrl()`
+
+Initialized a new `NWCClient` instance but generates a new random secret. The pubkey of that secret then needs to be authorized by the user (this can be initiated by redirecting the user to the `getAuthorizationUrl()` URL or calling `fromAuthorizationUrl()` to open an authorization popup.
+
+##### Example
+
+```js
+const nwcClient = await nwc.NWCClient.fromAuthorizationUrl(
+  "https://my.albyhub.com/apps/new",
+  {
+    name: "My app name",
+  },
+);
+```
+
+The same options can be provided to getAuthorizationUrl() as fromAuthorizationUrl() - see [Manual Auth example](./examples/nwc/client/auth_manual.html)
 
 #### `static newClientFromAuthorizationUrl()`
 
@@ -77,24 +92,23 @@ const nwcClient = await nwc.NWCClient.fromAuthorizationUrl(
 
 ```js
 import { nwc } from "@getalby/sdk";
-const nwc = new nwc.NWCClient({
+const nwcClient = new nwc.NWCClient({
   nostrWalletConnectUrl: loadNWCUrl(),
 }); // loadNWCUrl is some function to get the NWC URL from some (encrypted) storage
 
 // now you can send payments by passing in the invoice in an object
-const response = await nwc.payInvoice({ invoice });
+const response = await nwcClient.payInvoice({ invoice });
 ```
 
 See [the NWC client examples directory](./examples/nwc/client) for a full list of examples.
 
 ### NostrWebLNProvider (aliased as NWC) Options
 
-- `providerName`: name of the provider to load the default options. currently `alby` (default)
 - `nostrWalletConnectUrl`: full Nostr Wallet Connect URL as defined by the [spec](https://github.com/getAlby/nips/blob/master/47.md)
 - `relayUrl`: URL of the Nostr relay to be used (e.g. wss://nostr-relay.getalby.com)
 - `walletPubkey`: pubkey of the Nostr Wallet Connect app
 - `secret`: secret key to sign the request event (if not available window.nostr will be used)
-- `authorizationUrl`: URL to the NWC interface for the user to and the app connection
+- `client`: initialize using an existing NWC client
 
 ### Quick start example
 
@@ -138,7 +152,8 @@ It returns a promise object that is resolved with an object with the preimage or
 ##### Example
 
 ```js
-const nwc = new NostrWebLNProvider({ nostrWalletConnectUrl: loadNWCUrl });
+import { webln } from "@getalby/sdk";
+const nwc = new webln.NostrWebLNProvider({ nostrWalletConnectUrl: loadNWCUrl });
 await nwc.enable();
 const response = await nwc.sendPayment(invoice);
 console.log(response);
@@ -149,18 +164,24 @@ console.log(response);
 Returns the `nostr+walletconnect://` URL which includes all the connection information (`walletPubkey`, `relayUrl`, `secret`)
 This can be used to get and persist the string for later use.
 
-#### initNWC({name: string})
+#### fromAuthorizationUrl(url: string, {name: string})
 
-Opens a new window prompt with the `getAuthorizationUrl()` (the user's NWC UI) to ask the user to authorize the app connection.
+Opens a new window prompt with at the provided authorization URL to ask the user to authorize the app connection.
 The promise resolves when the connection is authorized and the popup sends a `nwc:success` message or rejects when the prompt is closed.
 Pass a `name` to the NWC provider describing the application.
 
 ```js
-const nwc = NostrWebLNProvider.withNewSecret();
+import { webln } from "@getalby/sdk";
+
 try {
-  await nwc.initNWC({name: 'ACME app' );
-} catch(e) {
-  console.warn("Prompt closed");
+  const nwc = await webln.NostrWebLNProvider.fromAuthorizationUrl(
+    "https://my.albyhub.com/apps/new",
+    {
+      name: "My app name",
+    },
+  );
+} catch (e) {
+  console.error(e);
 }
 await nwc.enable();
 let response;
@@ -168,8 +189,7 @@ try {
   response = await nwc.sendPayment(invoice);
   // if success then the response.preimage will be only
   console.info(`payment successful, the preimage is ${response.preimage}`);
-}
-catch (e) {
+} catch (e) {
   console.error(e.error || e);
 }
 ```
@@ -200,54 +220,51 @@ globalThis.crypto = crypto as any;
 #### Defaults
 
 ```js
-import { NostrWebLNProvider } from "@getalby/sdk";
+import { webln } from "@getalby/sdk";
 
-const webln = new NostrWebLNProvider(); // use defaults (connects to Alby's relay, will use window.nostr to sign the request)
-await webln.enable(); // connect to the relay
-const response = await webln.sendPayment(invoice);
+const nwc = new webln.NostrWebLNProvider(); // use defaults (connects to Alby's relay, will use window.nostr to sign the request)
+await nwc.enable(); // connect to the relay
+const response = await nwc.sendPayment(invoice);
 console.log(response.preimage);
 
-webln.close(); // close the websocket connection
+nwc.close(); // close the websocket connection
 ```
 
 #### Use a custom, user provided Nostr Wallet Connect URL
 
 ```js
-import { NostrWebLNProvider } from '@getalby/sdk';
+import { webln } from "@getalby/sdk";
 
-const webln = new NostrWebLNProvider({ nostrWalletConnectUrl: 'nostr+walletconnect://69effe7b49a6dd5cf525bd0905917a5005ffe480b58eeb8e861418cf3ae760d9?relay=wss://nostr.bitcoiner.social&secret=c60320b3ecb6c15557510d1518ef41194e9f9337c82621ddef3f979f668bfebd'); // use defaults
-await webln.enable(); // connect to the relay
-const response = await webln.sendPayment(invoice);
+const nwc = new webln.NostrWebLNProvider({
+  nostrWalletConnectUrl:
+    "nostr+walletconnect://69effe7b49a6dd5cf525bd0905917a5005ffe480b58eeb8e861418cf3ae760d9?relay=wss://nostr.bitcoiner.social&secret=c60320b3ecb6c15557510d1518ef41194e9f9337c82621ddef3f979f668bfebd",
+}); // use defaults
+await nwc.enable(); // connect to the relay
+const response = await nwc.sendPayment(invoice);
 console.log(response.preimage);
 
-webln.close(); // close the websocket connection
+nwc.close(); // close the websocket connection
 ```
 
 #### Generate a new NWC connect url using a locally-generated secret
 
 ```js
-// same options can be provided to .withNewSecret() as creating a new NostrWebLNProvider()
-const webln = webln.NostrWebLNProvider.withNewSecret();
-
-// get the connect URL to the interface where the user has to enable the connection
-webln.getConnectUrl({ name: `My app name` });
-// an optional return_to parameter can be passed in
-webln.getConnectUrl({
-  name: `My app name`,
-  returnTo: document.location.toString(),
-});
-
-// or use the `initNWC` helper which opens a popup to initiate the connection flow.
+// use the `fromAuthorizationUrl` helper which opens a popup to initiate the connection flow.
 // the promise resolves once the NWC app returned.
-await webln.initNWC("alby", {
-  name: `My app name`,
-});
+const nwc = await webln.NostrWebLNProvider.fromAuthorizationUrl(
+  "https://my.albyhub.com/apps/new",
+  {
+    name: "My app name",
+  },
+);
 
 // ... enable and send a payment
 
 // if you want to get the connect url with the secret:
 // const nostrWalletConnectUrl nwc.getNostrWalletConnectUrl(true)
 ```
+
+The same options can be provided to getAuthorizationUrl() as fromAuthorizationUrl() - see [Manual Auth example](./examples/nwc/auth_manual.html)
 
 ## OAuth API Documentation
 
@@ -259,6 +276,7 @@ Please have a look a the Alby OAuth2 Wallet API:
 
 - accountBalance
 - accountSummary
+- signMessage
 - accountInformation
 - accountValue4Value
 - invoices

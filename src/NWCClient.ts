@@ -54,6 +54,7 @@ export type Nip47GetInfoResponse = {
   block_hash: string;
   methods: Nip47Method[];
   notifications?: Nip47NotificationType[];
+  metadata?: unknown;
 };
 
 export type Nip47GetBudgetResponse =
@@ -72,6 +73,11 @@ export type Nip47GetBalanceResponse = {
 
 export type Nip47PayResponse = {
   preimage: string;
+};
+
+type Nip47TimeoutValues = {
+  replyTimeout?: number;
+  publishTimeout?: number;
 };
 
 export type Nip47MultiPayInvoiceRequest = {
@@ -204,14 +210,9 @@ export interface NWCOptions {
 }
 
 export class Nip47Error extends Error {
-  /**
-   * @deprecated please use message. Deprecated since v3.3.2. Will be removed in v4.0.0.
-   */
-  error: string;
   code: string;
   constructor(message: string, code: string) {
     super(message);
-    this.error = message;
     this.code = code;
   }
 }
@@ -521,18 +522,6 @@ export class NWCClient {
     });
   }
 
-  /**
-   * @deprecated please use getWalletServiceInfo. Deprecated since v3.5.0. Will be removed in v4.0.0.
-   */
-  async getWalletServiceSupportedMethods(): Promise<Nip47Capability[]> {
-    console.warn(
-      "getWalletServiceSupportedMethods is deprecated. Please use getWalletServiceInfo instead.",
-    );
-    const info = await this.getWalletServiceInfo();
-
-    return info.capabilities;
-  }
-
   async getWalletServiceInfo(): Promise<{
     versions: string[];
     capabilities: Nip47Capability[];
@@ -587,6 +576,7 @@ export class NWCClient {
         "get_info",
         {},
         (result) => !!result.methods,
+        { replyTimeout: 10000 },
       );
       return result;
     } catch (error) {
@@ -601,6 +591,7 @@ export class NWCClient {
         "get_budget",
         {},
         (result) => result !== undefined,
+        { replyTimeout: 10000 },
       );
       return result;
     } catch (error) {
@@ -615,6 +606,7 @@ export class NWCClient {
         "get_balance",
         {},
         (result) => result.balance !== undefined,
+        { replyTimeout: 10000 },
       );
       return result;
     } catch (error) {
@@ -783,6 +775,7 @@ export class NWCClient {
           "list_transactions",
           request,
           (response) => !!response.transactions,
+          { replyTimeout: 10000 },
         );
 
       return result;
@@ -881,6 +874,7 @@ export class NWCClient {
     nip47Method: Nip47SingleMethod,
     params: unknown,
     resultValidator: (result: T) => boolean,
+    timeoutValues?: Nip47TimeoutValues,
   ): Promise<T> {
     await this._checkConnected();
     await this._checkCompatibility();
@@ -929,7 +923,10 @@ export class NWCClient {
           );
         }
 
-        const replyTimeoutCheck = setTimeout(replyTimeout, 60000);
+        const replyTimeoutCheck = setTimeout(
+          replyTimeout,
+          timeoutValues?.replyTimeout || 60000,
+        );
 
         sub.onevent = async (event) => {
           // console.log(`Received reply event: `, event);
@@ -992,7 +989,10 @@ export class NWCClient {
             ),
           );
         }
-        const publishTimeoutCheck = setTimeout(publishTimeout, 5000);
+        const publishTimeoutCheck = setTimeout(
+          publishTimeout,
+          timeoutValues?.publishTimeout || 5000,
+        );
 
         try {
           await this.relay.publish(event);
@@ -1017,6 +1017,7 @@ export class NWCClient {
     params: unknown,
     numPayments: number,
     resultValidator: (result: T) => boolean,
+    timeoutValues?: Nip47TimeoutValues,
   ): Promise<(T & { dTag: string })[]> {
     await this._checkConnected();
     await this._checkCompatibility();
@@ -1066,7 +1067,10 @@ export class NWCClient {
           );
         }
 
-        const replyTimeoutCheck = setTimeout(replyTimeout, 60000);
+        const replyTimeoutCheck = setTimeout(
+          replyTimeout,
+          timeoutValues?.replyTimeout || 60000,
+        );
 
         sub.onevent = async (event) => {
           // console.log(`Received reply event: `, event);
@@ -1148,7 +1152,10 @@ export class NWCClient {
             ),
           );
         }
-        const publishTimeoutCheck = setTimeout(publishTimeout, 5000);
+        const publishTimeoutCheck = setTimeout(
+          publishTimeout,
+          timeoutValues?.publishTimeout || 5000,
+        );
 
         try {
           await this.relay.publish(event);

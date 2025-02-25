@@ -4,6 +4,11 @@ import { RequestOptions } from "./request";
 export type SuccessStatus = 200 | 201;
 export type ResponseType = "application/json";
 
+export type TokenRefreshedListener = (tokens: Token) => void;
+export type TokenRefreshFailedListener = (error: Error) => void;
+export type EventName = "tokenRefreshed" | "tokenRefreshFailed";
+export type EventListener = TokenRefreshedListener | TokenRefreshFailedListener;
+
 export interface AuthHeader {
   Authorization: string;
 }
@@ -132,11 +137,6 @@ export type SendBoostagramToAlbyRequestParams = {
   memo?: string;
 };
 
-/**
- * @deprecated please use SendBoostagramToAlbyRequestParams. Deprecated since v3.2.3. Will be removed in v4.0.0.
- */
-export type SendToAlbyRequestParams = SendBoostagramToAlbyRequestParams;
-
 export type CreateWebhookEndpointParams = {
   url: string;
   description?: string;
@@ -229,11 +229,6 @@ export type Invoice = {
   };
 } & Record<string, unknown>;
 
-/**
- * @deprecated please use NWCAuthorizationUrlOptions. Deprecated since v3.2.3. Will be removed in v4.0.0.
- */
-export type GetNWCAuthorizationUrlOptions = NWCAuthorizationUrlOptions;
-
 export type NWCAuthorizationUrlOptions = {
   name?: string;
   requestMethods?: string[];
@@ -258,6 +253,10 @@ export type GetAccountBalanceResponse = {
   balance: number;
   currency: string;
   unit: string;
+};
+
+export type SignMessageRequestParams = {
+  message: string;
 };
 
 export type GetAccountInformationResponse = {
