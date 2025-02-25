@@ -181,13 +181,11 @@ export class NWAClient {
 
     sub.onevent = async (event) => {
       try {
-        const lud16 = event.tags.find((t) => t[0] === "lud16")?.[1];
         args.onSuccess(
           new NWCClient({
             relayUrl: this.options.relayUrl,
             secret: this.options.appSecretKey,
             walletPubkey: event.pubkey,
-            lud16,
           }),
         );
         unsub();
