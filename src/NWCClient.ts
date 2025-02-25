@@ -422,12 +422,23 @@ export class NWCClient {
     if (options.maxAmount) {
       url.searchParams.set("max_amount", options.maxAmount.toString());
     }
-    if (options.editable !== undefined) {
-      url.searchParams.set("editable", options.editable.toString());
-    }
 
     if (options.requestMethods) {
       url.searchParams.set("request_methods", options.requestMethods.join(" "));
+    }
+    if (options.notificationTypes) {
+      url.searchParams.set(
+        "notification_types",
+        options.notificationTypes.join(" "),
+      );
+    }
+
+    if (options.isolated) {
+      url.searchParams.set("isolated", "true");
+    }
+
+    if (options.metadata) {
+      url.searchParams.set("metadata", JSON.stringify(options.metadata));
     }
 
     return url;
