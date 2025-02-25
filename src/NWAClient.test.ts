@@ -27,7 +27,7 @@ describe("NWA URI", () => {
       requestMethods: ["get_info", "pay_invoice"],
       notificationTypes: ["payment_received", "payment_sent"],
       expiresAt,
-      renewalPeriod: "monthly",
+      budgetRenewal: "monthly",
       maxAmount,
       isolated: true,
       metadata: { message: "hello world" },

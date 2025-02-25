@@ -27,7 +27,7 @@ export type NewNWAClientOptions = {
   requestMethods: Nip47Method[];
   notificationTypes?: Nip47NotificationType[];
   maxAmount?: number;
-  renewalPeriod?: BudgetRenewalPeriod;
+  budgetRenewal?: BudgetRenewalPeriod;
   expiresAt?: number;
   isolated?: boolean;
   metadata?: unknown;
@@ -48,7 +48,7 @@ export class NWAClient {
       notificationTypes: options.notificationTypes,
       maxAmount: options.maxAmount,
       expiresAt: options.expiresAt,
-      budgetRenewal: options.renewalPeriod,
+      budgetRenewal: options.budgetRenewal,
       isolated: options.isolated,
       metadata: options.metadata,
     };
