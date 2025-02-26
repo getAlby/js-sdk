@@ -55,6 +55,7 @@ export type Nip47GetInfoResponse = {
   methods: Nip47Method[];
   notifications?: Nip47NotificationType[];
   metadata?: unknown;
+  lud16?: string;
 };
 
 export type Nip47GetBudgetResponse =

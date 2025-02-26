@@ -180,18 +180,23 @@ export class NWAClient {
     };
 
     sub.onevent = async (event) => {
+      const client = new NWCClient({
+        relayUrl: this.options.relayUrl,
+        secret: this.options.appSecretKey,
+        walletPubkey: event.pubkey,
+      });
+
+      // try to fetch the lightning address
       try {
-        args.onSuccess(
-          new NWCClient({
-            relayUrl: this.options.relayUrl,
-            secret: this.options.appSecretKey,
-            walletPubkey: event.pubkey,
-          }),
-        );
-        unsub();
+        const info = await client.getInfo();
+        client.options.lud16 = info.lud16;
+        client.lud16 = info.lud16;
       } catch (error) {
-        console.error("failed to handle NWA event", error);
+        console.error("failed to fetch get_info", error);
       }
+
+      args.onSuccess(client);
+      unsub();
     };
 
     return {
