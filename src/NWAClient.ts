@@ -20,6 +20,7 @@ export type NWAOptions = {
   budgetRenewal?: BudgetRenewalPeriod;
   expiresAt?: number;
   isolated?: boolean;
+  returnTo?: string;
   metadata?: unknown;
 };
 
@@ -34,6 +35,7 @@ export type NewNWAClientOptions = {
   budgetRenewal?: BudgetRenewalPeriod;
   expiresAt?: number;
   isolated?: boolean;
+  returnTo?: string;
   metadata?: unknown;
 };
 
@@ -50,6 +52,7 @@ export class NWAClient {
       appPubkey: getPublicKey(hexToBytes(appSecretKey)),
       name: options.name,
       icon: options.icon,
+      returnTo: options.returnTo,
       requestMethods: options.requestMethods,
       notificationTypes: options.notificationTypes,
       maxAmount: options.maxAmount,
@@ -83,6 +86,7 @@ export class NWAClient {
       request_methods: this.options.requestMethods.join(" "),
       ...(this.options.name ? { name: this.options.name } : {}),
       ...(this.options.icon ? { icon: this.options.icon } : {}),
+      ...(this.options.returnTo ? { return_to: this.options.returnTo } : {}),
       ...(this.options.notificationTypes
         ? {
             notification_types: this.options.notificationTypes.join(" "),
@@ -145,6 +149,7 @@ export class NWAClient {
     return {
       name: url.searchParams.get("name") || undefined,
       icon: url.searchParams.get("icon") || undefined,
+      returnTo: url.searchParams.get("return_to") || undefined,
       relayUrl,
       appPubkey,
       requestMethods,

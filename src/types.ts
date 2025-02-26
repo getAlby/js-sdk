@@ -232,6 +232,7 @@ export type Invoice = {
 
 export type NWCAuthorizationUrlOptions = {
   name?: string;
+  icon?: string;
   requestMethods?: Nip47Method[];
   notificationTypes?: Nip47NotificationType[];
   returnTo?: string;

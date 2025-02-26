@@ -33,16 +33,17 @@ describe("NWA URI", () => {
       maxAmount,
       isolated: true,
       metadata: { message: "hello world" },
+      returnTo: "https://example.com",
     });
 
     expect(nwaClient.connectionUri).toEqual(
-      `nostr+walletauth://${nwaClient.options.appPubkey}?relay=wss%3A%2F%2Frelay.getalby.com%2Fv1&request_methods=get_info%20pay_invoice&name=App%20Name&icon=https%3A%2F%2Fexample.com%2Fimage.png&notification_types=payment_received%20payment_sent&max_amount=${maxAmount}&budget_renewal=monthly&expires_at=${expiresAt}&isolated=true&metadata=%7B%22message%22%3A%22hello%20world%22%7D`,
+      `nostr+walletauth://${nwaClient.options.appPubkey}?relay=wss%3A%2F%2Frelay.getalby.com%2Fv1&request_methods=get_info%20pay_invoice&name=App%20Name&icon=https%3A%2F%2Fexample.com%2Fimage.png&return_to=https%3A%2F%2Fexample.com&notification_types=payment_received%20payment_sent&max_amount=${maxAmount}&budget_renewal=monthly&expires_at=${expiresAt}&isolated=true&metadata=%7B%22message%22%3A%22hello%20world%22%7D`,
     );
   });
 
   test("parses connection URI", () => {
     const nwaOptions = NWAClient.parseWalletAuthUrl(
-      `nostr+walletauth://e73575d76c731102aefd4eb6fb0ddfaaf335eabe60255a22e6ca5e7074eb4992?relay=wss%3A%2F%2Frelay.getalby.com%2Fv1&request_methods=get_info%20pay_invoice&name=App%20Name&icon=https%3A%2F%2Fexample.com%2Fimage.png&notification_types=payment_received%20payment_sent&max_amount=1000000&budget_renewal=monthly&expires_at=1740470142968&isolated=true&metadata=%7B%22message%22%3A%22hello%20world%22%7D`,
+      `nostr+walletauth://e73575d76c731102aefd4eb6fb0ddfaaf335eabe60255a22e6ca5e7074eb4992?relay=wss%3A%2F%2Frelay.getalby.com%2Fv1&request_methods=get_info%20pay_invoice&name=App%20Name&icon=https%3A%2F%2Fexample.com%2Fimage.png&return_to=https%3A%2F%2Fexample.com&notification_types=payment_received%20payment_sent&max_amount=1000000&budget_renewal=monthly&expires_at=1740470142968&isolated=true&metadata=%7B%22message%22%3A%22hello%20world%22%7D`,
     );
 
     expect(nwaOptions.appPubkey).toEqual(
@@ -64,5 +65,6 @@ describe("NWA URI", () => {
     expect(nwaOptions.metadata).toEqual({ message: "hello world" });
     expect(nwaOptions.name).toBe("App Name");
     expect(nwaOptions.icon).toBe("https://example.com/image.png");
+    expect(nwaOptions.returnTo).toBe("https://example.com");
   });
 });
