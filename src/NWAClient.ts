@@ -81,6 +81,15 @@ export class NWAClient {
    * returns the NWA connection URI which should be given to the wallet
    */
   get connectionUri() {
+    return this.getConnectionUri();
+  }
+
+  /**
+   * returns the NWA connection URI which should be given to the wallet
+   * @param nwaSchemeSuffix open a specific wallet. e.g. "alby" will set the scheme to
+   * nostr+walletauth+alby to ensure the link will be opened in an Alby wallet
+   */
+  getConnectionUri(nwaSchemeSuffix = "") {
     const searchParams = new URLSearchParams({
       relay: this.options.relayUrl,
       request_methods: this.options.requestMethods.join(" "),
@@ -109,7 +118,7 @@ export class NWAClient {
         : {}),
     });
 
-    return `nostr+walletauth://${this.options.appPubkey}?${searchParams
+    return `nostr+walletauth${nwaSchemeSuffix ? `+${nwaSchemeSuffix}` : ""}://${this.options.appPubkey}?${searchParams
       .toString()
       .replace(/\+/g, "%20")}`;
   }

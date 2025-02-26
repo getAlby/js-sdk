@@ -41,6 +41,30 @@ describe("NWA URI", () => {
     );
   });
 
+  test("constructs correct connection URI for specific app", () => {
+    const nwaClient = new NWAClient({
+      relayUrl: "wss://relay.getalby.com/v1",
+      requestMethods: ["get_info"],
+    });
+
+    expect(nwaClient.getConnectionUri("alby")).toEqual(
+      `nostr+walletauth+alby://${nwaClient.options.appPubkey}?relay=wss%3A%2F%2Frelay.getalby.com%2Fv1&request_methods=get_info`,
+    );
+  });
+
+  test("parses connection URI for specific app", () => {
+    const nwaOptions = NWAClient.parseWalletAuthUrl(
+      `nostr+walletauth+alby://e73575d76c731102aefd4eb6fb0ddfaaf335eabe60255a22e6ca5e7074eb4992?relay=wss%3A%2F%2Frelay.getalby.com%2Fv1&request_methods=get_info`,
+    );
+    expect(nwaOptions.appPubkey).toEqual(
+      "e73575d76c731102aefd4eb6fb0ddfaaf335eabe60255a22e6ca5e7074eb4992",
+    );
+    expect(nwaOptions.relayUrl).toEqual("wss://relay.getalby.com/v1");
+    expect(nwaOptions.requestMethods).toEqual([
+      "get_info",
+    ] satisfies Nip47Method[]);
+  });
+
   test("parses connection URI", () => {
     const nwaOptions = NWAClient.parseWalletAuthUrl(
       `nostr+walletauth://e73575d76c731102aefd4eb6fb0ddfaaf335eabe60255a22e6ca5e7074eb4992?relay=wss%3A%2F%2Frelay.getalby.com%2Fv1&request_methods=get_info%20pay_invoice&name=App%20Name&icon=https%3A%2F%2Fexample.com%2Fimage.png&return_to=https%3A%2F%2Fexample.com&notification_types=payment_received%20payment_sent&max_amount=1000000&budget_renewal=monthly&expires_at=1740470142968&isolated=true&metadata=%7B%22message%22%3A%22hello%20world%22%7D`,
