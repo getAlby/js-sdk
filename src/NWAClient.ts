@@ -12,6 +12,8 @@ export type NWAOptions = {
   relayUrl: string;
   appSecretKey?: string;
   appPubkey: string;
+  name?: string;
+  icon?: string;
   requestMethods: Nip47Method[];
   notificationTypes?: Nip47NotificationType[];
   maxAmount?: number;
@@ -23,8 +25,10 @@ export type NWAOptions = {
 
 export type NewNWAClientOptions = {
   relayUrl: string;
-  appSecretKey?: string;
   requestMethods: Nip47Method[];
+  appSecretKey?: string;
+  name?: string;
+  icon?: string;
   notificationTypes?: Nip47NotificationType[];
   maxAmount?: number;
   budgetRenewal?: BudgetRenewalPeriod;
@@ -44,6 +48,8 @@ export class NWAClient {
       relayUrl: options.relayUrl,
       appSecretKey,
       appPubkey: getPublicKey(hexToBytes(appSecretKey)),
+      name: options.name,
+      icon: options.icon,
       requestMethods: options.requestMethods,
       notificationTypes: options.notificationTypes,
       maxAmount: options.maxAmount,
@@ -75,7 +81,8 @@ export class NWAClient {
     const searchParams = new URLSearchParams({
       relay: this.options.relayUrl,
       request_methods: this.options.requestMethods.join(" "),
-
+      ...(this.options.name ? { name: this.options.name } : {}),
+      ...(this.options.icon ? { icon: this.options.icon } : {}),
       ...(this.options.notificationTypes
         ? {
             notification_types: this.options.notificationTypes.join(" "),
@@ -136,6 +143,8 @@ export class NWAClient {
     const metadataString = url.searchParams.get("metadata");
 
     return {
+      name: url.searchParams.get("name") || undefined,
+      icon: url.searchParams.get("icon") || undefined,
       relayUrl,
       appPubkey,
       requestMethods,

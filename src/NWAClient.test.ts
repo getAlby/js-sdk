@@ -23,6 +23,8 @@ describe("NWA URI", () => {
     const expiresAt = Date.now() + 1000 * 60 * 60 * 24 * 30; // 30 days
     const maxAmount = 1000_000; // 1000 sats
     const nwaClient = new NWAClient({
+      name: "App Name",
+      icon: "https://example.com/image.png",
       relayUrl: "wss://relay.getalby.com/v1",
       requestMethods: ["get_info", "pay_invoice"],
       notificationTypes: ["payment_received", "payment_sent"],
@@ -34,13 +36,13 @@ describe("NWA URI", () => {
     });
 
     expect(nwaClient.connectionUri).toEqual(
-      `nostr+walletauth://${nwaClient.options.appPubkey}?relay=wss%3A%2F%2Frelay.getalby.com%2Fv1&request_methods=get_info%20pay_invoice&notification_types=payment_received%20payment_sent&max_amount=${maxAmount}&budget_renewal=monthly&expires_at=${expiresAt}&isolated=true&metadata=%7B%22message%22%3A%22hello%20world%22%7D`,
+      `nostr+walletauth://${nwaClient.options.appPubkey}?relay=wss%3A%2F%2Frelay.getalby.com%2Fv1&request_methods=get_info%20pay_invoice&name=App%20Name&icon=https%3A%2F%2Fexample.com%2Fimage.png&notification_types=payment_received%20payment_sent&max_amount=${maxAmount}&budget_renewal=monthly&expires_at=${expiresAt}&isolated=true&metadata=%7B%22message%22%3A%22hello%20world%22%7D`,
     );
   });
 
   test("parses connection URI", () => {
     const nwaOptions = NWAClient.parseWalletAuthUrl(
-      `nostr+walletauth://e73575d76c731102aefd4eb6fb0ddfaaf335eabe60255a22e6ca5e7074eb4992?relay=wss%3A%2F%2Frelay.getalby.com%2Fv1&request_methods=get_info%20pay_invoice&notification_types=payment_received%20payment_sent&max_amount=1000000&budget_renewal=monthly&expires_at=1740470142968&isolated=true&metadata=%7B%22message%22%3A%22hello%20world%22%7D`,
+      `nostr+walletauth://e73575d76c731102aefd4eb6fb0ddfaaf335eabe60255a22e6ca5e7074eb4992?relay=wss%3A%2F%2Frelay.getalby.com%2Fv1&request_methods=get_info%20pay_invoice&name=App%20Name&icon=https%3A%2F%2Fexample.com%2Fimage.png&notification_types=payment_received%20payment_sent&max_amount=1000000&budget_renewal=monthly&expires_at=1740470142968&isolated=true&metadata=%7B%22message%22%3A%22hello%20world%22%7D`,
     );
 
     expect(nwaOptions.appPubkey).toEqual(
@@ -60,5 +62,7 @@ describe("NWA URI", () => {
     expect(nwaOptions.budgetRenewal).toBe("monthly");
     expect(nwaOptions.isolated).toBe(true);
     expect(nwaOptions.metadata).toEqual({ message: "hello world" });
+    expect(nwaOptions.name).toBe("App Name");
+    expect(nwaOptions.icon).toBe("https://example.com/image.png");
   });
 });
