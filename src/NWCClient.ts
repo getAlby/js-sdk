@@ -186,7 +186,7 @@ export type Nip47CreateConnectionRequest = {
   pubkey: string;
   name: string;
   request_methods: Nip47Method[];
-  notification_types?: Nip47Method[];
+  notification_types?: Nip47NotificationType[];
   max_amount?: number;
   budget_renewal?: BudgetRenewalPeriod;
   expires_at?: number;
