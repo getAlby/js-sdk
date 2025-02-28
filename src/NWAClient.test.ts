@@ -52,43 +52,48 @@ describe("NWA URI", () => {
     );
   });
 
-  test("parses connection URI for specific app", () => {
-    const nwaOptions = NWAClient.parseWalletAuthUrl(
-      `nostr+walletauth+alby://e73575d76c731102aefd4eb6fb0ddfaaf335eabe60255a22e6ca5e7074eb4992?relay=wss%3A%2F%2Frelay.getalby.com%2Fv1&request_methods=get_info`,
-    );
-    expect(nwaOptions.appPubkey).toEqual(
-      "e73575d76c731102aefd4eb6fb0ddfaaf335eabe60255a22e6ca5e7074eb4992",
-    );
-    expect(nwaOptions.relayUrl).toEqual("wss://relay.getalby.com/v1");
-    expect(nwaOptions.requestMethods).toEqual([
-      "get_info",
-    ] satisfies Nip47Method[]);
-  });
+  for (const scheme of [
+    "nostr+walletauth://",
+    "nostr+walletauth:",
+    "nostr+walletauth+alby://",
+    "nostr+walletauth+alby:",
+  ]) {
+    test(`parses connection URI (${scheme})`, () => {
+      const nwaOptions = NWAClient.parseWalletAuthUrl(
+        `${scheme}e73575d76c731102aefd4eb6fb0ddfaaf335eabe60255a22e6ca5e7074eb4992?relay=wss%3A%2F%2Frelay.getalby.com%2Fv1&request_methods=get_info%20pay_invoice&name=App%20Name&icon=https%3A%2F%2Fexample.com%2Fimage.png&return_to=https%3A%2F%2Fexample.com&notification_types=payment_received%20payment_sent&max_amount=1000000&budget_renewal=monthly&expires_at=1740470142968&isolated=true&metadata=%7B%22message%22%3A%22hello%20world%22%7D`,
+      );
 
-  test("parses connection URI", () => {
-    const nwaOptions = NWAClient.parseWalletAuthUrl(
-      `nostr+walletauth://e73575d76c731102aefd4eb6fb0ddfaaf335eabe60255a22e6ca5e7074eb4992?relay=wss%3A%2F%2Frelay.getalby.com%2Fv1&request_methods=get_info%20pay_invoice&name=App%20Name&icon=https%3A%2F%2Fexample.com%2Fimage.png&return_to=https%3A%2F%2Fexample.com&notification_types=payment_received%20payment_sent&max_amount=1000000&budget_renewal=monthly&expires_at=1740470142968&isolated=true&metadata=%7B%22message%22%3A%22hello%20world%22%7D`,
-    );
+      expect(nwaOptions.appPubkey).toEqual(
+        "e73575d76c731102aefd4eb6fb0ddfaaf335eabe60255a22e6ca5e7074eb4992",
+      );
+      expect(nwaOptions.relayUrl).toEqual("wss://relay.getalby.com/v1");
+      expect(nwaOptions.requestMethods).toEqual([
+        "get_info",
+        "pay_invoice",
+      ] satisfies Nip47Method[]);
+      expect(nwaOptions.notificationTypes).toEqual([
+        "payment_received",
+        "payment_sent",
+      ] satisfies Nip47NotificationType[]);
+      expect(nwaOptions.expiresAt).toBe(1740470142968);
+      expect(nwaOptions.maxAmount).toBe(1000_000);
+      expect(nwaOptions.budgetRenewal).toBe("monthly");
+      expect(nwaOptions.isolated).toBe(true);
+      expect(nwaOptions.metadata).toEqual({ message: "hello world" });
+      expect(nwaOptions.name).toBe("App Name");
+      expect(nwaOptions.icon).toBe("https://example.com/image.png");
+      expect(nwaOptions.returnTo).toBe("https://example.com");
+    });
+  }
 
-    expect(nwaOptions.appPubkey).toEqual(
-      "e73575d76c731102aefd4eb6fb0ddfaaf335eabe60255a22e6ca5e7074eb4992",
-    );
-    expect(nwaOptions.relayUrl).toEqual("wss://relay.getalby.com/v1");
-    expect(nwaOptions.requestMethods).toEqual([
-      "get_info",
-      "pay_invoice",
-    ] satisfies Nip47Method[]);
-    expect(nwaOptions.notificationTypes).toEqual([
-      "payment_received",
-      "payment_sent",
-    ] satisfies Nip47NotificationType[]);
-    expect(nwaOptions.expiresAt).toBe(1740470142968);
-    expect(nwaOptions.maxAmount).toBe(1000_000);
-    expect(nwaOptions.budgetRenewal).toBe("monthly");
-    expect(nwaOptions.isolated).toBe(true);
-    expect(nwaOptions.metadata).toEqual({ message: "hello world" });
-    expect(nwaOptions.name).toBe("App Name");
-    expect(nwaOptions.icon).toBe("https://example.com/image.png");
-    expect(nwaOptions.returnTo).toBe("https://example.com");
+  test("incorrect scheme", () => {
+    try {
+      NWAClient.parseWalletAuthUrl("asd://");
+      fail("should not pass");
+    } catch (error) {
+      expect("" + error).toBe(
+        "Error: Unexpected scheme. Should be nostr+walletauth://",
+      );
+    }
   });
 });

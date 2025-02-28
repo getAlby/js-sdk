@@ -10,8 +10,8 @@ import {
 
 export type NWAOptions = {
   relayUrl: string;
-  appSecretKey?: string;
   appPubkey: string;
+
   name?: string;
   icon?: string;
   requestMethods: Nip47Method[];
@@ -24,42 +24,20 @@ export type NWAOptions = {
   metadata?: unknown;
 };
 
-export type NewNWAClientOptions = {
-  relayUrl: string;
-  requestMethods: Nip47Method[];
+export type NewNWAClientOptions = Omit<NWAOptions, "appPubkey"> & {
   appSecretKey?: string;
-  name?: string;
-  icon?: string;
-  notificationTypes?: Nip47NotificationType[];
-  maxAmount?: number;
-  budgetRenewal?: BudgetRenewalPeriod;
-  expiresAt?: number;
-  isolated?: boolean;
-  returnTo?: string;
-  metadata?: unknown;
 };
 
 export class NWAClient {
   options: NWAOptions;
+  appSecretKey: string;
   relay: Relay;
 
   constructor(options: NewNWAClientOptions) {
-    const appSecretKey =
-      options.appSecretKey || bytesToHex(generateSecretKey());
+    this.appSecretKey = options.appSecretKey || bytesToHex(generateSecretKey());
     this.options = {
-      relayUrl: options.relayUrl,
-      appSecretKey,
-      appPubkey: getPublicKey(hexToBytes(appSecretKey)),
-      name: options.name,
-      icon: options.icon,
-      returnTo: options.returnTo,
-      requestMethods: options.requestMethods,
-      notificationTypes: options.notificationTypes,
-      maxAmount: options.maxAmount,
-      expiresAt: options.expiresAt,
-      budgetRenewal: options.budgetRenewal,
-      isolated: options.isolated,
-      metadata: options.metadata,
+      ...options,
+      appPubkey: getPublicKey(hexToBytes(this.appSecretKey)),
     };
 
     if (!this.options.relayUrl) {
@@ -124,11 +102,20 @@ export class NWAClient {
   }
 
   static parseWalletAuthUrl(walletAuthUrl: string): NWAOptions {
+    if (!walletAuthUrl.startsWith("nostr+walletauth")) {
+      throw new Error(
+        "Unexpected scheme. Should be nostr+walletauth:// or nostr+walletauth+specificapp://",
+      );
+    }
     // makes it possible to parse with URL in the different environments (browser/node/...)
     // parses with or without "//"
-    walletAuthUrl = walletAuthUrl
-      .replace("nostr+walletconnect://", "http://")
-      .replace("nostr+walletconnect:", "http://");
+    const colonIndex = walletAuthUrl.indexOf(":");
+    walletAuthUrl = walletAuthUrl.substring(colonIndex + 1);
+    if (walletAuthUrl.startsWith("//")) {
+      walletAuthUrl = walletAuthUrl.substring(2);
+    }
+    walletAuthUrl = "http://" + walletAuthUrl;
+
     const url = new URL(walletAuthUrl);
 
     const appPubkey = url.host;
@@ -205,7 +192,7 @@ export class NWAClient {
     sub.onevent = async (event) => {
       const client = new NWCClient({
         relayUrl: this.options.relayUrl,
-        secret: this.options.appSecretKey,
+        secret: this.appSecretKey,
         walletPubkey: event.pubkey,
       });
 
@@ -228,7 +215,7 @@ export class NWAClient {
   }
 
   private async _checkConnected() {
-    if (!this.options.appSecretKey) {
+    if (!this.appSecretKey) {
       throw new Error("Missing secret key");
     }
     if (!this.options.relayUrl) {
