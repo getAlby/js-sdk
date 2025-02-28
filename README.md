@@ -251,6 +251,20 @@ const nwc = await webln.NostrWebLNProvider.fromAuthorizationUrl(
 
 The same options can be provided to getAuthorizationUrl() as fromAuthorizationUrl() - see [Manual Auth example](./examples/nwc/auth_manual.html)
 
+### Nostr Wallet Auth
+
+NWA is an alternative flow for lightning apps to easily initialize an NWC connection to mobile-first or self-custodial wallets, using a client-created secret.
+
+The app will generate an NWA URI which should be opened in the wallet, where the user can approve the connection.
+
+#### Generating an NWA URI
+
+See [NWA example](examples/nwc/client/nwa.js)
+
+### Accepting and creating a connection from an NWA URI
+
+See [NWA accept example](examples/nwc/client/nwa.js) for NWA URI parsing and handling. The implementation of actually creating the connection and showing a confirmation page to the user is wallet-specific. In the example, a connection will be created via the `create_connection` NWC command.
+
 ## OAuth API Documentation
 
 Please have a look a the Alby OAuth2 Wallet API:

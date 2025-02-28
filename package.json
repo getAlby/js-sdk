@@ -1,6 +1,6 @@
 {
   "name": "@getalby/sdk",
-  "version": "4.0.0",
+  "version": "4.1.0-beta.9",
   "description": "The SDK to integrate with Nostr Wallet Connect and the Alby API",
   "repository": "https://github.com/getAlby/js-sdk.git",
   "bugs": "https://github.com/getAlby/js-sdk/issues",
@@ -57,6 +57,7 @@
     "lint-staged": "^15.0.1",
     "microbundle": "^0.15.1",
     "prettier": "^3.0.1",
+    "qrcode-terminal": "^0.12.0",
     "ts-jest": "^29.0.5",
     "ts-node": "^10.9.1",
     "typescript": "^5.1.6",

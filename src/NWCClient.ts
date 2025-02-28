@@ -31,12 +31,19 @@ type Nip47SingleMethod =
   | "pay_keysend"
   | "lookup_invoice"
   | "list_transactions"
-  | "sign_message";
+  | "sign_message"
+  | "create_connection";
 
 type Nip47MultiMethod = "multi_pay_invoice" | "multi_pay_keysend";
 
 export type Nip47Method = Nip47SingleMethod | Nip47MultiMethod;
 export type Nip47Capability = Nip47Method | "notifications";
+export type BudgetRenewalPeriod =
+  | "daily"
+  | "weekly"
+  | "monthly"
+  | "yearly"
+  | "never";
 
 export type Nip47GetInfoResponse = {
   alias: string;
@@ -48,6 +55,7 @@ export type Nip47GetInfoResponse = {
   methods: Nip47Method[];
   notifications?: Nip47NotificationType[];
   metadata?: unknown;
+  lud16?: string;
 };
 
 export type Nip47GetBudgetResponse =
@@ -55,7 +63,7 @@ export type Nip47GetBudgetResponse =
       used_budget: number; // msats
       total_budget: number; // msats
       renews_at?: number; // timestamp
-      renewal_period: "daily" | "weekly" | "monthly" | "yearly" | "never";
+      renewal_period: BudgetRenewalPeriod;
     }
   // eslint-disable-next-line @typescript-eslint/ban-types
   | {};
@@ -172,6 +180,22 @@ export type Nip47LookupInvoiceRequest = {
 
 export type Nip47SignMessageRequest = {
   message: string;
+};
+
+export type Nip47CreateConnectionRequest = {
+  pubkey: string;
+  name: string;
+  request_methods: Nip47Method[];
+  notification_types?: Nip47NotificationType[];
+  max_amount?: number;
+  budget_renewal?: BudgetRenewalPeriod;
+  expires_at?: number;
+  isolated?: boolean;
+  metadata?: unknown;
+};
+
+export type Nip47CreateConnectionResponse = {
+  wallet_pubkey: string;
 };
 
 export type Nip47SignMessageResponse = {
@@ -399,12 +423,23 @@ export class NWCClient {
     if (options.maxAmount) {
       url.searchParams.set("max_amount", options.maxAmount.toString());
     }
-    if (options.editable !== undefined) {
-      url.searchParams.set("editable", options.editable.toString());
-    }
 
     if (options.requestMethods) {
       url.searchParams.set("request_methods", options.requestMethods.join(" "));
+    }
+    if (options.notificationTypes) {
+      url.searchParams.set(
+        "notification_types",
+        options.notificationTypes.join(" "),
+      );
+    }
+
+    if (options.isolated) {
+      url.searchParams.set("isolated", "true");
+    }
+
+    if (options.metadata) {
+      url.searchParams.set("metadata", JSON.stringify(options.metadata));
     }
 
     return url;
@@ -620,6 +655,7 @@ export class NWCClient {
       throw error;
     }
   }
+
   async signMessage(
     request: Nip47SignMessageRequest,
   ): Promise<Nip47SignMessageResponse> {
@@ -633,6 +669,24 @@ export class NWCClient {
       return result;
     } catch (error) {
       console.error("Failed to request sign_message", error);
+      throw error;
+    }
+  }
+
+  async createConnection(
+    request: Nip47CreateConnectionRequest,
+  ): Promise<Nip47CreateConnectionResponse> {
+    try {
+      const result =
+        await this.executeNip47Request<Nip47CreateConnectionResponse>(
+          "create_connection",
+          request,
+          (result) => !!result.wallet_pubkey,
+        );
+
+      return result;
+    } catch (error) {
+      console.error("Failed to request create_connection", error);
       throw error;
     }
   }
