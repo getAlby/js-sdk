@@ -11,10 +11,10 @@ import {
 export type NWAOptions = {
   relayUrl: string;
   appPubkey: string;
+  requestMethods: Nip47Method[];
 
   name?: string;
   icon?: string;
-  requestMethods: Nip47Method[];
   notificationTypes?: Nip47NotificationType[];
   maxAmount?: number;
   budgetRenewal?: BudgetRenewalPeriod;
