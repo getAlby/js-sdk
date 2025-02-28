@@ -31,12 +31,19 @@ type Nip47SingleMethod =
   | "pay_keysend"
   | "lookup_invoice"
   | "list_transactions"
-  | "sign_message";
+  | "sign_message"
+  | "create_connection";
 
 type Nip47MultiMethod = "multi_pay_invoice" | "multi_pay_keysend";
 
 export type Nip47Method = Nip47SingleMethod | Nip47MultiMethod;
 export type Nip47Capability = Nip47Method | "notifications";
+export type BudgetRenewalPeriod =
+  | "daily"
+  | "weekly"
+  | "monthly"
+  | "yearly"
+  | "never";
 
 export type Nip47GetInfoResponse = {
   alias: string;
@@ -48,6 +55,7 @@ export type Nip47GetInfoResponse = {
   methods: Nip47Method[];
   notifications?: Nip47NotificationType[];
   metadata?: unknown;
+  lud16?: string;
 };
 
 export type Nip47GetBudgetResponse =
@@ -55,7 +63,7 @@ export type Nip47GetBudgetResponse =
       used_budget: number; // msats
       total_budget: number; // msats
       renews_at?: number; // timestamp
-      renewal_period: "daily" | "weekly" | "monthly" | "yearly" | "never";
+      renewal_period: BudgetRenewalPeriod;
     }
   // eslint-disable-next-line @typescript-eslint/ban-types
   | {};
@@ -66,6 +74,11 @@ export type Nip47GetBalanceResponse = {
 
 export type Nip47PayResponse = {
   preimage: string;
+};
+
+type Nip47TimeoutValues = {
+  replyTimeout?: number;
+  publishTimeout?: number;
 };
 
 export type Nip47MultiPayInvoiceRequest = {
@@ -169,13 +182,28 @@ export type Nip47SignMessageRequest = {
   message: string;
 };
 
+export type Nip47CreateConnectionRequest = {
+  pubkey: string;
+  name: string;
+  request_methods: Nip47Method[];
+  notification_types?: Nip47NotificationType[];
+  max_amount?: number;
+  budget_renewal?: BudgetRenewalPeriod;
+  expires_at?: number;
+  isolated?: boolean;
+  metadata?: unknown;
+};
+
+export type Nip47CreateConnectionResponse = {
+  wallet_pubkey: string;
+};
+
 export type Nip47SignMessageResponse = {
   message: string;
   signature: string;
 };
 
 export interface NWCOptions {
-  authorizationUrl?: string; // the URL to the NWC interface for the user to confirm the session
   relayUrl: string;
   walletPubkey: string;
   secret?: string;
@@ -183,14 +211,9 @@ export interface NWCOptions {
 }
 
 export class Nip47Error extends Error {
-  /**
-   * @deprecated please use message. Deprecated since v3.3.2. Will be removed in v4.0.0.
-   */
-  error: string;
   code: string;
   constructor(message: string, code: string) {
     super(message);
-    this.error = message;
     this.code = code;
   }
 }
@@ -210,22 +233,12 @@ export class Nip47UnexpectedResponseError extends Nip47Error {}
 export class Nip47NetworkError extends Nip47Error {}
 export class Nip47UnsupportedEncryptionError extends Nip47Error {}
 
-export const NWCs: Record<string, NWCOptions> = {
-  alby: {
-    authorizationUrl: "https://nwc.getalby.com/apps/new",
-    relayUrl: "wss://relay.getalby.com/v1",
-    walletPubkey:
-      "69effe7b49a6dd5cf525bd0905917a5005ffe480b58eeb8e861418cf3ae760d9",
-  },
-};
-
 export type NewNWCClientOptions = {
-  providerName?: string;
-  authorizationUrl?: string;
   relayUrl?: string;
   secret?: string;
   walletPubkey?: string;
   nostrWalletConnectUrl?: string;
+  lud16?: string;
 };
 
 export class NWCClient {
@@ -268,12 +281,6 @@ export class NWCClient {
     return options;
   }
 
-  static withNewSecret(options?: ConstructorParameters<typeof NWCClient>[0]) {
-    options = options || {};
-    options.secret = bytesToHex(generateSecretKey());
-    return new NWCClient(options);
-  }
-
   constructor(options?: NewNWCClientOptions) {
     if (options && options.nostrWalletConnectUrl) {
       options = {
@@ -281,9 +288,7 @@ export class NWCClient {
         ...options,
       };
     }
-    const providerOptions = NWCs[options?.providerName || "alby"] as NWCOptions;
     this.options = {
-      ...providerOptions,
       ...(options || {}),
     } as NWCOptions;
 
@@ -389,49 +394,81 @@ export class NWCClient {
     return decrypted;
   }
 
-  getAuthorizationUrl(options?: NWCAuthorizationUrlOptions): URL {
-    if (!this.options.authorizationUrl) {
-      throw new Error("Missing authorizationUrl option");
+  static getAuthorizationUrl(
+    authorizationBasePath: string,
+    options: NWCAuthorizationUrlOptions = {},
+    pubkey: string,
+  ): URL {
+    if (authorizationBasePath.indexOf("/#/") > -1) {
+      throw new Error("hash router paths not supported");
     }
-    const url = new URL(this.options.authorizationUrl);
-    if (options?.name) {
-      url.searchParams.set("name", options?.name);
+    const url = new URL(authorizationBasePath);
+    if (options.name) {
+      url.searchParams.set("name", options.name);
     }
-    url.searchParams.set("pubkey", this.publicKey);
-    if (options?.returnTo) {
+    url.searchParams.set("pubkey", pubkey);
+    if (options.returnTo) {
       url.searchParams.set("return_to", options.returnTo);
     }
 
-    if (options?.budgetRenewal) {
+    if (options.budgetRenewal) {
       url.searchParams.set("budget_renewal", options.budgetRenewal);
     }
-    if (options?.expiresAt) {
+    if (options.expiresAt) {
       url.searchParams.set(
         "expires_at",
         Math.floor(options.expiresAt.getTime() / 1000).toString(),
       );
     }
-    if (options?.maxAmount) {
+    if (options.maxAmount) {
       url.searchParams.set("max_amount", options.maxAmount.toString());
     }
-    if (options?.editable !== undefined) {
-      url.searchParams.set("editable", options.editable.toString());
+
+    if (options.requestMethods) {
+      url.searchParams.set("request_methods", options.requestMethods.join(" "));
+    }
+    if (options.notificationTypes) {
+      url.searchParams.set(
+        "notification_types",
+        options.notificationTypes.join(" "),
+      );
     }
 
-    if (options?.requestMethods) {
-      url.searchParams.set("request_methods", options.requestMethods.join(" "));
+    if (options.isolated) {
+      url.searchParams.set("isolated", "true");
+    }
+
+    if (options.metadata) {
+      url.searchParams.set("metadata", JSON.stringify(options.metadata));
     }
 
     return url;
   }
 
-  initNWC(options: NWCAuthorizationUrlOptions = {}) {
+  /**
+   * create a new client-initiated NWC connection via HTTP deeplink
+   *
+   * @authorizationBasePath the deeplink path e.g. https://my.albyhub.com/apps/new
+   * @options configure the created app (e.g. the name, budget, expiration)
+   * @secret optionally pass a secret, otherwise one will be generated.
+   */
+  static fromAuthorizationUrl(
+    authorizationBasePath: string,
+    options: NWCAuthorizationUrlOptions = {},
+    secret?: string,
+  ): Promise<NWCClient> {
+    secret = secret || bytesToHex(generateSecretKey());
+
     // here we assume an browser context and window/document is available
     // we set the location.host as a default name if none is given
     if (!options.name) {
       options.name = document.location.host;
     }
-    const url = this.getAuthorizationUrl(options);
+    const url = this.getAuthorizationUrl(
+      authorizationBasePath,
+      options,
+      getPublicKey(hexToBytes(secret)),
+    );
     const height = 600;
     const width = 400;
     const top = window.outerHeight / 2 + window.screenY - height / 2;
@@ -457,7 +494,12 @@ export class NWCClient {
       };
 
       const onMessage = (message: {
-        data?: { type: "nwc:success" | unknown };
+        data?: {
+          type: "nwc:success" | unknown;
+          relayUrl?: string;
+          walletPubkey?: string;
+          lud16?: string;
+        };
         origin: string;
       }) => {
         const data = message.data;
@@ -466,7 +508,20 @@ export class NWCClient {
           data.type === "nwc:success" &&
           message.origin === `${url.protocol}//${url.host}`
         ) {
-          resolve(data);
+          if (!data.relayUrl) {
+            reject(new Error("no relayUrl in response"));
+          }
+          if (!data.walletPubkey) {
+            reject(new Error("no walletPubkey in response"));
+          }
+          resolve(
+            new NWCClient({
+              relayUrl: data.relayUrl,
+              walletPubkey: data.walletPubkey,
+              secret,
+              lud16: data.lud16,
+            }),
+          );
           clearInterval(popupChecker);
           window.removeEventListener("message", onMessage);
           if (popup) {
@@ -477,18 +532,6 @@ export class NWCClient {
       const popupChecker = setInterval(checkForPopup, 500);
       window.addEventListener("message", onMessage);
     });
-  }
-
-  /**
-   * @deprecated please use getWalletServiceInfo. Deprecated since v3.5.0. Will be removed in v4.0.0.
-   */
-  async getWalletServiceSupportedMethods(): Promise<Nip47Capability[]> {
-    console.warn(
-      "getWalletServiceSupportedMethods is deprecated. Please use getWalletServiceInfo instead.",
-    );
-    const info = await this.getWalletServiceInfo();
-
-    return info.capabilities;
   }
 
   async getWalletServiceInfo(): Promise<{
@@ -556,6 +599,7 @@ export class NWCClient {
         "get_info",
         {},
         (result) => !!result.methods,
+        { replyTimeout: 10000 },
       );
       return result;
     } catch (error) {
@@ -570,6 +614,7 @@ export class NWCClient {
         "get_budget",
         {},
         (result) => result !== undefined,
+        { replyTimeout: 10000 },
       );
       return result;
     } catch (error) {
@@ -584,6 +629,7 @@ export class NWCClient {
         "get_balance",
         {},
         (result) => result.balance !== undefined,
+        { replyTimeout: 10000 },
       );
       return result;
     } catch (error) {
@@ -620,6 +666,7 @@ export class NWCClient {
       throw error;
     }
   }
+
   async signMessage(
     request: Nip47SignMessageRequest,
   ): Promise<Nip47SignMessageResponse> {
@@ -633,6 +680,24 @@ export class NWCClient {
       return result;
     } catch (error) {
       console.error("Failed to request sign_message", error);
+      throw error;
+    }
+  }
+
+  async createConnection(
+    request: Nip47CreateConnectionRequest,
+  ): Promise<Nip47CreateConnectionResponse> {
+    try {
+      const result =
+        await this.executeNip47Request<Nip47CreateConnectionResponse>(
+          "create_connection",
+          request,
+          (result) => !!result.wallet_pubkey,
+        );
+
+      return result;
+    } catch (error) {
+      console.error("Failed to request create_connection", error);
       throw error;
     }
   }
@@ -733,6 +798,7 @@ export class NWCClient {
           "list_transactions",
           request,
           (response) => !!response.transactions,
+          { replyTimeout: 10000 },
         );
 
       return result;
@@ -831,6 +897,7 @@ export class NWCClient {
     nip47Method: Nip47SingleMethod,
     params: unknown,
     resultValidator: (result: T) => boolean,
+    timeoutValues?: Nip47TimeoutValues,
   ): Promise<T> {
     await this._checkConnected();
     await this._checkCompatibility();
@@ -881,7 +948,10 @@ export class NWCClient {
           );
         }
 
-        const replyTimeoutCheck = setTimeout(replyTimeout, 60000);
+        const replyTimeoutCheck = setTimeout(
+          replyTimeout,
+          timeoutValues?.replyTimeout || 60000,
+        );
 
         sub.onevent = async (event) => {
           // console.log(`Received reply event: `, event);
@@ -944,7 +1014,10 @@ export class NWCClient {
             ),
           );
         }
-        const publishTimeoutCheck = setTimeout(publishTimeout, 5000);
+        const publishTimeoutCheck = setTimeout(
+          publishTimeout,
+          timeoutValues?.publishTimeout || 5000,
+        );
 
         try {
           await this.relay.publish(event);
@@ -969,6 +1042,7 @@ export class NWCClient {
     params: unknown,
     numPayments: number,
     resultValidator: (result: T) => boolean,
+    timeoutValues?: Nip47TimeoutValues,
   ): Promise<(T & { dTag: string })[]> {
     await this._checkConnected();
     await this._checkCompatibility();
@@ -1020,7 +1094,10 @@ export class NWCClient {
           );
         }
 
-        const replyTimeoutCheck = setTimeout(replyTimeout, 60000);
+        const replyTimeoutCheck = setTimeout(
+          replyTimeout,
+          timeoutValues?.replyTimeout || 60000,
+        );
 
         sub.onevent = async (event) => {
           // console.log(`Received reply event: `, event);
@@ -1102,7 +1179,10 @@ export class NWCClient {
             ),
           );
         }
-        const publishTimeoutCheck = setTimeout(publishTimeout, 5000);
+        const publishTimeoutCheck = setTimeout(
+          publishTimeout,
+          timeoutValues?.publishTimeout || 5000,
+        );
 
         try {
           await this.relay.publish(event);
