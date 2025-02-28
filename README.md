@@ -73,21 +73,6 @@ const nwcClient = await nwc.NWCClient.fromAuthorizationUrl(
 
 The same options can be provided to getAuthorizationUrl() as fromAuthorizationUrl() - see [Manual Auth example](./examples/nwc/client/auth_manual.html)
 
-#### `static newClientFromAuthorizationUrl()`
-
-Initialized a new `NWCClient` instance but generates a new random secret. The pubkey of that secret then needs to be authorized by the user (this can be initiated by redirecting the user to the `getAuthorizationUrl()` URL or calling `fromAuthorizationUrl()` to open an authorization popup.
-
-##### Example
-
-```js
-const nwcClient = await nwc.NWCClient.fromAuthorizationUrl(
-  "https://my.albyhub.com/apps/new",
-  {
-    name: "My app name",
-  },
-);
-```
-
 #### Quick start example
 
 ```js
