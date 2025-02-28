@@ -1,4 +1,5 @@
 import "websocket-polyfill"; // required in node.js
+import qrcode from "qrcode-terminal";
 
 import * as readline from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
@@ -19,12 +20,14 @@ const nwaClient = new nwa.NWAClient({
   requestMethods: ["get_info"],
 });
 
-console.info(
-  "enter the following NWA connection URI into your wallet",
-  nwaClient.connectionUri,
-);
+console.info("Scan or enter the following NWA connection URI in your wallet:");
 
-console.info("Waiting for connection...");
+// this prints the QR code
+qrcode.generate(nwaClient.connectionUri, { small: true });
+
+console.info(nwaClient.connectionUri);
+
+console.info("\nWaiting for connection...");
 
 await nwaClient.subscribe({
   onSuccess: async (nwcClient) => {
