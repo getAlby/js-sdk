@@ -92,7 +92,7 @@ describe("NWA URI", () => {
       fail("should not pass");
     } catch (error) {
       expect("" + error).toBe(
-        "Error: Unexpected scheme. Should be nostr+walletauth://",
+        "Error: Unexpected scheme. Should be nostr+walletauth:// or nostr+walletauth+specificapp://",
       );
     }
   });
