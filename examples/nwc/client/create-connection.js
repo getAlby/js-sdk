@@ -49,3 +49,5 @@ const childClient = new nwc.NWCClient({
 
 const info = await childClient.getInfo();
 console.info("Got info from created app", info);
+
+childClient.close();
