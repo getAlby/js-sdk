@@ -241,6 +241,8 @@ export type NewNWCClientOptions = {
   lud16?: string;
 };
 
+type EncryptionType = "nip04" | "nip44_v2";
+
 export class NWCClient {
   relay: Relay;
   relayUrl: string;
@@ -248,9 +250,7 @@ export class NWCClient {
   lud16: string | undefined;
   walletPubkey: string;
   options: NWCOptions;
-  encryption: string | undefined;
-
-  static SUPPORTED_ENCRYPTIONS = ["nip04", "nip44_v2"];
+  private _encryptionType: EncryptionType | undefined;
 
   static parseWalletConnectUrl(walletConnectUrl: string): NWCOptions {
     // makes it possible to parse with URL in the different environments (browser/node/...)
@@ -339,11 +339,11 @@ export class NWCClient {
     return getPublicKey(hexToBytes(this.secret));
   }
 
-  get supportedEncryption(): string {
-    if (!this.encryption) {
+  get encryptionType(): string {
+    if (!this._encryptionType) {
       throw new Error("Missing encryption or version");
     }
-    return this.encryption;
+    return this._encryptionType;
   }
 
   getPublicKey(): Promise<string> {
@@ -371,7 +371,7 @@ export class NWCClient {
       throw new Error("Missing secret");
     }
     let encrypted;
-    if (this.supportedEncryption === "nip04") {
+    if (this.encryptionType === "nip04") {
       encrypted = await nip04.encrypt(this.secret, pubkey, content);
     } else {
       const key = nip44.getConversationKey(hexToBytes(this.secret), pubkey);
@@ -385,7 +385,7 @@ export class NWCClient {
       throw new Error("Missing secret");
     }
     let decrypted;
-    if (this.supportedEncryption === "nip04") {
+    if (this.encryptionType === "nip04") {
       decrypted = await nip04.decrypt(this.secret, pubkey, content);
     } else {
       const key = nip44.getConversationKey(hexToBytes(this.secret), pubkey);
@@ -576,13 +576,13 @@ export class NWCClient {
     const versionsTag = events[0].tags.find((t) => t[0] === "v");
     const encryptionTag = events[0].tags.find((t) => t[0] === "encryption");
 
-    let encryptions = ["nip04"];
+    let encryptions: string[] = ["nip04" satisfies EncryptionType];
     // TODO: Remove version tag after 01-06-2025
     if (versionsTag && versionsTag[1].includes("1.0")) {
-      encryptions.push("nip44");
+      encryptions.push("nip44_v2" satisfies EncryptionType);
     }
     if (encryptionTag) {
-      encryptions = encryptionTag[1].split(" ");
+      encryptions = encryptionTag[1].split(" ") as EncryptionType[];
     }
     return {
       encryptions,
@@ -820,12 +820,12 @@ export class NWCClient {
       while (subscribed) {
         try {
           await this._checkConnected();
-          await this._checkCompatibility();
+          await this._fetchEncryptionType();
           sub = this.relay.subscribe(
             [
               {
                 kinds: [
-                  ...(this.supportedEncryption === "nip04" ? [23196] : [23197]),
+                  ...(this.encryptionType === "nip04" ? [23196] : [23197]),
                 ],
                 authors: [this.walletPubkey],
                 "#p": [this.publicKey],
@@ -900,7 +900,8 @@ export class NWCClient {
     timeoutValues?: Nip47TimeoutValues,
   ): Promise<T> {
     await this._checkConnected();
-    await this._checkCompatibility();
+    await this._fetchEncryptionType();
+
     return new Promise<T>((resolve, reject) => {
       (async () => {
         const command = {
@@ -917,8 +918,8 @@ export class NWCClient {
           tags: [
             ["p", this.walletPubkey],
             // TODO: Remove version tag after 01-06-2025
-            ["v", this.supportedEncryption === "nip44_v2" ? "1.0" : "0.0"],
-            ["encryption", this.supportedEncryption],
+            ["v", this.encryptionType === "nip44_v2" ? "1.0" : "0.0"],
+            ["encryption", this.encryptionType],
           ],
           content: encryptedCommand,
         };
@@ -1045,7 +1046,7 @@ export class NWCClient {
     timeoutValues?: Nip47TimeoutValues,
   ): Promise<(T & { dTag: string })[]> {
     await this._checkConnected();
-    await this._checkCompatibility();
+    await this._fetchEncryptionType();
     const results: (T & { dTag: string })[] = [];
     return new Promise<(T & { dTag: string })[]>((resolve, reject) => {
       (async () => {
@@ -1063,8 +1064,8 @@ export class NWCClient {
           tags: [
             ["p", this.walletPubkey],
             // TODO: Remove version tag after 01-06-2025
-            ["v", this.supportedEncryption === "nip44_v2" ? "1.0" : "0.0"],
-            ["encryption", this.supportedEncryption],
+            ["v", this.encryptionType === "nip44_v2" ? "1.0" : "0.0"],
+            ["encryption", this.encryptionType],
           ],
           content: encryptedCommand,
         };
@@ -1219,26 +1220,28 @@ export class NWCClient {
     }
   }
 
-  private async _checkCompatibility() {
-    if (!this.encryption) {
+  private async _fetchEncryptionType() {
+    if (!this._encryptionType) {
       const walletServiceInfo = await this.getWalletServiceInfo();
-      const encryption = this.selectEncryption(walletServiceInfo.encryptions);
-      if (!encryption) {
+      const encryptionType = this.selectEncryptionType(
+        walletServiceInfo.encryptions,
+      );
+      if (!encryptionType) {
         throw new Nip47UnsupportedEncryptionError(
           `no compatible encryption or version found between wallet and client`,
           "UNSUPPORTED_ENCRYPTION",
         );
       }
-      if (encryption === "nip04") {
+      if (encryptionType === "nip04") {
         console.warn(
           "NIP-04 encryption is about to be deprecated. Please upgrade your wallet service to use NIP-44 instead.",
         );
       }
-      this.encryption = encryption;
+      this._encryptionType = encryptionType;
     }
   }
 
-  private selectEncryption(encryptions: string[]): string | null {
+  private selectEncryptionType(encryptions: string[]): EncryptionType | null {
     if (encryptions.includes("nip44_v2")) {
       return "nip44_v2";
     }
