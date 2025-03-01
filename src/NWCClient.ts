@@ -820,7 +820,7 @@ export class NWCClient {
       while (subscribed) {
         try {
           await this._checkConnected();
-          await this._fetchEncryptionType();
+          await this._selectEncryptionType();
           sub = this.relay.subscribe(
             [
               {
@@ -900,7 +900,7 @@ export class NWCClient {
     timeoutValues?: Nip47TimeoutValues,
   ): Promise<T> {
     await this._checkConnected();
-    await this._fetchEncryptionType();
+    await this._selectEncryptionType();
 
     return new Promise<T>((resolve, reject) => {
       (async () => {
@@ -1046,7 +1046,7 @@ export class NWCClient {
     timeoutValues?: Nip47TimeoutValues,
   ): Promise<(T & { dTag: string })[]> {
     await this._checkConnected();
-    await this._fetchEncryptionType();
+    await this._selectEncryptionType();
     const results: (T & { dTag: string })[] = [];
     return new Promise<(T & { dTag: string })[]>((resolve, reject) => {
       (async () => {
@@ -1220,7 +1220,7 @@ export class NWCClient {
     }
   }
 
-  private async _fetchEncryptionType() {
+  private async _selectEncryptionType() {
     if (!this._encryptionType) {
       const walletServiceInfo = await this.getWalletServiceInfo();
       const encryptionType = this._findPreferredEncryptionType(
