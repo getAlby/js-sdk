@@ -1223,7 +1223,7 @@ export class NWCClient {
   private async _fetchEncryptionType() {
     if (!this._encryptionType) {
       const walletServiceInfo = await this.getWalletServiceInfo();
-      const encryptionType = this.selectEncryptionType(
+      const encryptionType = this._findPreferredEncryptionType(
         walletServiceInfo.encryptions,
       );
       if (!encryptionType) {
@@ -1241,7 +1241,9 @@ export class NWCClient {
     }
   }
 
-  private selectEncryptionType(encryptions: string[]): EncryptionType | null {
+  private _findPreferredEncryptionType(
+    encryptions: string[],
+  ): EncryptionType | null {
     if (encryptions.includes("nip44_v2")) {
       return "nip44_v2";
     }
