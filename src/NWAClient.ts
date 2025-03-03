@@ -7,6 +7,7 @@ import {
   Nip47NotificationType,
   NWCClient,
 } from "./NWCClient";
+import { Subscription } from "nostr-tools/lib/types/abstract-relay";
 
 export type NWAOptions = {
   relayUrl: string;
@@ -170,47 +171,87 @@ export class NWAClient {
   }): Promise<{
     unsub: () => void;
   }> {
-    await this._checkConnected();
+    let subscribed = true;
+    let endPromise: (() => void) | undefined;
+    let onRelayDisconnect: (() => void) | undefined;
+    let sub: Subscription | undefined;
+    (async () => {
+      while (subscribed) {
+        try {
+          await this._checkConnected();
 
-    const sub = this.relay.subscribe(
-      [
-        {
-          kinds: [13194], // NIP-47 info event
-          "#p": [this.options.appPubkey],
-        },
-      ],
-      {
-        // eoseTimeout: 10000,
-      },
-    );
+          const sub = this.relay.subscribe(
+            [
+              {
+                kinds: [13194], // NIP-47 info event
+                "#p": [this.options.appPubkey],
+              },
+            ],
+            {
+              // eoseTimeout: 10000,
+            },
+          );
+          console.info("subscribed to relay");
 
-    const unsub = () => {
-      sub.close();
-      this.relay.close();
-    };
+          const unsub = () => {
+            sub.close();
+            this.relay.close();
+          };
 
-    sub.onevent = async (event) => {
-      const client = new NWCClient({
-        relayUrl: this.options.relayUrl,
-        secret: this.appSecretKey,
-        walletPubkey: event.pubkey,
-      });
+          sub.onevent = async (event) => {
+            const client = new NWCClient({
+              relayUrl: this.options.relayUrl,
+              secret: this.appSecretKey,
+              walletPubkey: event.pubkey,
+            });
 
-      // try to fetch the lightning address
-      try {
-        const info = await client.getInfo();
-        client.options.lud16 = info.lud16;
-        client.lud16 = info.lud16;
-      } catch (error) {
-        console.error("failed to fetch get_info", error);
+            // try to fetch the lightning address
+            try {
+              const info = await client.getInfo();
+              client.options.lud16 = info.lud16;
+              client.lud16 = info.lud16;
+            } catch (error) {
+              console.error("failed to fetch get_info", error);
+            }
+
+            args.onSuccess(client);
+            unsub();
+          };
+
+          await new Promise<void>((resolve) => {
+            endPromise = () => {
+              resolve();
+            };
+            onRelayDisconnect = () => {
+              console.info("relay disconnected");
+              endPromise?.();
+            };
+            this.relay.onclose = onRelayDisconnect;
+          });
+          if (onRelayDisconnect !== undefined) {
+            this.relay.onclose = null;
+          }
+        } catch (error) {
+          console.error(
+            "error subscribing to info event",
+            error || "unknown relay error",
+          );
+        }
+        if (subscribed) {
+          // wait a second and try re-connecting
+          // any events during this period will be lost
+          // unless using a relay that keeps events until client reconnect
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+        }
       }
-
-      args.onSuccess(client);
-      unsub();
-    };
+    })();
 
     return {
-      unsub,
+      unsub: () => {
+        subscribed = false;
+        endPromise?.();
+        sub?.close();
+      },
     };
   }
 

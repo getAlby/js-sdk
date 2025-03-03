@@ -881,6 +881,7 @@ export class NWCClient {
         if (subscribed) {
           // wait a second and try re-connecting
           // any notifications during this period will be lost
+          // unless using a relay that keeps events until client reconnect
           await new Promise((resolve) => setTimeout(resolve, 1000));
         }
       }
