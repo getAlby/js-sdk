@@ -74,6 +74,7 @@ export type Nip47GetBalanceResponse = {
 
 export type Nip47PayResponse = {
   preimage: string;
+  fees_paid: number;
 };
 
 type Nip47TimeoutValues = {
@@ -119,6 +120,7 @@ export interface Nip47ListTransactionsRequest {
 
 export type Nip47ListTransactionsResponse = {
   transactions: Nip47Transaction[];
+  total_count: number;
 };
 
 export type Nip47Transaction = {
