@@ -1,4 +1,4 @@
-import { fiat } from "@getalby/lightning-tools";
+import { fiat, LightningAddress } from "@getalby/lightning-tools";
 import {
   NewNWCClientOptions,
   Nip47MakeInvoiceRequest,
@@ -14,7 +14,7 @@ type FiatAmount = { amount: number; currency: string };
 /**
  * An amount in satoshis, or an amount in a fiat currency
  */
-type Amount = number | FiatAmount;
+type Amount = { satoshi: number } | FiatAmount;
 
 // Most popular fiat currencies
 export const USD = (amount: number) =>
@@ -43,10 +43,31 @@ export class LNClient {
     }
   }
 
-  pay(invoice: string, args?: Omit<Nip47PayInvoiceRequest, "invoice">) {
+  async pay(
+    recipient: string,
+    amount?: Amount,
+    args?: Omit<Nip47PayInvoiceRequest, "invoice" | "amount">,
+  ) {
+    let invoice = recipient;
+    const parsedAmount = amount ? await parseAmount(amount) : undefined;
+    if (invoice.indexOf("@") > -1) {
+      if (!parsedAmount) {
+        throw new Error(
+          "Amount must be provided when paying to a lightning address",
+        );
+      }
+      const ln = new LightningAddress(recipient);
+      await ln.fetch();
+      const invoiceObj = await ln.requestInvoice({
+        satoshi: parsedAmount.satoshi,
+      });
+      invoice = invoiceObj.paymentRequest;
+    }
+
     return this.nwcClient.payInvoice({
-      invoice,
       ...(args || {}),
+      invoice,
+      amount: parsedAmount?.millisat,
     });
   }
 
@@ -54,19 +75,10 @@ export class LNClient {
     amount: Amount,
     args?: Omit<Nip47MakeInvoiceRequest, "amount">,
   ) {
-    let parsedAmount = 0;
-    if (typeof amount === "number") {
-      parsedAmount = amount;
-    } else {
-      parsedAmount = await fiat.getSatoshiValue({
-        amount: amount.amount,
-        currency: amount.currency,
-      });
-    }
-
+    const parsedAmount = await parseAmount(amount);
     const transaction = await this.nwcClient.makeInvoice({
-      amount: parsedAmount * 1000 /* as millisats */,
       ...(args || {}),
+      amount: parsedAmount.millisat,
     });
 
     return {
@@ -97,4 +109,17 @@ export class LNClient {
   }
 
   // TODO: proxy everything from NWCClient
+}
+
+async function parseAmount(amount: Amount) {
+  let parsedAmount = 0;
+  if ("satoshi" in amount) {
+    parsedAmount = amount.satoshi;
+  } else {
+    parsedAmount = await fiat.getSatoshiValue({
+      amount: amount.amount,
+      currency: amount.currency,
+    });
+  }
+  return { satoshi: parsedAmount, millisat: parsedAmount * 1000 };
 }

@@ -37,7 +37,8 @@ Quickly get started adding lightning payments to your app.
 For example, to make a payment:
 
 ```js
-await new LNClient(credentials).pay(invoice);
+await new LNClient(credentials).pay("lnbc..."); // pay a lightning invoice
+await new LNClient(credentials).pay("hello@getalby.com", USD(1)); // or pay $1 USD to a lightning address
 ```
 
 Or to request a payment to be received:
