@@ -4,3 +4,4 @@ export * as webln from "./webln";
 export { Client } from "./client";
 export * as nwc from "./NWCClient";
 export * as nwa from "./NWAClient";
+export * from "./LNClient";

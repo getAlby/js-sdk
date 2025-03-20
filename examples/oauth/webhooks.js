@@ -1,7 +1,7 @@
 import * as readline from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
 
-import { auth, Client } from "../dist/index.module.js";
+import { auth, Client } from "../../dist/index.module.js";
 
 const rl = readline.createInterface({ input, output });
 
@@ -35,19 +35,13 @@ await authClient.requestAccessToken(code);
 console.log(authClient.token);
 const client = new Client(authClient);
 
-const response = client.keysend([
-  {
-    amount: 10,
-    destination:
-      "03006fcf3312dae8d068ea297f58e2bd00ec1ffe214b793eda46966b6294a53ce6",
-    customRecords: { 34349334: "I love amboss" },
-  },
-  {
-    amount: 11,
-    destination:
-      "03006fcf3312dae8d068ea297f58e2bd00ec1ffe214b793eda46966b6294a53ce6",
-    customRecords: { 34349334: "I love amboss" },
-  },
-]);
+// Create a webhook
+response = await alby.createWebhookEndpoint({
+  url: "https://example.com",
+  filter_types: ["invoice.settled"],
+});
+
+// Delete a webhook
+// response = await alby.deleteWebhookEndpoint('ep_...').then(console.log)
 
 console.log(JSON.stringify(response));
