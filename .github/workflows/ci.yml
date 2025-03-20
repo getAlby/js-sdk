@@ -15,7 +15,9 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 18
-          cache: 'yarn'
+          cache: "yarn"
       - run: yarn install --frozen-lockfile
       - run: yarn build
       - run: yarn test
+        env:
+          NWC_URL: ${{ secrets.NWC_URL }}
