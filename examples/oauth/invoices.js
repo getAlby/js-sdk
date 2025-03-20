@@ -1,22 +1,15 @@
 import * as readline from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
 
-import { auth, Client } from "../dist/index.module.js";
+import { auth, Client } from "../../dist/index.module.js";
 
 const rl = readline.createInterface({ input, output });
 
 const authClient = new auth.OAuth2User({
   client_id: process.env.CLIENT_ID,
   client_secret: process.env.CLIENT_SECRET,
-  callback: "http://localhost:8080/callback",
-  scopes: [
-    "invoices:read",
-    "account:read",
-    "balance:read",
-    "invoices:create",
-    "invoices:read",
-    "payments:send",
-  ],
+  callback: "http://localhost:8080",
+  scopes: ["invoices:read", "account:read", "balance:read"],
   token: {
     access_token: undefined,
     refresh_token: undefined,
@@ -35,13 +28,11 @@ await authClient.requestAccessToken(code);
 console.log(authClient.token);
 const client = new Client(authClient);
 
-// Create a webhook
-response = await alby.createWebhookEndpoint({
-  url: "https://example.com",
-  filter_types: ["invoice.settled"],
-});
+const response = await client.incomingInvoices();
 
-// Delete a webhook
-// response = await alby.deleteWebhookEndpoint('ep_...').then(console.log)
+console.log(JSON.stringify(response, null, 2));
 
-console.log(JSON.stringify(response));
+if (response[0]) {
+  const invoice = await client.getInvoice(response[0].r_hash_str);
+  console.log(JSON.stringify(invoice, null, 2));
+}
