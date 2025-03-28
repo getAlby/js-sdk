@@ -28,6 +28,8 @@ export const GBP = (amount: number) =>
 export const CHF = (amount: number) =>
   ({ amount, currency: "CHF" }) satisfies FiatAmount;
 
+export type LN = LNClient;
+
 export class LNClient {
   readonly nwcClient: NWCClient;
 

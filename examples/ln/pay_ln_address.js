@@ -3,7 +3,7 @@ import "websocket-polyfill"; // required in node.js
 import * as readline from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
 
-import { LNClient, USD } from "../../dist/index.module.js";
+import { LN, USD } from "../../dist/index.module.js";
 
 const rl = readline.createInterface({ input, output });
 
@@ -12,7 +12,7 @@ const nwcUrl =
   (await rl.question("Nostr Wallet Connect URL (nostr+walletconnect://...): "));
 rl.close();
 
-const client = new LNClient(nwcUrl);
+const client = new LN(nwcUrl);
 const response = await client.pay("rolznz@getalby.com", USD(1.0));
 console.info("Paid successfully", response);
 client.close();

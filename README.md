@@ -30,21 +30,22 @@ or for use without any build tools:
 
 **This library relies on a global fetch() function which will work in browsers and node v18.x or newer.** (In older versions you have to use a polyfill.)
 
-## Lightning Network Client Documentation
+## Lightning Network Client (LN) Documentation
 
 Quickly get started adding lightning payments to your app.
 
 For example, to make a payment:
 
 ```js
-await new LNClient(credentials).pay("lnbc..."); // pay a lightning invoice
-await new LNClient(credentials).pay("hello@getalby.com", USD(1)); // or pay $1 USD to a lightning address
+import { LN, USD } from "@getalby/sdk";
+await new LN(credentials).pay("lnbc..."); // pay a lightning invoice
+await new LN(credentials).pay("hello@getalby.com", USD(1)); // or pay $1 USD to a lightning address
 ```
 
 Or to request a payment to be received:
 
 ```js
-const request = await new LNClient(credentials).receive(USD(1.0));
+const request = await new LN(credentials).receive(USD(1.0));
 // give request.invoice to someone...
 request.onPaid(giveAccess);
 ```
