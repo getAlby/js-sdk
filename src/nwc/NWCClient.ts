@@ -10,9 +10,10 @@ import {
   EventTemplate,
   Relay,
 } from "nostr-tools";
-import { NWCAuthorizationUrlOptions } from "./types";
+import { NWCAuthorizationUrlOptions } from "../types";
 import { hexToBytes, bytesToHex } from "@noble/hashes/utils";
 import { Subscription } from "nostr-tools/lib/types/abstract-relay";
+import { Nip47EncryptionType } from "./types";
 
 type WithDTag = {
   dTag: string;
@@ -243,8 +244,6 @@ export type NewNWCClientOptions = {
   lud16?: string;
 };
 
-type EncryptionType = "nip04" | "nip44_v2";
-
 export class NWCClient {
   relay: Relay;
   relayUrl: string;
@@ -252,7 +251,7 @@ export class NWCClient {
   lud16: string | undefined;
   walletPubkey: string;
   options: NWCOptions;
-  private _encryptionType: EncryptionType | undefined;
+  private _encryptionType: Nip47EncryptionType | undefined;
 
   static parseWalletConnectUrl(walletConnectUrl: string): NWCOptions {
     // makes it possible to parse with URL in the different environments (browser/node/...)
@@ -578,13 +577,13 @@ export class NWCClient {
     const versionsTag = events[0].tags.find((t) => t[0] === "v");
     const encryptionTag = events[0].tags.find((t) => t[0] === "encryption");
 
-    let encryptions: string[] = ["nip04" satisfies EncryptionType];
+    let encryptions: string[] = ["nip04" satisfies Nip47EncryptionType];
     // TODO: Remove version tag after 01-06-2025
     if (versionsTag && versionsTag[1].includes("1.0")) {
-      encryptions.push("nip44_v2" satisfies EncryptionType);
+      encryptions.push("nip44_v2" satisfies Nip47EncryptionType);
     }
     if (encryptionTag) {
-      encryptions = encryptionTag[1].split(" ") as EncryptionType[];
+      encryptions = encryptionTag[1].split(" ") as Nip47EncryptionType[];
     }
     return {
       encryptions,
@@ -1246,7 +1245,7 @@ export class NWCClient {
 
   private _findPreferredEncryptionType(
     encryptions: string[],
-  ): EncryptionType | null {
+  ): Nip47EncryptionType | null {
     if (encryptions.includes("nip44_v2")) {
       return "nip44_v2";
     }

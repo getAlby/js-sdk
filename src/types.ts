@@ -1,5 +1,5 @@
 import { AlbyResponseError } from "./AlbyResponseError";
-import { Nip47Method, Nip47NotificationType } from "./NWCClient";
+import { Nip47Method, Nip47NotificationType } from "./nwc/NWCClient";
 import { RequestOptions } from "./request";
 
 export type SuccessStatus = 200 | 201;

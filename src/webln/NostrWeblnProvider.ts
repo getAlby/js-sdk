@@ -21,7 +21,7 @@ import {
   Nip47Method,
   Nip47PayKeysendRequest,
   Nip47Transaction,
-} from "../NWCClient";
+} from "../nwc/NWCClient";
 import { toHexString } from "../utils";
 import { NWCAuthorizationUrlOptions } from "../types";
 
