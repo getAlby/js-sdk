@@ -10,19 +10,24 @@ import {
 import { hexToBytes } from "@noble/hashes/utils";
 import { Subscription } from "nostr-tools/lib/types/abstract-relay";
 
-// TODO: move these imports to nwc/types
 import {
   Nip47MakeInvoiceRequest,
   Nip47Method,
   Nip47NetworkError,
   Nip47NotificationType,
-} from "./NWCClient";
+  Nip47PayInvoiceRequest,
+  Nip47PayKeysendRequest,
+  Nip47LookupInvoiceRequest,
+  Nip47ListTransactionsRequest,
+  Nip47SignMessageRequest,
+  Nip47SingleMethod,
+  Nip47EncryptionType,
+} from "./types";
 import {
   NWCWalletServiceRequestHandler,
   NWCWalletServiceResponse,
   NWCWalletServiceResponsePromise,
 } from "./NWCWalletServiceRequestHandler";
-import { Nip47EncryptionType } from "./types";
 
 type NewNWCWalletServiceOptions = {
   relayUrl: string;
@@ -63,7 +68,7 @@ export class NWCWalletService {
 
   async publishWalletServiceInfoEvent(
     walletSecret: string,
-    supportedMethods: Nip47Method[],
+    supportedMethods: Nip47SingleMethod[],
     supportedNotifications: Nip47NotificationType[],
   ) {
     try {
@@ -140,6 +145,35 @@ export class NWCWalletService {
                     request.params as Nip47MakeInvoiceRequest,
                   );
                   break;
+                case "pay_invoice":
+                  responsePromise = handler.payInvoice?.(
+                    request.params as Nip47PayInvoiceRequest,
+                  );
+                  break;
+                case "pay_keysend":
+                  responsePromise = handler.payKeysend?.(
+                    request.params as Nip47PayKeysendRequest,
+                  );
+                  break;
+                case "get_balance":
+                  responsePromise = handler.getBalance?.();
+                  break;
+                case "lookup_invoice":
+                  responsePromise = handler.lookupInvoice?.(
+                    request.params as Nip47LookupInvoiceRequest,
+                  );
+                  break;
+                case "list_transactions":
+                  responsePromise = handler.listTransactions?.(
+                    request.params as Nip47ListTransactionsRequest,
+                  );
+                  break;
+                case "sign_message":
+                  responsePromise = handler.signMessage?.(
+                    request.params as Nip47SignMessageRequest,
+                  );
+                  break;
+                // TODO: handle multi_* methods
               }
 
               let response: NWCWalletServiceResponse<unknown> | undefined =

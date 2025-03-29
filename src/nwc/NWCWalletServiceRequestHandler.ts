@@ -1,9 +1,16 @@
-import {
+import type {
+  Nip47GetBalanceResponse,
   Nip47GetInfoResponse,
+  Nip47ListTransactionsRequest,
+  Nip47ListTransactionsResponse,
+  Nip47LookupInvoiceRequest,
   Nip47MakeInvoiceRequest,
+  Nip47PayInvoiceRequest,
+  Nip47PayKeysendRequest,
+  Nip47SignMessageRequest,
+  Nip47SignMessageResponse,
   Nip47Transaction,
-} from "./NWCClient";
-
+} from "./types";
 export type NWCWalletServiceRequestHandlerError =
   | {
       code: string;
@@ -25,4 +32,20 @@ export interface NWCWalletServiceRequestHandler {
   makeInvoice?(
     request: Nip47MakeInvoiceRequest,
   ): NWCWalletServiceResponsePromise<Nip47Transaction>;
+  payInvoice?(
+    request: Nip47PayInvoiceRequest,
+  ): NWCWalletServiceResponsePromise<Nip47Transaction>;
+  payKeysend?(
+    request: Nip47PayKeysendRequest,
+  ): NWCWalletServiceResponsePromise<Nip47Transaction>;
+  getBalance?(): NWCWalletServiceResponsePromise<Nip47GetBalanceResponse>;
+  lookupInvoice?(
+    request: Nip47LookupInvoiceRequest,
+  ): NWCWalletServiceResponsePromise<Nip47Transaction>;
+  listTransactions?(
+    request: Nip47ListTransactionsRequest,
+  ): NWCWalletServiceResponsePromise<Nip47ListTransactionsResponse>;
+  signMessage?(
+    request: Nip47SignMessageRequest,
+  ): NWCWalletServiceResponsePromise<Nip47SignMessageResponse>;
 }

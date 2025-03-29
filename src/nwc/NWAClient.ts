@@ -5,8 +5,8 @@ import {
   Nip47Method,
   Nip47NetworkError,
   Nip47NotificationType,
-  NWCClient,
-} from "./NWCClient";
+} from "./types";
+import { NWCClient } from "./NWCClient";
 import { Subscription } from "nostr-tools/lib/types/abstract-relay";
 
 export type NWAOptions = {
