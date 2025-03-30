@@ -7,6 +7,7 @@ import type {
   Nip47MakeInvoiceRequest,
   Nip47PayInvoiceRequest,
   Nip47PayKeysendRequest,
+  Nip47PayResponse,
   Nip47SignMessageRequest,
   Nip47SignMessageResponse,
   Nip47Transaction,
@@ -34,7 +35,7 @@ export interface NWCWalletServiceRequestHandler {
   ): NWCWalletServiceResponsePromise<Nip47Transaction>;
   payInvoice?(
     request: Nip47PayInvoiceRequest,
-  ): NWCWalletServiceResponsePromise<Nip47Transaction>;
+  ): NWCWalletServiceResponsePromise<Nip47PayResponse>;
   payKeysend?(
     request: Nip47PayKeysendRequest,
   ): NWCWalletServiceResponsePromise<Nip47Transaction>;
