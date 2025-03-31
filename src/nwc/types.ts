@@ -129,7 +129,7 @@ export type Nip47ListTransactionsResponse = {
 };
 
 export type Nip47Transaction = {
-  type: string;
+  type: "incoming" | "outgoing";
   /**
    * NOTE: non-NIP-47 spec compliant
    */
