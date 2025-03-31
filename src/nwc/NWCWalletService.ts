@@ -102,7 +102,9 @@ export class NWCWalletService {
     (async () => {
       while (subscribed) {
         try {
+          console.info("checking connection to relay");
           await this._checkConnected();
+          console.info("subscribing to relay");
           sub = this.relay.subscribe(
             [
               {
@@ -113,7 +115,7 @@ export class NWCWalletService {
             ],
             {},
           );
-          // console.info("subscribed to relay");
+          console.info("subscribed to relay");
 
           sub.onevent = async (event) => {
             try {
@@ -221,7 +223,7 @@ export class NWCWalletService {
               resolve();
             };
             onRelayDisconnect = () => {
-              // console.info("relay disconnected");
+              console.error("relay disconnected");
               endPromise?.();
             };
             this.relay.onclose = onRelayDisconnect;
