@@ -1,11 +1,7 @@
 import { fiat, LightningAddress } from "@getalby/lightning-tools";
-import {
-  Nip47MakeInvoiceRequest,
-  Nip47Notification,
-  Nip47PayInvoiceRequest,
-  Nip47Transaction,
-} from "../nwc/types";
+import { Nip47MakeInvoiceRequest, Nip47PayInvoiceRequest } from "../nwc/types";
 import { NewNWCClientOptions, NWCClient } from "../nwc/NWCClient";
+import { ReceiveInvoice } from "./ReceiveInvoice";
 
 type LNClientCredentials = string | NWCClient | NewNWCClientOptions;
 type FiatAmount = { amount: number; currency: string };
@@ -26,8 +22,6 @@ export const GBP = (amount: number) =>
   ({ amount, currency: "GBP" }) satisfies FiatAmount;
 export const CHF = (amount: number) =>
   ({ amount, currency: "CHF" }) satisfies FiatAmount;
-
-export type LN = LNClient;
 
 export class LNClient {
   readonly nwcClient: NWCClient;
@@ -82,27 +76,7 @@ export class LNClient {
       amount: parsedAmount.millisat,
     });
 
-    return {
-      transaction,
-      invoice: transaction.invoice,
-      onPaid: async (callback: (receivedPayment: Nip47Transaction) => void) => {
-        let unsubscribeFunc = () => {};
-        const onNotification = (notification: Nip47Notification) => {
-          if (
-            notification.notification.payment_hash === transaction.payment_hash
-          ) {
-            unsubscribeFunc();
-            callback(notification.notification);
-          }
-        };
-
-        unsubscribeFunc = await this.nwcClient.subscribeNotifications(
-          onNotification,
-          ["payment_received"],
-        );
-        return unsubscribeFunc;
-      },
-    };
+    return new ReceiveInvoice(this.nwcClient, transaction);
   }
 
   close() {
@@ -111,6 +85,8 @@ export class LNClient {
 
   // TODO: proxy everything from NWCClient
 }
+
+export { LNClient as LN };
 
 async function parseAmount(amount: Amount) {
   let parsedAmount = 0;
