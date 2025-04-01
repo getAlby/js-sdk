@@ -26,10 +26,6 @@ or for use without any build tools:
 </script>
 ```
 
-### NodeJS
-
-**This library relies on a global fetch() function which will work in browsers and node v18.x or newer.** (In older versions you have to use a polyfill.)
-
 ## Lightning Network Client (LN) Documentation
 
 Quickly get started adding lightning payments to your app.
@@ -52,13 +48,13 @@ request.onPaid(giveAccess);
 
 [Read more](./docs/ln.md)
 
-### Quick Start
+For more flexibility you can access the underlying NWC wallet directly. Continue to read the Nostr Wallet Connect documentation below.
 
 ## Nostr Wallet Connect Documentation
 
 [Nostr Wallet Connect](https://nwc.dev) is an open protocol enabling applications to interact with bitcoin lightning wallets. It allows users to connect their existing wallets to your application allowing developers to easily integrate bitcoin lightning functionality.
 
-For apps, see [NWC client documentation](./docs/nwc.md)
+For apps, see [NWC client and NWA client documentation](./docs/nwc.md)
 
 For wallet services, see [NWC wallet service documentation](./docs/nwc-wallet-service.md)
 
@@ -67,6 +63,15 @@ For wallet services, see [NWC wallet service documentation](./docs/nwc-wallet-se
 The [Alby OAuth API](https://guides.getalby.com/alby-wallet-api/reference/getting-started) allows you to integrate bitcoin lightning functionality provided by the Alby Wallet into your applications, with the Alby Wallet API. Send & receive payments, create invoices, setup payment webhooks, access Podcasting 2.0 and more!
 
 [Read more](./docs/oauth.md)
+
+### NodeJS
+
+**This library relies on a global fetch() function which will work in browsers and node v18.x or newer.** (In older versions you have to use a polyfill.)
+
+## WebLN Documentation
+
+The JS SDK also has some implementations for [WebLN](https://webln.guide).
+See the [NostrWebLNProvider documentation](./docs/nwc.md) and [OAuthWebLNProvider documentation](./docs/oauth.md).
 
 ## Need help?
 
