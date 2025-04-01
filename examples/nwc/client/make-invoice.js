@@ -10,6 +10,11 @@ const rl = readline.createInterface({ input, output });
 const nwcUrl =
   process.env.NWC_URL ||
   (await rl.question("Nostr Wallet Connect URL (nostr+walletconnect://...): "));
+
+const amount =
+  parseInt((await rl.question("Amount in sats (default 1 sat): ")) || "1") *
+  1000;
+
 rl.close();
 
 const client = new nwc.NWCClient({
@@ -17,7 +22,7 @@ const client = new nwc.NWCClient({
 });
 
 const response = await client.makeInvoice({
-  amount: 1000, // in millisats
+  amount, // in millisats
   description: "NWC Client example",
 });
 

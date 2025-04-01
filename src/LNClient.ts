@@ -1,12 +1,11 @@
 import { fiat, LightningAddress } from "@getalby/lightning-tools";
 import {
-  NewNWCClientOptions,
   Nip47MakeInvoiceRequest,
   Nip47Notification,
   Nip47PayInvoiceRequest,
   Nip47Transaction,
-  NWCClient,
-} from "./NWCClient";
+} from "./nwc/types";
+import { NewNWCClientOptions, NWCClient } from "./nwc/NWCClient";
 
 type LNClientCredentials = string | NWCClient | NewNWCClientOptions;
 type FiatAmount = { amount: number; currency: string };
