@@ -58,7 +58,9 @@ request.onPaid(giveAccess);
 
 [Nostr Wallet Connect](https://nwc.dev) is an open protocol enabling applications to interact with bitcoin lightning wallets. It allows users to connect their existing wallets to your application allowing developers to easily integrate bitcoin lightning functionality.
 
-[Read more](./docs/nwc.md)
+For apps, see [NWC client documentation](./docs/nwc.md)
+
+For wallet services, see [NWC wallet service documentation](./docs/nwc-wallet-service.md)
 
 ## Alby Wallet API Documentation
 

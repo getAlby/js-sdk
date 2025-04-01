@@ -14,7 +14,7 @@ There are two interfaces you can use to access NWC:
 ### Initialization Options
 
 - `nostrWalletConnectUrl`: full Nostr Wallet Connect URL as defined by the [spec](https://github.com/getAlby/nips/blob/master/47.md)
-- `relayUrl`: URL of the Nostr relay to be used (e.g. wss://nostr-relay.getalby.com)
+- `relayUrl`: URL of the Nostr relay to be used (e.g. wss://relay.getalby.com/v1)
 - `walletPubkey`: pubkey of the Nostr Wallet Connect app
 - `secret`: secret key to sign the request event (if not available window.nostr will be used)
 
@@ -52,7 +52,7 @@ See [the NWC client examples directory](../examples/nwc/client) for a full list 
 ## NostrWebLNProvider (aliased as NWC) Options
 
 - `nostrWalletConnectUrl`: full Nostr Wallet Connect URL as defined by the [spec](https://github.com/getAlby/nips/blob/master/47.md)
-- `relayUrl`: URL of the Nostr relay to be used (e.g. wss://nostr-relay.getalby.com)
+- `relayUrl`: URL of the Nostr relay to be used (e.g. wss://relay.getalby.com/v1)
 - `walletPubkey`: pubkey of the Nostr Wallet Connect app
 - `secret`: secret key to sign the request event (if not available window.nostr will be used)
 - `client`: initialize using an existing NWC client
