@@ -19,9 +19,9 @@ import {
   Nip47Method,
   Nip47PayKeysendRequest,
   Nip47Transaction,
+  NWCAuthorizationUrlOptions,
 } from "../nwc/types";
 import { toHexString } from "../utils";
-import { NWCAuthorizationUrlOptions } from "../types";
 
 // TODO: review fields (replace with camelCase)
 // TODO: consider move to webln-types package

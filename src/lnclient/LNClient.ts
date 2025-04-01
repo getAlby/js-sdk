@@ -4,8 +4,8 @@ import {
   Nip47Notification,
   Nip47PayInvoiceRequest,
   Nip47Transaction,
-} from "./nwc/types";
-import { NewNWCClientOptions, NWCClient } from "./nwc/NWCClient";
+} from "../nwc/types";
+import { NewNWCClientOptions, NWCClient } from "../nwc/NWCClient";
 
 type LNClientCredentials = string | NWCClient | NewNWCClientOptions;
 type FiatAmount = { amount: number; currency: string };

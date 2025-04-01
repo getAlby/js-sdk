@@ -1,7 +1,4 @@
-export * as auth from "./auth";
-export * as types from "./types";
+export * as oauth from "./oauth";
 export * as webln from "./webln";
-export { Client } from "./client";
-export * from "./LNClient";
-export * as nwa from "./nwc/NWAClient";
+export * from "./lnclient/LNClient";
 export * as nwc from "./nwc";

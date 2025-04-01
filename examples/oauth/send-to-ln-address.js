@@ -1,7 +1,8 @@
 import * as readline from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
 
-import { auth, Client } from "../../dist/index.module.js";
+import { oauth } from "../../dist/index.module.js";
+const { auth, Client } = oauth;
 import { LightningAddress } from "alby-tools";
 
 const rl = readline.createInterface({ input, output });

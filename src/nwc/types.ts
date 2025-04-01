@@ -1,5 +1,18 @@
 export type Nip47EncryptionType = "nip04" | "nip44_v2";
 
+export type NWCAuthorizationUrlOptions = {
+  name?: string;
+  icon?: string;
+  requestMethods?: Nip47Method[];
+  notificationTypes?: Nip47NotificationType[];
+  returnTo?: string;
+  expiresAt?: Date;
+  maxAmount?: number;
+  budgetRenewal?: "never" | "daily" | "weekly" | "monthly" | "yearly";
+  isolated?: boolean;
+  metadata?: unknown;
+};
+
 export class Nip47Error extends Error {
   code: string;
   constructor(message: string, code: string) {

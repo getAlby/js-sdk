@@ -10,7 +10,6 @@ import {
   EventTemplate,
   Relay,
 } from "nostr-tools";
-import { NWCAuthorizationUrlOptions } from "../types";
 import { hexToBytes, bytesToHex } from "@noble/hashes/utils";
 import { Subscription } from "nostr-tools/lib/types/abstract-relay";
 import {
@@ -50,6 +49,7 @@ import {
   Nip47UnsupportedEncryptionError,
   Nip47WalletError,
   Nip47MultiMethod,
+  NWCAuthorizationUrlOptions,
 } from "./types";
 
 export interface NWCOptions {
