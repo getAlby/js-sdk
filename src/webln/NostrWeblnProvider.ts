@@ -14,14 +14,12 @@ import {
   MakeInvoiceResponse,
 } from "@webbtc/webln-types";
 import { GetInfoResponse } from "@webbtc/webln-types";
+import { NWCClient, NWCOptions, NewNWCClientOptions } from "../nwc/NWCClient";
 import {
-  NWCClient,
-  NWCOptions,
-  NewNWCClientOptions,
   Nip47Method,
   Nip47PayKeysendRequest,
   Nip47Transaction,
-} from "../NWCClient";
+} from "../nwc/types";
 import { toHexString } from "../utils";
 import { NWCAuthorizationUrlOptions } from "../types";
 
