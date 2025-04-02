@@ -6,9 +6,16 @@ import { Amount, resolveAmount } from "./Amount";
 
 type LNClientCredentials = string | NWCClient | NewNWCClientOptions;
 
+/**
+ * A simple lightning network client to interact with your lightning wallet
+ */
 export class LNClient {
   readonly nwcClient: NWCClient;
 
+  /**
+   * Create a new LNClient
+   * @param credentials credentials to connect to a NWC-based wallet. Learn more at https://nwc.dev
+   */
   constructor(credentials: LNClientCredentials) {
     if (typeof credentials === "string") {
       this.nwcClient = new NWCClient({
@@ -21,6 +28,13 @@ export class LNClient {
     }
   }
 
+  /**
+   * Make a payment
+   * @param recipient a BOLT-11 invoice or lightning address
+   * @param amount the amount to pay, only required if paying to a lightning address or the amount is not specified in the BOLT 11 invoice.
+   * @param args additional options, e.g. to store metadata on the payment
+   * @returns the receipt of the payment, and details of the paid invoice.
+   */
   async pay(
     recipient: string,
     amount?: Amount,
@@ -53,6 +67,12 @@ export class LNClient {
     };
   }
 
+  /**
+   * Receive a payment
+   * @param amount the amount requested, either in sats (e.g. {satoshi: 21}) or fiat (e.g. new FiatAmount(21, "USD")).
+   * @param args additional options, e.g. to set a description on the payment request, or store metadata for the received payment
+   * @returns the invoice to be paid, along with methods to easily listen for a payment and act upon it.
+   */
   async receive(
     amount: Amount,
     args?: Omit<Nip47MakeInvoiceRequest, "amount">,
