@@ -48,7 +48,7 @@ const request = await new LN(credentials).receive(USD(1.0));
 request.onPaid(giveAccess);
 ```
 
-[Read more](./docs/ln.md)
+[Read more](./docs/lnclient.md)
 
 For more flexibility you can access the underlying NWC wallet directly. Continue to read the Nostr Wallet Connect documentation below.
 
