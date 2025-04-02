@@ -20,4 +20,4 @@ request.onPaid(giveAccess);
 
 ## Examples
 
-See [the LNClient examples directory](./examples/ln) for a full list of examples.
+See [the LNClient examples directory](./examples/lnclient) for a full list of examples.

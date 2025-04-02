@@ -1,27 +1,10 @@
-import { fiat, LightningAddress } from "@getalby/lightning-tools";
+import { LightningAddress } from "@getalby/lightning-tools";
 import { Nip47MakeInvoiceRequest, Nip47PayInvoiceRequest } from "../nwc/types";
 import { NewNWCClientOptions, NWCClient } from "../nwc/NWCClient";
 import { ReceiveInvoice } from "./ReceiveInvoice";
+import { Amount, resolveAmount } from "./Amount";
 
 type LNClientCredentials = string | NWCClient | NewNWCClientOptions;
-type FiatAmount = { amount: number; currency: string };
-
-/**
- * An amount in satoshis, or an amount in a fiat currency
- */
-type Amount = { satoshi: number } | FiatAmount;
-
-// Most popular fiat currencies
-export const USD = (amount: number) =>
-  ({ amount, currency: "USD" }) satisfies FiatAmount;
-export const EUR = (amount: number) =>
-  ({ amount, currency: "EUR" }) satisfies FiatAmount;
-export const JPY = (amount: number) =>
-  ({ amount, currency: "JPY" }) satisfies FiatAmount;
-export const GBP = (amount: number) =>
-  ({ amount, currency: "GBP" }) satisfies FiatAmount;
-export const CHF = (amount: number) =>
-  ({ amount, currency: "CHF" }) satisfies FiatAmount;
 
 export class LNClient {
   readonly nwcClient: NWCClient;
@@ -44,7 +27,7 @@ export class LNClient {
     args?: Omit<Nip47PayInvoiceRequest, "invoice" | "amount">,
   ) {
     let invoice = recipient;
-    const parsedAmount = amount ? await parseAmount(amount) : undefined;
+    const parsedAmount = amount ? await resolveAmount(amount) : undefined;
     if (invoice.indexOf("@") > -1) {
       if (!parsedAmount) {
         throw new Error(
@@ -59,18 +42,22 @@ export class LNClient {
       invoice = invoiceObj.paymentRequest;
     }
 
-    return this.nwcClient.payInvoice({
+    const result = await this.nwcClient.payInvoice({
       ...(args || {}),
       invoice,
       amount: parsedAmount?.millisat,
     });
+    return {
+      ...result,
+      invoice,
+    };
   }
 
   async receive(
     amount: Amount,
     args?: Omit<Nip47MakeInvoiceRequest, "amount">,
   ) {
-    const parsedAmount = await parseAmount(amount);
+    const parsedAmount = await resolveAmount(amount);
     const transaction = await this.nwcClient.makeInvoice({
       ...(args || {}),
       amount: parsedAmount.millisat,
@@ -82,21 +69,6 @@ export class LNClient {
   close() {
     this.nwcClient.close();
   }
-
-  // TODO: proxy everything from NWCClient
 }
 
 export { LNClient as LN };
-
-async function parseAmount(amount: Amount) {
-  let parsedAmount = 0;
-  if ("satoshi" in amount) {
-    parsedAmount = amount.satoshi;
-  } else {
-    parsedAmount = await fiat.getSatoshiValue({
-      amount: amount.amount,
-      currency: amount.currency,
-    });
-  }
-  return { satoshi: parsedAmount, millisat: parsedAmount * 1000 };
-}
