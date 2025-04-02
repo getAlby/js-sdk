@@ -5,10 +5,11 @@ The LN class helps you easily get started interacting with the lightning network
 For example, to make a payment:
 
 ```js
-import { LN, USD } from "@getalby/sdk";
+import { LN, USD, SATS } from "@getalby/sdk";
 await new LN(credentials).pay("lnbc..."); // pay a lightning invoice
+await new LN(credentials).pay("hello@getalby.com", SATS(21)); // or pay 21 sats to a lightning address
 await new LN(credentials).pay("hello@getalby.com", USD(1)); // or pay $1 USD to a lightning address
-await new LN(credentials).pay("hello@getalby.com", { satoshi: 21 }); // or pay 21 sats to a lightning address
+await new LN(credentials).pay("hello@getalby.com", new FiatAmount(1, "THB")); // or pay an amount in any currency to a lightning address
 ```
 
 Or to request a payment to be received:

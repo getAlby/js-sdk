@@ -4,6 +4,10 @@
  */
 export type Amount = { satoshi: number } | { satoshi: Promise<number> };
 
+export const SATS: (amount: number) => Amount = (amount) => ({
+  satoshi: amount,
+});
+
 export async function resolveAmount(
   amount: Amount,
 ): Promise<{ satoshi: number; millisat: number }> {
