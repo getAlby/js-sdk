@@ -1,4 +1,4 @@
-import { LightningAddress } from "@getalby/lightning-tools";
+import { Invoice, LightningAddress } from "@getalby/lightning-tools";
 import { Nip47MakeInvoiceRequest, Nip47PayInvoiceRequest } from "../nwc/types";
 import { NewNWCClientOptions, NWCClient } from "../nwc/NWCClient";
 import { ReceiveInvoice } from "./ReceiveInvoice";
@@ -49,7 +49,7 @@ export class LNClient {
     });
     return {
       ...result,
-      invoice,
+      invoice: new Invoice({ pr: invoice }),
     };
   }
 

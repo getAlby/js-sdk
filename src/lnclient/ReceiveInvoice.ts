@@ -1,16 +1,15 @@
+import { Invoice } from "@getalby/lightning-tools";
 import { Nip47Notification, Nip47Transaction, NWCClient } from "../nwc";
 
 export class ReceiveInvoice {
-  transaction: Nip47Transaction;
+  readonly transaction: Nip47Transaction;
+  readonly invoice: Invoice;
   private _nwcClient: NWCClient;
 
   constructor(nwcClient: NWCClient, transaction: Nip47Transaction) {
     this.transaction = transaction;
+    this.invoice = new Invoice({ pr: transaction.invoice });
     this._nwcClient = nwcClient;
-  }
-
-  get invoice(): string {
-    return this.transaction.invoice;
   }
 
   async onPaid(callback: (receivedPayment: Nip47Transaction) => void) {
