@@ -13,6 +13,6 @@ const nwcUrl =
 rl.close();
 
 const client = new LN(nwcUrl);
-const response = await client.pay("hello@getalby.com", USD(1.0));
+const response = await client.pay("rolznz@getalby.com", USD(1.0));
 console.info("Paid successfully", response);
 client.close();

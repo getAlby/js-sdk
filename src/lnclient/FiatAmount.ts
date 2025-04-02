@@ -1,21 +1,13 @@
 import { fiat } from "@getalby/lightning-tools";
-import { Amount } from "./Amount";
 
-// TODO: move this to Lightning Tools
-export class FiatAmount implements Amount {
-  satoshi: Promise<{ satoshi: number }>;
+// TODO: move to Lightning Tools
+export class FiatAmount {
+  satoshi: Promise<number>;
   constructor(amount: number, currency: string) {
-    this.satoshi = this._fetchSatoshi(amount, currency);
-  }
-  private async _fetchSatoshi(
-    amount: number,
-    currency: string,
-  ): Promise<{ satoshi: number }> {
-    const satoshi = await fiat.getSatoshiValue({
+    this.satoshi = fiat.getSatoshiValue({
       amount,
       currency,
     });
-    return { satoshi };
   }
 }
 
