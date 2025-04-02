@@ -30,20 +30,20 @@ export class Client {
 
   constructor(
     auth: string | AuthClient,
-    requestOptions?: Partial<RequestOptions>
+    requestOptions?: Partial<RequestOptions>,
   ) {
     this.auth = typeof auth === "string" ? new OAuth2Bearer(auth) : auth;
     this.defaultRequestOptions = {
       ...requestOptions,
-      user_agent: requestOptions?.user_agent 
+      user_agent: requestOptions?.user_agent,
     };
   }
 
   // HTTP handlers
   private httpGet<T>(
-    endpoint: string, 
-    params?: any, 
-    options?: Partial<RequestOptions>
+    endpoint: string,
+    params?: any,
+    options?: Partial<RequestOptions>,
   ): Promise<T> {
     return rest({
       auth: this.auth,
@@ -51,14 +51,14 @@ export class Client {
       ...options,
       endpoint,
       params,
-      method: "GET"
+      method: "GET",
     });
   }
 
   private httpPost<T>(
-    endpoint: string, 
-    body?: any, 
-    options?: Partial<RequestOptions>
+    endpoint: string,
+    body?: any,
+    options?: Partial<RequestOptions>,
   ): Promise<T> {
     return rest({
       auth: this.auth,
@@ -66,20 +66,20 @@ export class Client {
       ...options,
       endpoint,
       request_body: body,
-      method: "POST"
+      method: "POST",
     });
   }
 
   private httpDelete<T>(
-    endpoint: string, 
-    options?: Partial<RequestOptions>
+    endpoint: string,
+    options?: Partial<RequestOptions>,
   ): Promise<T> {
     return rest({
       auth: this.auth,
       ...this.defaultRequestOptions,
       ...options,
       endpoint,
-      method: "DELETE"
+      method: "DELETE",
     });
   }
 
@@ -116,24 +116,27 @@ export class Client {
   }
 
   getInvoice(paymentHash: string) {
-    return this.httpGet<Invoice>('/invoices/${paymentHash}');
+    return this.httpGet<Invoice>("/invoices/${paymentHash}");
   }
 
   decodeInvoice(paymentRequest: string) {
-    return this.httpGet<DecodedInvoice>('/decode/bolt11/${paymentRequest}');
+    return this.httpGet<DecodedInvoice>("/decode/bolt11/${paymentRequest}");
   }
 
   createInvoice(invoice: InvoiceRequestParams) {
     return this.httpPost<Invoice>("/invoices", invoice);
   }
 
-  keysend(
-    args: KeysendRequestParams | KeysendRequestParams[]
-  ) {
+  keysend(args: KeysendRequestParams | KeysendRequestParams[]) {
     const isMulti = Array.isArray(args);
     const endpoint = isMulti ? "/payments/keysend/multi" : "/payments/keysend";
-    const body = isMulti 
-      ? { keysends: args.map(a => ({ ...a, custom_records: a.customRecords })) }
+    const body = isMulti
+      ? {
+          keysends: args.map((a) => ({
+            ...a,
+            custom_records: a.customRecords,
+          })),
+        }
       : { ...args, custom_records: args.customRecords };
 
     return this.httpPost<SendPaymentResponse>(endpoint, body);
@@ -144,34 +147,38 @@ export class Client {
   }
 
   sendBoostagram(
-    args: SendBoostagramRequestParams | SendBoostagramRequestParams[]
+    args: SendBoostagramRequestParams | SendBoostagramRequestParams[],
   ) {
     const isMulti = Array.isArray(args);
     const endpoint = isMulti ? "/payments/keysend/multi" : "/payments/keysend";
-    const body = isMulti 
+    const body = isMulti
       ? { keysends: args.map(keysendParamsFromBoostagram) }
       : keysendParamsFromBoostagram(args);
 
     return this.httpPost(endpoint, body);
   }
 
-  sendBoostagramToAlbyAccount(
-    args: SendBoostagramToAlbyRequestParams
-  ) {
+  sendBoostagramToAlbyAccount(args: SendBoostagramToAlbyRequestParams) {
     return this.httpPost("/payments/keysend", {
-      destination: "030a58b8653d32b99200a2334cfe913e51dc7d155aa0116c176657a4f1722677a3",
+      destination:
+        "030a58b8653d32b99200a2334cfe913e51dc7d155aa0116c176657a4f1722677a3",
       custom_records: { "696969": args.account },
       amount: args.amount,
-      memo: args.memo
+      memo: args.memo,
     });
   }
 
   createWebhookEndpoint(params: CreateWebhookEndpointParams) {
-    return this.httpPost<CreateWebhookEndpointResponse>("/webhook_endpoints", params);
+    return this.httpPost<CreateWebhookEndpointResponse>(
+      "/webhook_endpoints",
+      params,
+    );
   }
 
   deleteWebhookEndpoint(id: string) {
-    return this.httpDelete<BaseWebhookEndpointResponse>('/webhook_endpoints/${id}');
+    return this.httpDelete<BaseWebhookEndpointResponse>(
+      "/webhook_endpoints/${id}",
+    );
   }
 
   getSwapInfo() {
