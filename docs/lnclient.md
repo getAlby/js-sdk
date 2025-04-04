@@ -2,6 +2,8 @@
 
 The LN class helps you easily get started interacting with the lightning network. It is a high level wrapper around the [NWCClient](./nwc.md) which is compatible with many different lightning wallets.
 
+See [LNClient class documentation](https://getalby.github.io/js-sdk/classes/LNClient.html)
+
 For example, to make a payment:
 
 ```js

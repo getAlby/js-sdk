@@ -9,6 +9,8 @@ There are two interfaces you can use to access NWC:
 - The `NWCClient` exposes the [NWC](https://nwc.dev/) interface directly, which is more powerful than the WebLN interface and is recommended if you plan to create an application outside of the web (e.g. native mobile/command line/server backend etc.). You can explore all the examples [here](../examples/nwc/client/).
 - The `NostrWebLNProvider` exposes the [WebLN](https://webln.guide/) interface to execute lightning wallet functionality through Nostr Wallet Connect, such as sending payments, making invoices and getting the node balance. You can explore all the examples [here](../examples/nwc/). See also [Bitcoin Connect](https://github.com/getAlby/bitcoin-connect/) if you are developing a frontend web application.
 
+> See [NWCClient class documentation](https://getalby.github.io/js-sdk/classes/nwc.NWCClient.html)
+
 ## NWCClient
 
 ### Initialization Options
@@ -49,7 +51,11 @@ The same options can be provided to getAuthorizationUrl() as fromAuthorizationUr
 
 See [the NWC client examples directory](../examples/nwc/client) for a full list of examples.
 
-## NostrWebLNProvider (aliased as NWC) Options
+## NostrWebLNProvider
+
+> See [NostrWebLNProvider class documentation](https://getalby.github.io/js-sdk/classes/webln.NostrWebLNProvider.html)
+
+### Initialization Options
 
 - `nostrWalletConnectUrl`: full Nostr Wallet Connect URL as defined by the [spec](https://github.com/getAlby/nips/blob/master/47.md)
 - `relayUrl`: URL of the Nostr relay to be used (e.g. wss://relay.getalby.com/v1)
@@ -218,6 +224,8 @@ The same options can be provided to getAuthorizationUrl() as fromAuthorizationUr
 NWA is an alternative flow for lightning apps to easily initialize an NWC connection to mobile-first or self-custodial wallets, using a client-created secret.
 
 The app will generate an NWA URI which should be opened in the wallet, where the user can approve the connection.
+
+> See [NWAClient class documentation](https://getalby.github.io/js-sdk/classes/nwc.NWAClient.html)
 
 #### Generating an NWA URI
 

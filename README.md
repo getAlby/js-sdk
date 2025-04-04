@@ -32,6 +32,8 @@ or for use without any build tools:
 
 Quickly get started adding lightning payments to your app.
 
+> The easiest way to provide credentials is with an [NWC connection secret](https://nwc.dev). Get one in minutes by connecting to [Alby Hub](https://albyhub.com/), [coinos](https://coinos.io/apps/new), [Primal](https://primal.net/downloads), [lnwallet.app](https://lnwallet.app/), [Yakihonne](https://yakihonne.com/), [or other NWC-enabled wallets](https://github.com/getAlby/awesome-nwc?tab=readme-ov-file#nwc-wallets).
+
 For example, to make a payment:
 
 ```js
@@ -39,8 +41,6 @@ import { LN, USD } from "@getalby/sdk";
 await new LN(credentials).pay("lnbc..."); // pay a lightning invoice
 await new LN(credentials).pay("hello@getalby.com", USD(1)); // or pay $1 USD to a lightning address
 ```
-
-> The easiest way to provide credentials is with an [NWC connection secret](https://nwc.dev). Get one in minutes by connecting to [Alby Hub](https://albyhub.com/), [coinos](https://coinos.io/apps/new), [Primal](https://primal.net/downloads), [lnwallet.app](https://lnwallet.app/), [Yakihonne](https://yakihonne.com/), [or other NWC-enabled wallets](https://github.com/getAlby/awesome-nwc?tab=readme-ov-file#nwc-wallets).
 
 Or to request a payment to be received:
 
@@ -76,6 +76,10 @@ The [Alby OAuth API](https://guides.getalby.com/alby-wallet-api/reference/gettin
 
 The JS SDK also has some implementations for [WebLN](https://webln.guide).
 See the [NostrWebLNProvider documentation](./docs/nwc.md) and [OAuthWebLNProvider documentation](./docs/oauth.md).
+
+## More Documentation
+
+Read the [auto-generated documentation](https://getalby.github.io/js-sdk/modules.html)
 
 ## Need help?
 

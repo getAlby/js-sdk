@@ -4,6 +4,8 @@
 
 The Alby JS SDK allows you to easily integrate Nostr Wallet Connect into any JavaScript based lightning wallet to allow client applications to easily connect and seamlessly interact with the wallet.
 
+> See [NWCWalletService class documentation](https://getalby.github.io/js-sdk/classes/nwc.NWCWalletService.html)
+
 ## NWCWalletService
 
 ### Initialization Options
