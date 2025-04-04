@@ -16,6 +16,10 @@ jobs:
       # https://github.com/actions/checkout
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: "yarn"
+      - run: yarn install --frozen-lockfile
       # Generate your TypeDoc documentation
       - run: npx typedoc src/index.ts --out docs/generated
       # https://github.com/actions/upload-pages-artifact
