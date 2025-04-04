@@ -4,7 +4,7 @@ import { NewNWCClientOptions, NWCClient } from "../nwc/NWCClient";
 import { ReceiveInvoice } from "./ReceiveInvoice";
 import { Amount, resolveAmount } from "./Amount";
 
-type LNClientCredentials = string | NWCClient | NewNWCClientOptions;
+export type LNClientCredentials = string | NWCClient | NewNWCClientOptions;
 
 /**
  * A simple lightning network client to interact with your lightning wallet
@@ -14,7 +14,7 @@ export class LNClient {
 
   /**
    * Create a new LNClient
-   * @param credentials credentials to connect to a NWC-based wallet. Learn more at https://nwc.dev
+   * @param credentials credentials to connect to a NWC-based wallet. This can be a NWC connection string e.g. nostr+walletconnect://... or an existing NWC Client. Learn more at https://nwc.dev
    */
   constructor(credentials: LNClientCredentials) {
     if (typeof credentials === "string") {

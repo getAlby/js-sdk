@@ -37,11 +37,11 @@ export class Nip47ResponseValidationError extends Nip47Error {}
 export class Nip47UnexpectedResponseError extends Nip47Error {}
 export class Nip47UnsupportedEncryptionError extends Nip47Error {}
 
-type WithDTag = {
+export type WithDTag = {
   dTag: string;
 };
 
-type WithOptionalId = {
+export type WithOptionalId = {
   id?: string;
 };
 
