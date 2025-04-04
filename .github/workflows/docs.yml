@@ -1,0 +1,35 @@
+name: "typedoc"
+
+on:
+  push:
+    branches: [feat/lnclient, master]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      # https://github.com/actions/checkout
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+      # Generate your TypeDoc documentation
+      - run: npx typedoc --out docs/generated
+      # https://github.com/actions/upload-pages-artifact
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./docs/generated # This should be your TypeDoc "out" path.
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        # https://github.com/actions/deploy-pages
+        uses: actions/deploy-pages@v4
