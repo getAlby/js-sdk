@@ -17,7 +17,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
       # Generate your TypeDoc documentation
-      - run: npx typedoc --out docs/generated
+      - run: npx typedoc src/index.ts --out docs/generated
       # https://github.com/actions/upload-pages-artifact
       - uses: actions/upload-pages-artifact@v3
         with:
