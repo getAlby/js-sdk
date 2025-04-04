@@ -9,7 +9,8 @@ import {
   OAuthClient,
   Token,
 } from "./types";
-import { basicAuthHeader, buildQueryString, toHexString } from "./utils";
+import { basicAuthHeader, buildQueryString } from "./utils";
+import { toHexString } from "../utils";
 
 const AUTHORIZE_URL = "https://getalby.com/oauth";
 

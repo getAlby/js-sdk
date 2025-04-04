@@ -19,9 +19,9 @@ import {
   Nip47Method,
   Nip47PayKeysendRequest,
   Nip47Transaction,
+  NWCAuthorizationUrlOptions,
 } from "../nwc/types";
 import { toHexString } from "../utils";
-import { NWCAuthorizationUrlOptions } from "../types";
 
 // TODO: review fields (replace with camelCase)
 // TODO: consider move to webln-types package
@@ -56,7 +56,7 @@ export type MultiKeysendResponse = {
 
 type NostrWebLNOptions = NWCOptions;
 
-type Nip07Provider = {
+export type Nip07Provider = {
   getPublicKey(): Promise<string>;
   signEvent(event: UnsignedEvent): Promise<Event>;
 };
@@ -77,7 +77,7 @@ const nip47ToWeblnRequestMap: Record<
   sign_message: "signMessage",
 };
 
-type NewNostrWeblnProviderOptions = NewNWCClientOptions & {
+export type NewNostrWeblnProviderOptions = NewNWCClientOptions & {
   client?: NWCClient;
 };
 
