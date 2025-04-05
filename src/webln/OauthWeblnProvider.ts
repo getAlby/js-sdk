@@ -109,8 +109,22 @@ export class OauthWeblnProvider {
         `${document.title} - WebLN enable`,
         `height=${height},width=${width},top=${top},left=${left}`,
       );
+
+      if (!popup) {
+        reject(new Error("Popup blocked"));
+        return;
+      }
+
       let processingCode = false;
-      window.addEventListener("message", async (message) => {
+      const timeoutId = setTimeout(
+        () => {
+          if (popup && !popup.closed) popup.close();
+          reject(new Error("OAuth authorization timed out"));
+        },
+        2 * 60 * 1000,
+      ); // 2 minutes
+
+      const messageHandler = async (message: MessageEvent) => {
         const data = message.data;
         if (
           data &&
@@ -119,23 +133,26 @@ export class OauthWeblnProvider {
             `${document.location.protocol}//${document.location.host}` &&
           !processingCode
         ) {
-          processingCode = true; // make sure we request the access token only once
-          console.info("Processing OAuth code response");
-          const code = data.payload.code;
+          processingCode = true;
+          clearTimeout(timeoutId);
+          window.removeEventListener("message", messageHandler);
+
           try {
+            const code = data.payload.code;
             await this.auth.requestAccessToken(code);
-            this.client = new Client(this.auth); // just to make sure we got a client with the correct auth and not the access token
-            if (popup) {
-              popup.close();
-            }
+            this.client = new Client(this.auth);
+            if (popup && !popup.closed) popup.close();
             this.notify("enable");
             resolve({ enabled: true });
           } catch (e) {
             console.error(e);
-            reject({ enabled: false });
+            if (popup && !popup.closed) popup.close();
+            reject(new Error("Failed to complete OAuth"));
           }
         }
-      });
+      };
+
+      window.addEventListener("message", messageHandler);
     });
   }
 }
