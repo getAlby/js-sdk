@@ -29,7 +29,7 @@ console.info("Waiting for payment...");
 
 // once the invoice got paid by the user run this callback
 const unsub = await request.onPaid(async () => {
-  // we take the sats amount from theinvocie and calculate the amount we want to forward
+  // we take the sats amount from the invoice and calculate the amount we want to forward
   const satsReceived = request.invoice.satoshi;
   const satsToForward = Math.floor(
     (satsReceived * forwardPercentage) / 100 / recipients.length,
