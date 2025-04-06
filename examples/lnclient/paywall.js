@@ -16,7 +16,8 @@ rl.close();
 const client = new LN(nwcUrl);
 const request = await client.receive(USD(1.0));
 
-qrcode.generate(request.invoice, { small: true });
+qrcode.generate(request.invoice.paymentRequest, { small: true });
+console.info(request.invoice.paymentRequest);
 console.info("Waiting for payment...");
 
 const unsub = await request.onPaid(() => {
