@@ -35,63 +35,46 @@ export class OauthWeblnProvider {
     }
   }
 
-  async enable() {
-    if (this.isExecuting) {
-      return;
+  private async execute<T>(fn: () => Promise<T>): Promise<T | undefined> {
+    if (this.isExecuting) return;
+    this.isExecuting = true;
+    try {
+      return await fn();
+    } catch (error) {
+      let message = "Unknown Error";
+      if (error instanceof Error) {
+        message = error.message;
+      }
+      throw new Error(message);
+    } finally {
+      this.isExecuting = false;
     }
+  }
+
+  async enable() {
     if (this.auth.token?.access_token) {
       return { enabled: true };
     }
-    if (isBrowser()) {
-      try {
-        this.isExecuting = true;
-        await this.openAuthorization();
-      } finally {
-        this.isExecuting = false;
-      }
-    } else {
+    if (!isBrowser()) {
       throw new Error("Missing access token");
     }
+    await this.execute(() => this.openAuthorization());
   }
 
   async sendPayment(invoice: string) {
-    if (this.isExecuting) {
-      return;
-    }
-    try {
-      this.isExecuting = true;
+    return this.execute(async () => {
       const result = await this.client.sendPayment({ invoice });
       this.notify("sendPayment", result);
-      return {
-        preimage: result.payment_preimage,
-      };
-    } catch (error) {
-      let message = "Unknown Error";
-      if (error instanceof Error) message = error.message;
-      throw new Error(message);
-    } finally {
-      this.isExecuting = false;
-    }
+      return { preimage: result.payment_preimage };
+    });
   }
 
   async keysend(params: KeysendRequestParams) {
-    if (this.isExecuting) {
-      return;
-    }
-    try {
-      this.isExecuting = true;
+    return this.execute(async () => {
       const result = await this.client.keysend(params);
       this.notify("keysend", result);
-      return {
-        preimage: result.payment_preimage,
-      };
-    } catch (error) {
-      let message = "Unknown Error";
-      if (error instanceof Error) message = error.message;
-      throw new Error(message);
-    } finally {
-      this.isExecuting = false;
-    }
+      return { preimage: result.payment_preimage };
+    });
   }
 
   async getInfo() {
@@ -101,26 +84,14 @@ export class OauthWeblnProvider {
   }
 
   async makeInvoice(params: RequestInvoiceArgs) {
-    if (this.isExecuting) {
-      return;
-    }
-    try {
-      this.isExecuting = true;
+    return this.execute(async () => {
       const result = await this.client.createInvoice({
         amount: parseInt(params.amount.toString()),
         description: params.defaultMemo,
       });
       this.notify("makeInvoice", result);
-      return {
-        paymentRequest: result.payment_request,
-      };
-    } catch (error) {
-      let message = "Unknown Error";
-      if (error instanceof Error) message = error.message;
-      throw new Error(message);
-    } finally {
-      this.isExecuting = false;
-    }
+      return { paymentRequest: result.payment_request };
+    });
   }
 
   async openAuthorization() {
@@ -138,8 +109,22 @@ export class OauthWeblnProvider {
         `${document.title} - WebLN enable`,
         `height=${height},width=${width},top=${top},left=${left}`,
       );
+
+      if (!popup) {
+        reject(new Error("Popup blocked"));
+        return;
+      }
+
       let processingCode = false;
-      window.addEventListener("message", async (message) => {
+      const timeoutId = setTimeout(
+        () => {
+          if (popup && !popup.closed) popup.close();
+          reject(new Error("OAuth authorization timed out"));
+        },
+        2 * 60 * 1000,
+      ); // 2 minutes
+
+      const messageHandler = async (message: MessageEvent) => {
         const data = message.data;
         if (
           data &&
@@ -148,23 +133,26 @@ export class OauthWeblnProvider {
             `${document.location.protocol}//${document.location.host}` &&
           !processingCode
         ) {
-          processingCode = true; // make sure we request the access token only once
-          console.info("Processing OAuth code response");
-          const code = data.payload.code;
+          processingCode = true;
+          clearTimeout(timeoutId);
+          window.removeEventListener("message", messageHandler);
+
           try {
+            const code = data.payload.code;
             await this.auth.requestAccessToken(code);
-            this.client = new Client(this.auth); // just to make sure we got a client with the correct auth and not the access token
-            if (popup) {
-              popup.close();
-            }
+            this.client = new Client(this.auth);
+            if (popup && !popup.closed) popup.close();
             this.notify("enable");
             resolve({ enabled: true });
           } catch (e) {
             console.error(e);
-            reject({ enabled: false });
+            if (popup && !popup.closed) popup.close();
+            reject(new Error("Failed to complete OAuth"));
           }
         }
-      });
+      };
+
+      window.addEventListener("message", messageHandler);
     });
   }
 }
