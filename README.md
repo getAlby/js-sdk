@@ -129,7 +129,7 @@ if (!window.webln) {
 
 The goal of the Nostr Wallet Connect provider is to be API compatible with [webln](https://www.webln.guide/). Currently not all methods are supported - see the examples/nwc directory for a list of supported methods.
 
-#### sendPayment(invice: string)
+#### sendPayment(invoice: string)
 
 Takes a bolt11 invoice and calls the NWC `pay_invoice` function.
 It returns a promise object that is resolved with an object with the preimage or is rejected with an error
@@ -267,7 +267,7 @@ See [NWA accept example](examples/nwc/client/nwa.js) for NWA URI parsing and han
 
 ## OAuth API Documentation
 
-Please have a look a the Alby OAuth2 Wallet API:
+Please have a look at the Alby OAuth2 Wallet API:
 
 [https://guides.getalby.com/alby-wallet-api/reference/getting-started](https://guides.getalby.com/alby-wallet-api/reference/getting-started)
 
@@ -490,7 +490,7 @@ const response = await client.sendBoostagram([
 console.log(response.keysends);
 ```
 
-`response.keysends` is an array of objects that either has an `error` key if a payment faild or the `keysend` key if everything succeeded.
+`response.keysends` is an array of objects that either has an `error` key if a payment failed or the `keysend` key if everything succeeded.
 
 ```json
 {
