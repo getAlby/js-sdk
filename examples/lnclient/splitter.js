@@ -28,8 +28,9 @@ console.info(request.invoice.paymentRequest);
 console.info("Waiting for payment...");
 
 // once the invoice got paid by the user run this callback
-const unsub = await request.onPaid(async () => {
-  // we take the sats amount from the invoice and calculate the amount we want to forward
+//   you can call unsubscribe() if you no longer expect the user to pay
+const unsubscribe = await request.onPaid(async () => {
+  // we take the sats amount from theinvocie and calculate the amount we want to forward
   const satsReceived = request.invoice.satoshi;
   const satsToForward = Math.floor(
     (satsReceived * forwardPercentage) / 100 / recipients.length,
@@ -53,8 +54,8 @@ const unsub = await request.onPaid(async () => {
 process.on("SIGINT", function () {
   console.info("Caught interrupt signal");
 
-  unsub();
-  client.close();
+  unsubscribe(); // no longer listen for the payment and cleanup the subscription
+  client.close(); // close the wallet connection
 
   process.exit();
 });

@@ -22,6 +22,7 @@ console.info(request.invoice.paymentRequest);
 console.info("Waiting for payment...");
 
 // register the callback that will get executed once the user has paid the invoice
+//   you can call unsub() if you no longer expect the user to pay
 const unsub = await request.onPaid(() => {
   console.info("received payment!");
   client.close(); // when done and no longer needed close the wallet connection
