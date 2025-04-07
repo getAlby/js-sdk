@@ -14,15 +14,17 @@ const nwcUrl =
 rl.close();
 
 const client = new LN(nwcUrl);
-const request = await client.receive(USD(1.0));
+// request a lightning invoice that we show the user to pay
+const request = await client.receive(USD(1.0), { description: "best content" });
 
 qrcode.generate(request.invoice.paymentRequest, { small: true });
 console.info(request.invoice.paymentRequest);
 console.info("Waiting for payment...");
 
+// register the callback that will get executed once the user has paid the invoice
 const unsub = await request.onPaid(() => {
   console.info("received payment!");
-  client.close();
+  client.close(); // when done and no longer needed close the wallet connection
 });
 
 process.on("SIGINT", function () {
