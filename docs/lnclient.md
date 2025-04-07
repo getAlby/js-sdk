@@ -8,6 +8,7 @@ For example, to make a payment:
 
 ```js
 import { LN, USD, SATS } from "@getalby/sdk";
+const credentials = "nostr+walletconnect://..."; // the NWC connection credentials
 await new LN(credentials).pay("lnbc..."); // pay a lightning invoice
 await new LN(credentials).pay("hello@getalby.com", SATS(21)); // or pay 21 sats to a lightning address
 await new LN(credentials).pay("hello@getalby.com", USD(1)); // or pay $1 USD to a lightning address
