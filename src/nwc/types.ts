@@ -174,7 +174,18 @@ export type Nip47Notification =
 
 export type Nip47PayInvoiceRequest = {
   invoice: string;
-  metadata?: unknown;
+  metadata?: {
+    comment?: string; // LUD-12
+    payer_data?: {
+      email?: string;
+      name?: string;
+      pubkey?: string;
+    }; // LUD-18
+    nostr?: {
+      pubkey: string;
+      tags: string[][];
+    }; // NIP-57
+  } & Record<string, unknown>;
   amount?: number; // msats
 };
 

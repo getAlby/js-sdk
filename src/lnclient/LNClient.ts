@@ -52,6 +52,8 @@ export class LNClient {
       await ln.fetch();
       const invoiceObj = await ln.requestInvoice({
         satoshi: parsedAmount.satoshi,
+        comment: args?.metadata?.comment,
+        payerdata: args?.metadata?.payer_data,
       });
       invoice = invoiceObj.paymentRequest;
     }
