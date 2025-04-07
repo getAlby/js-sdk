@@ -157,8 +157,21 @@ export type Nip47Transaction = {
   settled_at: number;
   created_at: number;
   expires_at: number;
-  metadata?: Record<string, unknown>;
+  metadata?: Nip47TransactionMetadata;
 };
+
+export type Nip47TransactionMetadata = {
+  comment?: string; // LUD-12
+  payer_data?: {
+    email?: string;
+    name?: string;
+    pubkey?: string;
+  }; // LUD-18
+  nostr?: {
+    pubkey: string;
+    tags: string[][];
+  }; // NIP-57
+} & Record<string, unknown>;
 
 export type Nip47NotificationType = Nip47Notification["notification_type"];
 
@@ -174,7 +187,7 @@ export type Nip47Notification =
 
 export type Nip47PayInvoiceRequest = {
   invoice: string;
-  metadata?: unknown;
+  metadata?: Nip47TransactionMetadata;
   amount?: number; // msats
 };
 
@@ -190,7 +203,7 @@ export type Nip47MakeInvoiceRequest = {
   description?: string;
   description_hash?: string;
   expiry?: number; // in seconds
-  metadata?: unknown; // TODO: update to also include known keys (payerData, nostr, comment)
+  metadata?: Nip47TransactionMetadata;
 };
 
 export type Nip47LookupInvoiceRequest = {
