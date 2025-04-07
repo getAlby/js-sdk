@@ -13,7 +13,9 @@ const nwcUrl =
 rl.close();
 
 const client = new LN(nwcUrl);
-console.log("Paying $1");
-const response = await client.pay("rolznz@getalby.com", USD(1.0));
+console.info("Paying $1");
+const response = await client.pay("hello@getalby.com", USD(1.0), {
+  metadata: { comment: "Payment from JS SDK", payer_data: { name: "Bob" } },
+});
 console.info("Paid successfully", response);
 client.close();

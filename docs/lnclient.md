@@ -13,6 +13,9 @@ await new LN(credentials).pay("lnbc..."); // pay a lightning invoice
 await new LN(credentials).pay("hello@getalby.com", SATS(21)); // or pay 21 sats to a lightning address
 await new LN(credentials).pay("hello@getalby.com", USD(1)); // or pay $1 USD to a lightning address
 await new LN(credentials).pay("hello@getalby.com", new FiatAmount(1, "THB")); // or pay an amount in any currency to a lightning address
+await new LN(credentials).pay("hello@getalby.com", USD(1), {
+  metadata: { comment: "Example comment", payer_data: { name: "Bob" } },
+}); // set a comment for the payment you are making, and that the payment was made by Bob
 ```
 
 Or to request a payment to be received:
