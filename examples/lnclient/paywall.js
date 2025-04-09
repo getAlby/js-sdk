@@ -23,7 +23,6 @@ console.info("Please pay the above invoice within 60 seconds.");
 console.info("Waiting for payment...");
 
 // once the invoice got paid by the user run this callback
-// you can call unsubscribe() if you no longer expect the user to pay
 request
   .onPaid(() => {
     console.info("received payment!");
