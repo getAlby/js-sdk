@@ -18,4 +18,4 @@ const response = await client.pay("hello@getalby.com", USD(1.0), {
   metadata: { comment: "Payment from JS SDK", payer_data: { name: "Bob" } },
 });
 console.info("Paid successfully", response);
-client.close();
+client.close(); // when done and no longer needed close the wallet connection
