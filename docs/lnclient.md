@@ -18,8 +18,11 @@ Or to request a payment to be received:
 
 ```js
 const request = await new LN(credentials).receive(USD(1.0));
-// give request.invoice to someone...
-request.onPaid(giveAccess);
+
+// give request.invoice to someone, then act upon it:
+request
+  .onPaid(giveAccess) // listen for incoming payment and then fire the given method
+  .onTimeout(60, showTimeout); // if they didn't pay within 60 seconds, do something else
 ```
 
 ## Examples
