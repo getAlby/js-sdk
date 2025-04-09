@@ -19,20 +19,22 @@ const request = await client.receive(USD(1.0), { description: "best content" });
 
 qrcode.generate(request.invoice.paymentRequest, { small: true });
 console.info(request.invoice.paymentRequest);
+console.info("Please pay the above invoice within 60 seconds.");
 console.info("Waiting for payment...");
 
-// register the callback that will get executed once the user has paid the invoice
-//   you can call unsub() if you no longer expect the user to pay
-const unsub = await request.onPaid(() => {
-  console.info("received payment!");
-  client.close(); // when done and no longer needed close the wallet connection
-});
+// once the invoice got paid by the user run this callback
+// you can call unsubscribe() if you no longer expect the user to pay
+request
+  .onPaid(() => {
+    console.info("received payment!");
+    client.close(); // when done and no longer needed close the wallet connection
+  })
+  .onTimeout(60, () => {
+    console.info("didn't receive payment in time.");
+    client.close(); // when done and no longer needed close the wallet connection
+  });
 
 process.on("SIGINT", function () {
   console.info("Caught interrupt signal");
-
-  unsub();
-  client.close();
-
   process.exit();
 });
