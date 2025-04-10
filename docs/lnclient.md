@@ -32,3 +32,20 @@ request
 ## Examples
 
 See [the LNClient examples directory](./examples/lnclient) for a full list of examples.
+
+## For Node.js
+
+To use this on Node.js you first must install `websocket-polyfill@0.0.3` and import it:
+
+```js
+import "websocket-polyfill";
+// or: require('websocket-polyfill');
+```
+
+if you get an `crypto is not defined` error, either upgrade to node.js 20 or above, or import it manually:
+
+```js
+import * as crypto from 'crypto'; // or 'node:crypto'
+globalThis.crypto = crypto as any;
+//or: global.crypto = require('crypto');
+```
