@@ -227,10 +227,27 @@ The app will generate an NWA URI which should be opened in the wallet, where the
 
 > See [NWAClient class documentation](https://getalby.github.io/js-sdk/classes/nwc.NWAClient.html)
 
-#### Generating an NWA URI
+#### Generating an NWA URI (For Client apps)
 
-See [NWA example](examples/nwc/client/nwa.js)
+```js
+import { nwa } from "@getalby/sdk";
+const connectionUri = new nwa.NWAClient({
+  relayUrl,
+  requestMethods: ["get_info"],
+}).connectionUri;
 
-### Accepting and creating a connection from an NWA URI
+// then allow the user to copy it / display it as a QR code to the user
+```
 
-See [NWA accept example](examples/nwc/client/nwa.js) for NWA URI parsing and handling. The implementation of actually creating the connection and showing a confirmation page to the user is wallet-specific. In the example, a connection will be created via the `create_connection` NWC command.
+See full [NWA example](../examples/nwc/client/nwa.js)
+
+### Accepting and creating a connection from an NWA URI (For Wallet services)
+
+```js
+import { nwa } from "@getalby/sdk";
+const nwaOptions = nwa.NWAClient.parseWalletAuthUrl(nwaUrl);
+
+// then use `nwaOptions` to display a confirmation page to the user and create a connection.
+```
+
+See full [NWA accept example](../examples/nwc/client/nwa-accept.js) for NWA URI parsing and handling. The implementation of actually creating the connection and showing a confirmation page to the user is wallet-specific. In the example, a connection will be created via the `create_connection` NWC command.
