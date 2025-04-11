@@ -1,5 +1,18 @@
 export type Nip47EncryptionType = "nip04" | "nip44_v2";
 
+export type NWCAuthorizationUrlOptions = {
+  name?: string;
+  icon?: string;
+  requestMethods?: Nip47Method[];
+  notificationTypes?: Nip47NotificationType[];
+  returnTo?: string;
+  expiresAt?: Date;
+  maxAmount?: number;
+  budgetRenewal?: "never" | "daily" | "weekly" | "monthly" | "yearly";
+  isolated?: boolean;
+  metadata?: unknown;
+};
+
 export class Nip47Error extends Error {
   code: string;
   constructor(message: string, code: string) {
@@ -24,11 +37,11 @@ export class Nip47ResponseValidationError extends Nip47Error {}
 export class Nip47UnexpectedResponseError extends Nip47Error {}
 export class Nip47UnsupportedEncryptionError extends Nip47Error {}
 
-type WithDTag = {
+export type WithDTag = {
   dTag: string;
 };
 
-type WithOptionalId = {
+export type WithOptionalId = {
   id?: string;
 };
 
@@ -144,8 +157,21 @@ export type Nip47Transaction = {
   settled_at: number;
   created_at: number;
   expires_at: number;
-  metadata?: Record<string, unknown>;
+  metadata?: Nip47TransactionMetadata;
 };
+
+export type Nip47TransactionMetadata = {
+  comment?: string; // LUD-12
+  payer_data?: {
+    email?: string;
+    name?: string;
+    pubkey?: string;
+  }; // LUD-18
+  nostr?: {
+    pubkey: string;
+    tags: string[][];
+  }; // NIP-57
+} & Record<string, unknown>;
 
 export type Nip47NotificationType = Nip47Notification["notification_type"];
 
@@ -161,7 +187,7 @@ export type Nip47Notification =
 
 export type Nip47PayInvoiceRequest = {
   invoice: string;
-  metadata?: unknown;
+  metadata?: Nip47TransactionMetadata;
   amount?: number; // msats
 };
 
@@ -177,7 +203,7 @@ export type Nip47MakeInvoiceRequest = {
   description?: string;
   description_hash?: string;
   expiry?: number; // in seconds
-  metadata?: unknown; // TODO: update to also include known keys (payerData, nostr, comment)
+  metadata?: Nip47TransactionMetadata;
 };
 
 export type Nip47LookupInvoiceRequest = {

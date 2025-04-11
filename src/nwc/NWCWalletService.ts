@@ -29,7 +29,7 @@ import {
   NWCWalletServiceResponsePromise,
 } from "./NWCWalletServiceRequestHandler";
 
-type NewNWCWalletServiceOptions = {
+export type NewNWCWalletServiceOptions = {
   relayUrl: string;
 };
 

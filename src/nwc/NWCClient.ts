@@ -10,7 +10,6 @@ import {
   EventTemplate,
   Relay,
 } from "nostr-tools";
-import { NWCAuthorizationUrlOptions } from "../types";
 import { hexToBytes, bytesToHex } from "@noble/hashes/utils";
 import { Subscription } from "nostr-tools/lib/types/abstract-relay";
 import {
@@ -50,6 +49,7 @@ import {
   Nip47UnsupportedEncryptionError,
   Nip47WalletError,
   Nip47MultiMethod,
+  NWCAuthorizationUrlOptions,
 } from "./types";
 
 export interface NWCOptions {
@@ -272,9 +272,9 @@ export class NWCClient {
   /**
    * create a new client-initiated NWC connection via HTTP deeplink
    *
-   * @authorizationBasePath the deeplink path e.g. https://my.albyhub.com/apps/new
-   * @options configure the created app (e.g. the name, budget, expiration)
-   * @secret optionally pass a secret, otherwise one will be generated.
+   * @param authorizationBasePath the deeplink path e.g. https://my.albyhub.com/apps/new
+   * @param options configure the created app (e.g. the name, budget, expiration)
+   * @param secret optionally pass a secret, otherwise one will be generated.
    */
   static fromAuthorizationUrl(
     authorizationBasePath: string,
