@@ -1,6 +1,6 @@
 # OAuth API Documentation
 
-Please have a look a the Alby OAuth2 Wallet API:
+Please have a look at the Alby OAuth2 Wallet API:
 
 [https://guides.getalby.com/alby-wallet-api/reference/getting-started](https://guides.getalby.com/alby-wallet-api/reference/getting-started)
 
@@ -223,7 +223,7 @@ const response = await client.sendBoostagram([
 console.log(response.keysends);
 ```
 
-`response.keysends` is an array of objects that either has an `error` key if a payment faild or the `keysend` key if everything succeeded.
+`response.keysends` is an array of objects that either has an `error` key if a payment failed or the `keysend` key if everything succeeded.
 
 ```json
 {
