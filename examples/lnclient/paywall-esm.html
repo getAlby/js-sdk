@@ -1,0 +1,26 @@
+<script type="module">
+  import { LN, USD } from "https://esm.sh/@getalby/sdk@5.0.0"; // jsdelivr.net, skypack.dev also work
+  const connectionSecret = prompt("Enter a read-only connection secret");
+  const client = new LN(connectionSecret);
+
+  // request a lightning invoice that we show the user to pay
+  const request = await client.requestPayment(USD(1.0), {
+    description: "best content",
+  });
+
+  prompt(
+    "Please copy and pay the above invoice. Once you close the dialog, make sure to pay the invoice within 60 seconds.",
+    request.invoice.paymentRequest,
+  );
+
+  // once the invoice got paid by the user run this callback
+  request
+    .onPaid(() => {
+      alert("received payment!");
+      client.close(); // when done and no longer needed close the wallet connection
+    })
+    .onTimeout(60, () => {
+      alert("didn't receive payment in time.");
+      client.close(); // when done and no longer needed close the wallet connection
+    });
+</script>
