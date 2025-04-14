@@ -1,4 +1,5 @@
-import { auth, Client } from "../dist/index.module.js";
+import { oauth } from "../../dist/index.module.js";
+const { auth, Client } = oauth;
 import express from "express";
 
 if (!process.env.CLIENT_ID || !process.env.CLIENT_SECRET) {

@@ -6,8 +6,10 @@ const BASE_URL = "https://api.getalby.com";
 export interface RequestOptions extends Omit<RequestInit, "body"> {
   auth?: AuthClient;
   endpoint: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   params?: Record<string, any>;
   user_agent?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   request_body?: Record<string, any>;
   method?: string;
   max_retries?: number;
@@ -84,7 +86,9 @@ export async function request({
   return response;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function rest<T = any>(args: RequestOptions): Promise<T> {
   const response = await request(args);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return response.json() as any;
 }
