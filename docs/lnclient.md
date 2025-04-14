@@ -18,10 +18,10 @@ await new LN(credentials).pay("hello@getalby.com", USD(1), {
 }); // set a comment for the payment you are making, and that the payment was made by Bob
 ```
 
-Or to request a payment to be received:
+Or to request to receive a payment:
 
 ```js
-const request = await new LN(credentials).receive(USD(1.0));
+const request = await new LN(credentials).requestPayment(USD(1.0));
 
 // give request.invoice to someone, then act upon it:
 request

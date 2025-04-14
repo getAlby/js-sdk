@@ -20,7 +20,9 @@ const forwardPercentage = 50;
 const client = new LN(nwcUrl);
 
 // request an lightning invoice
-const request = await client.receive(amount, { description: "prism payment" });
+const request = await client.requestPayment(amount, {
+  description: "prism payment",
+});
 
 // prompt the user to pay the invoice
 qrcode.generate(request.invoice.paymentRequest, { small: true });
