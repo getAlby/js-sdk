@@ -4,7 +4,7 @@ Please have a look a the Alby OAuth2 Wallet API:
 
 [https://guides.getalby.com/alby-wallet-api/reference/getting-started](https://guides.getalby.com/alby-wallet-api/reference/getting-started)
 
-## Avalilable methods
+## Available methods
 
 - accountBalance
 - accountSummary
