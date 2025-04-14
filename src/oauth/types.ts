@@ -1,5 +1,4 @@
 import { AlbyResponseError } from "./AlbyResponseError";
-import { Nip47Method, Nip47NotificationType } from "./NWCClient";
 import { RequestOptions } from "./request";
 
 export type SuccessStatus = 200 | 201;
@@ -229,19 +228,6 @@ export type Invoice = {
     zap_request?: unknown;
   };
 } & Record<string, unknown>;
-
-export type NWCAuthorizationUrlOptions = {
-  name?: string;
-  icon?: string;
-  requestMethods?: Nip47Method[];
-  notificationTypes?: Nip47NotificationType[];
-  returnTo?: string;
-  expiresAt?: Date;
-  maxAmount?: number;
-  budgetRenewal?: "never" | "daily" | "weekly" | "monthly" | "yearly";
-  isolated?: boolean;
-  metadata?: unknown;
-};
 
 export type SendPaymentResponse = {
   amount: number;

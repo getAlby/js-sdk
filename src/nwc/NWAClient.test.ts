@@ -2,7 +2,7 @@ import "websocket-polyfill";
 import { NWAClient } from "./NWAClient";
 import { bytesToHex, hexToBytes } from "@noble/hashes/utils";
 import { generateSecretKey, getPublicKey } from "nostr-tools";
-import { Nip47Method, Nip47NotificationType } from "./NWCClient";
+import { Nip47Method, Nip47NotificationType } from "./types";
 
 describe("NWA URI", () => {
   test("constructs correct connection URI with custom app secret key", () => {
