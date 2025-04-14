@@ -70,12 +70,12 @@ export class LNClient {
   }
 
   /**
-   * Receive a payment
+   * Request to receive a payment
    * @param amount the amount requested, either in sats (e.g. {satoshi: 21}) or fiat (e.g. new FiatAmount(21, "USD")).
    * @param args additional options, e.g. to set a description on the payment request, or store metadata for the received payment
    * @returns the invoice to be paid, along with methods to easily listen for a payment and act upon it.
    */
-  async receive(
+  async requestPayment(
     amount: Amount,
     args?: Omit<Nip47MakeInvoiceRequest, "amount">,
   ) {

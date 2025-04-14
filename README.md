@@ -43,10 +43,10 @@ await new LN(credentials).pay("lnbc..."); // pay a lightning invoice
 await new LN(credentials).pay("hello@getalby.com", USD(1)); // or pay $1 USD to a lightning address
 ```
 
-Or to request a payment to be received:
+Or to request to receive a payment:
 
 ```js
-const request = await new LN(credentials).receive(USD(1.0));
+const request = await new LN(credentials).requestPayment(USD(1.0));
 // give request.invoice to someone...
 request.onPaid(giveAccess);
 ```

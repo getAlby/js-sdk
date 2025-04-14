@@ -14,8 +14,11 @@ const nwcUrl =
 rl.close();
 
 const client = new LN(nwcUrl);
+
 // request a lightning invoice that we show the user to pay
-const request = await client.receive(USD(1.0), { description: "best content" });
+const request = await client.requestPayment(USD(1.0), {
+  description: "best content",
+});
 
 qrcode.generate(request.invoice.paymentRequest, { small: true });
 console.info(request.invoice.paymentRequest);
