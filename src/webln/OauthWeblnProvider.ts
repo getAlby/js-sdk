@@ -1,7 +1,7 @@
-import { Client } from "../client";
-import { OAuthClient, KeysendRequestParams } from "../types";
+import { Client } from "../oauth/client";
+import { OAuthClient, KeysendRequestParams } from "../oauth/types";
 
-interface RequestInvoiceArgs {
+export interface RequestInvoiceArgs {
   amount: string | number;
   defaultMemo?: string;
 }
