@@ -13,7 +13,7 @@ async function main() {
 
   const nwcUrl =
     process.env.NWC_URL ||
-    (await rl.question("Nostr Wallet Connect URL (nostr+walletconnect://...)"));
+    (await rl.question("Nostr Wallet Connect URL (nostr+walletconnect://...): "));
   rl.close();
 
   const amount = USD(1.0);
