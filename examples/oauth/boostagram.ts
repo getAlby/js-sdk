@@ -2,6 +2,9 @@ import * as readline from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
 
 import { oauth } from "../../dist/index.module.js";
+import type {oauth as OAuth} from "../../dist/index"
+
+
 const { auth, Client } = oauth;
 
 const rl = readline.createInterface({ input, output });
@@ -23,7 +26,7 @@ const authClient = new auth.OAuth2User({
     refresh_token: undefined,
     expires_at: undefined,
   }, // initialize with existing token
-});
+}) as unknown as OAuth.auth.OAuth2User;
 
 console.log(`Open the following URL and authenticate the app:`);
 console.log(await authClient.generateAuthURL());
@@ -34,7 +37,7 @@ rl.close();
 
 await authClient.requestAccessToken(code);
 console.log(authClient.token);
-const client = new Client(authClient);
+const client = new Client(authClient) as OAuth.Client;
 
 // use an array if you want to send multiple boostagrams with one call
 const response = await client.sendBoostagram([

@@ -2,6 +2,8 @@ import * as readline from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
 
 import { oauth } from "../../dist/index.module.js";
+import type {oauth as OAuth} from "../../dist/index"
+
 const { auth, Client } = oauth;
 
 const rl = readline.createInterface({ input, output });
@@ -23,7 +25,7 @@ const authClient = new auth.OAuth2User({
     refresh_token: undefined,
     expires_at: undefined,
   }, // initialize with existing token
-});
+}) as unknown as OAuth.auth.OAuth2User;
 
 console.log(`Open the following URL and authenticate the app:`);
 console.log(await authClient.generateAuthURL());
@@ -34,21 +36,15 @@ rl.close();
 
 await authClient.requestAccessToken(code);
 console.log(authClient.token);
-const client = new Client(authClient);
+const client = new Client(authClient) as OAuth.Client;
 
-const response = client.keysend([
-  {
-    amount: 10,
-    destination:
-      "03006fcf3312dae8d068ea297f58e2bd00ec1ffe214b793eda46966b6294a53ce6",
-    customRecords: { 34349334: "I love amboss" },
-  },
-  {
-    amount: 11,
-    destination:
-      "03006fcf3312dae8d068ea297f58e2bd00ec1ffe214b793eda46966b6294a53ce6",
-    customRecords: { 34349334: "I love amboss" },
-  },
-]);
+// Create a webhook
+const response = await client.createWebhookEndpoint({
+  url: "https://example.com",
+  filter_types: ["invoice.settled"],
+});
+
+// Delete a webhook
+// response = await alby.deleteWebhookEndpoint('ep_...').then(console.log)
 
 console.log(JSON.stringify(response));

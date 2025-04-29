@@ -1,24 +1,31 @@
 import * as readline from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
+
 import { oauth } from "../../dist/index.module.js";
+import type {oauth as OAuth} from "../../dist/index"
+
 const { auth, Client } = oauth;
 
 const rl = readline.createInterface({ input, output });
 
-const paymentRequest =
-  "lnbc10u1pj4t6w0pp54wm83znxp8xly6qzuff2z7u6585rnlcw9uduf2haa42qcz09f5wqdq023jhxapqd4jk6mccqzzsxqyz5vqsp5mlvjs8nktpz98s5dcrhsuelrz94kl2vjukvu789yzkewast6m00q9qyyssqupynqdv7e5y8nlul0trva5t97g7v3gwx7akhu2dvu4pn66eu2pr5zkcnegp8myz3wrpj9ht06pwyfn4dvpmnr96ejq6ygex43ymaffqq3gud4d";
-
 const authClient = new auth.OAuth2User({
   client_id: process.env.CLIENT_ID,
   client_secret: process.env.CLIENT_SECRET,
-  callback: "http://localhost:8080",
-  scopes: ["invoices:read"], // this scope isn't needed, but at least one scope is required to get an access token
+  callback: "http://localhost:8080/callback",
+  scopes: [
+    "invoices:read",
+    "account:read",
+    "balance:read",
+    "invoices:create",
+    "invoices:read",
+    "payments:send",
+  ],
   token: {
     access_token: undefined,
     refresh_token: undefined,
     expires_at: undefined,
   }, // initialize with existing token
-});
+}) as unknown as OAuth.auth.OAuth2User;
 
 console.log(`Open the following URL and authenticate the app:`);
 console.log(await authClient.generateAuthURL());
@@ -29,8 +36,21 @@ rl.close();
 
 await authClient.requestAccessToken(code);
 console.log(authClient.token);
-const client = new Client(authClient);
+const client = new Client(authClient) as OAuth.Client;
 
-const response = await client.decodeInvoice(paymentRequest);
+const response = client.keysend([
+  {
+    amount: 10,
+    destination:
+      "03006fcf3312dae8d068ea297f58e2bd00ec1ffe214b793eda46966b6294a53ce6",
+    customRecords: { 34349334: "I love amboss" },
+  },
+  {
+    amount: 11,
+    destination:
+      "03006fcf3312dae8d068ea297f58e2bd00ec1ffe214b793eda46966b6294a53ce6",
+    customRecords: { 34349334: "I love amboss" },
+  },
+]);
 
-console.log(JSON.stringify(response, null, 2));
+console.log(JSON.stringify(response));
