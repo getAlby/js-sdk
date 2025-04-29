@@ -16,10 +16,13 @@ const nwcUrl = `nostr+walletconnect://${walletServicePubkey}?relay=${relayUrl}&s
 console.info("enter this NWC URL in a client: ", nwcUrl);
 
 import { nwc } from "../../../dist/index.module.js";
+import type {nwc as NWC} from "../../../dist/index"
+
+
 
 const walletService = new nwc.NWCWalletService({
   relayUrl,
-});
+}) as NWC.NWCWalletService;
 
 await walletService.publishWalletServiceInfoEvent(
   walletServiceSecretKey,
@@ -27,31 +30,32 @@ await walletService.publishWalletServiceInfoEvent(
   [],
 );
 
-const keypair = new nwc.NWCWalletServiceKeyPair(
-  walletServiceSecretKey,
-  clientPubkey,
-);
+// TODO: fix errors for example to work
+// const keypair = new nwc.NWCWalletServiceKeyPair(
+//   walletServiceSecretKey,
+//   clientPubkey,
+// ) ;
 
-const unsub = await walletService.subscribe(keypair, {
-  getInfo: () => {
-    return Promise.resolve({
-      result: {
-        methods: ["get_info"],
-        alias: "Alby Hub",
-        //... add other fields here
-      },
-      error: undefined,
-    });
-  },
-  // ... handle other NIP-47 methods here
-});
+// const unsub = await walletService.subscribe(keypair, {
+//   getInfo: () => {
+//     return Promise.resolve({
+//       result: {
+//         methods: ["get_info"],
+//         alias: "Alby Hub",
+//         //... add other fields here
+//       },
+//       error: undefined,
+//     });
+//   },
+//   // ... handle other NIP-47 methods here
+// });
 
-console.info("Waiting for events...");
-process.on("SIGINT", function () {
-  console.info("Caught interrupt signal");
+// console.info("Waiting for events...");
+// process.on("SIGINT", function () {
+//   console.info("Caught interrupt signal");
 
-  unsub();
-  walletService.close();
+//   unsub();
+//   walletService.close();
 
-  process.exit();
-});
+//   process.exit();
+// });

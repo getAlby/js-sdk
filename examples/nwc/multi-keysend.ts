@@ -4,6 +4,7 @@ import * as readline from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
 
 import { webln as providers } from "../../dist/index.module.js";
+import type { webln as WebLN } from "../../dist/index";
 
 const rl = readline.createInterface({ input, output });
 
@@ -14,7 +15,9 @@ rl.close();
 
 const webln = new providers.NostrWebLNProvider({
   nostrWalletConnectUrl: nwcUrl,
-});
+}) as unknown as WebLN.NostrWebLNProvider;
+
+
 await webln.enable();
 
 const keysends = [

@@ -6,6 +6,7 @@ import * as readline from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
 
 import { nwc } from "../../../dist/index.module.js";
+import type { nwc as NWC } from "../../../dist/index";
 
 const rl = readline.createInterface({ input, output });
 
@@ -34,7 +35,7 @@ rl.close();
 
 const client = new nwc.NWCClient({
   nostrWalletConnectUrl: nwcUrl,
-});
+}) as NWC.NWCClient;
 
 try {
   const response = await client.multiPayInvoice({

@@ -3,22 +3,26 @@ import "websocket-polyfill"; // required in node.js
 import * as readline from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
 
-import { nwc } from "../../../dist/index.module.js";
+import { webln as providers } from "../../dist/index.module.js";
+import type { webln as WebLN } from "../../dist/index";
 
 const rl = readline.createInterface({ input, output });
 
 const nwcUrl =
   process.env.NWC_URL ||
   (await rl.question("Nostr Wallet Connect URL (nostr+walletconnect://...): "));
-const invoice = await rl.question("Lightning invoice: ");
+
 rl.close();
 
-const client = new nwc.NWCClient({
+const webln = new providers.NostrWebLNProvider({
   nostrWalletConnectUrl: nwcUrl,
-});
+}) as unknown as WebLN.NostrWebLNProvider;
 
-const response = await client.payInvoice({ invoice });
+
+
+await webln.enable();
+const response = await webln.signMessage("Hello, world!");
 
 console.info(response);
 
-client.close();
+webln.close();

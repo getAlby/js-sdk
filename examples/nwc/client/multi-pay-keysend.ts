@@ -4,6 +4,7 @@ import * as readline from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
 
 import { nwc } from "../../../dist/index.module.js";
+import type { nwc as NWC } from "../../../dist/index"; // Importing types for better type checking
 
 const rl = readline.createInterface({ input, output });
 
@@ -14,7 +15,7 @@ rl.close();
 
 const client = new nwc.NWCClient({
   nostrWalletConnectUrl: nwcUrl,
-});
+}) as NWC.NWCClient;
 
 // Data from https://podcastindex.org/podcast/920666
 const boost = {
