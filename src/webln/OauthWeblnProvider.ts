@@ -35,63 +35,46 @@ export class OauthWeblnProvider {
     }
   }
 
-  async enable() {
-    if (this.isExecuting) {
-      return;
+  private async execute<T>(fn: () => Promise<T>): Promise<T | undefined> {
+    if (this.isExecuting) return;
+    this.isExecuting = true;
+    try {
+      return await fn();
+    } catch (error) {
+      let message = "Unknown Error";
+      if (error instanceof Error) {
+        message = error.message;
+      }
+      throw new Error(message);
+    } finally {
+      this.isExecuting = false;
     }
+  }
+
+  async enable() {
     if (this.auth.token?.access_token) {
       return { enabled: true };
     }
-    if (isBrowser()) {
-      try {
-        this.isExecuting = true;
-        await this.openAuthorization();
-      } finally {
-        this.isExecuting = false;
-      }
-    } else {
+    if (!isBrowser()) {
       throw new Error("Missing access token");
     }
+    await this.execute(() => this.openAuthorization());
   }
 
   async sendPayment(invoice: string) {
-    if (this.isExecuting) {
-      return;
-    }
-    try {
-      this.isExecuting = true;
+    return this.execute(async () => {
       const result = await this.client.sendPayment({ invoice });
       this.notify("sendPayment", result);
-      return {
-        preimage: result.payment_preimage,
-      };
-    } catch (error) {
-      let message = "Unknown Error";
-      if (error instanceof Error) message = error.message;
-      throw new Error(message);
-    } finally {
-      this.isExecuting = false;
-    }
+      return { preimage: result.payment_preimage };
+    });
   }
 
   async keysend(params: KeysendRequestParams) {
-    if (this.isExecuting) {
-      return;
-    }
-    try {
-      this.isExecuting = true;
+    return this.execute(async () => {
       const result = await this.client.keysend(params);
       this.notify("keysend", result);
-      return {
-        preimage: result.payment_preimage,
-      };
-    } catch (error) {
-      let message = "Unknown Error";
-      if (error instanceof Error) message = error.message;
-      throw new Error(message);
-    } finally {
-      this.isExecuting = false;
-    }
+      return { preimage: result.payment_preimage };
+    });
   }
 
   async getInfo() {
@@ -101,26 +84,14 @@ export class OauthWeblnProvider {
   }
 
   async makeInvoice(params: RequestInvoiceArgs) {
-    if (this.isExecuting) {
-      return;
-    }
-    try {
-      this.isExecuting = true;
+    return this.execute(async () => {
       const result = await this.client.createInvoice({
         amount: parseInt(params.amount.toString()),
         description: params.defaultMemo,
       });
       this.notify("makeInvoice", result);
-      return {
-        paymentRequest: result.payment_request,
-      };
-    } catch (error) {
-      let message = "Unknown Error";
-      if (error instanceof Error) message = error.message;
-      throw new Error(message);
-    } finally {
-      this.isExecuting = false;
-    }
+      return { paymentRequest: result.payment_request };
+    });
   }
 
   async openAuthorization() {
