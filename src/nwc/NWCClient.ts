@@ -50,6 +50,11 @@ import {
   Nip47WalletError,
   Nip47MultiMethod,
   NWCAuthorizationUrlOptions,
+  Nip47MakeHoldInvoiceRequest,
+  Nip47SettleHoldInvoiceRequest,
+  Nip47SettleHoldInvoiceResponse,
+  Nip47CancelHoldInvoiceRequest,
+  Nip47CancelHoldInvoiceResponse,
 } from "./types";
 
 export interface NWCOptions {
@@ -591,6 +596,64 @@ export class NWCClient {
       return result;
     } catch (error) {
       console.error("Failed to request make_invoice", error);
+      throw error;
+    }
+  }
+
+  async makeHoldInvoice(
+    request: Nip47MakeHoldInvoiceRequest,
+  ): Promise<Nip47Transaction> {
+    try {
+      if (!request.amount) {
+        throw new Error("No amount specified");
+      }
+      if (!request.payment_hash) {
+        throw new Error("No payment hash specified");
+      }
+
+      const result = await this.executeNip47Request<Nip47Transaction>(
+        "make_hold_invoice",
+        request,
+        (result) => !!result.invoice,
+      );
+
+      return result;
+    } catch (error) {
+      console.error("Failed to request make_hold_invoice", error);
+      throw error;
+    }
+  }
+
+  async settleHoldInvoice(
+    request: Nip47SettleHoldInvoiceRequest,
+  ): Promise<Nip47SettleHoldInvoiceResponse> {
+    try {
+      const result = await this.executeNip47Request<Nip47Transaction>(
+        "settle_hold_invoice",
+        request,
+        (result) => !!result,
+      );
+
+      return result;
+    } catch (error) {
+      console.error("Failed to request settle_hold_invoice", error);
+      throw error;
+    }
+  }
+
+  async cancelHoldInvoice(
+    request: Nip47CancelHoldInvoiceRequest,
+  ): Promise<Nip47CancelHoldInvoiceResponse> {
+    try {
+      const result = await this.executeNip47Request<Nip47Transaction>(
+        "cancel_hold_invoice",
+        request,
+        (result) => !!result,
+      );
+
+      return result;
+    } catch (error) {
+      console.error("Failed to request cancel_hold_invoice", error);
       throw error;
     }
   }
