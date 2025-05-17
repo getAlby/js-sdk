@@ -3,7 +3,7 @@ import "websocket-polyfill"; // required in node.js
 import * as readline from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
 
-import { LN, USD } from "../../dist/index.module.js";
+import { LN, USD } from "@getalby/sdk";
 
 const rl = readline.createInterface({ input, output });
 
