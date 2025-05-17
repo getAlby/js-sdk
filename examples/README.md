@@ -3,13 +3,24 @@
 
 This directory contains example scripts demonstrating how to use the [`@getalby/sdk`](https://github.com/getAlby/js-sdk) for various Bitcoin, Lightning, and Nostr Wallet Connect use cases.
 
+## ✅ Prerequisites
+
+Before running the examples, make sure to install and build the Alby SDK from the root directory:
+
+```bash
+cd ..
+yarn install
+yarn build
+```
+
+
 ## 📦 Setup
 
 1. Navigate to the examples directory:
 
 ```bash
 cd examples
-````
+```
 
 2. Install dependencies:
 
