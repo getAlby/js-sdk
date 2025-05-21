@@ -46,7 +46,10 @@ const onNotification = async (notification) => {
     console.info("Skipping unrelated notification", notification);
     return;
   }
-  console.info("HOLD invoice accepted!");
+  console.info(
+    "HOLD invoice accepted! It can be settled or canceled before block " +
+      notification.notification.settle_deadline,
+  );
 
   const rl = readline.createInterface({ input, output });
 

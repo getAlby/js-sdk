@@ -141,6 +141,9 @@ export interface Nip47ListTransactionsRequest {
 
 export type Nip47ListTransactionsResponse = {
   transactions: Nip47Transaction[];
+  /**
+   * NOTE: non-NIP-47 spec compliant
+   */
   total_count: number;
 };
 
@@ -160,6 +163,10 @@ export type Nip47Transaction = {
   settled_at: number;
   created_at: number;
   expires_at: number;
+  /**
+   * NOTE: non-NIP-47 spec compliant
+   */
+  settle_deadline?: number;
   metadata?: Nip47TransactionMetadata;
 };
 
