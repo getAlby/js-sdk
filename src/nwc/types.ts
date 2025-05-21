@@ -161,16 +161,6 @@ export type Nip47Transaction = {
 };
 
 export type Nip47TransactionMetadata = {
-  success_action?:
-    | {
-        tag: "message";
-        message: string;
-      }
-    | {
-        tag: "url";
-        description: string;
-        url: string;
-      }; // LUD-09
   comment?: string; // LUD-12
   payer_data?: {
     email?: string;
