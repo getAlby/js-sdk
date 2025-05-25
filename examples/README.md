@@ -22,9 +22,16 @@ yarn build
 cd examples
 ```
 
-2. Install dependencies:
+2. Then install dependencies:
+> **Note for Windows users:**  
+> Yarn’s Plug’n’Play (PnP) mode creates **symlinks** as part of its package resolution system.  
+> However, Windows has strict symlink permissions. To avoid this issue, configure Yarn to use the traditional `node_modules` folder layout by running:
 
 
+```bash
+yarn config set nodeLinker node-modules
+```
+then 
 ```bash
 yarn install
 ```
@@ -32,10 +39,10 @@ yarn install
 
 ## ▶️ Running an Example
 
-Use `ts-node` to run a specific TypeScript file. For example:
+Use `tsx` to run a specific TypeScript file. For example:
 
 ```bash
-yarn ts-node ./lnclient/pay_ln_address.ts
+yarn tsx ./lnclient/pay_ln_address.ts
 ```
 
 Make sure you’ve installed the dev dependencies and TypeScript properly.
