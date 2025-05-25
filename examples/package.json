@@ -5,13 +5,13 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "start": "ts-node"
+    "start": "tsx ./lnclient/pay_ln_address.ts"
   },
   "dependencies": {
     "@getalby/sdk": "file:../"
   },
   "devDependencies": {
-    "ts-node": "^10.9.1",
+    "tsx": "^4.19.4",
     "typescript": "^5.1.6"
   },
   "engines": {
