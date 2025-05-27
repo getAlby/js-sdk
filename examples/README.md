@@ -1,4 +1,3 @@
-
 # Alby SDK Examples
 
 This directory contains example scripts demonstrating how to use the [`@getalby/sdk`](https://github.com/getAlby/js-sdk) for various Bitcoin, Lightning, and Nostr Wallet Connect use cases.
@@ -13,7 +12,6 @@ yarn install
 yarn build
 ```
 
-
 ## 📦 Setup
 
 1. Navigate to the examples directory:
@@ -23,19 +21,10 @@ cd examples
 ```
 
 2. Then install dependencies:
-> **Note for Windows users:**  
-> Yarn’s Plug’n’Play (PnP) mode creates **symlinks** as part of its package resolution system.  
-> However, Windows has strict symlink permissions. To avoid this issue, configure Yarn to use the traditional `node_modules` folder layout by running:
 
-
-```bash
-yarn config set nodeLinker node-modules
-```
-then 
 ```bash
 yarn install
 ```
-
 
 ## ▶️ Running an Example
 
@@ -49,16 +38,22 @@ Make sure you’ve installed the dev dependencies and TypeScript properly.
 
 ## 📁 Folder Structure
 
-* `lnclient/`: Contains Lightning client examples using NWC and WebLN.
-* Additional folders may demonstrate other SDK features as needed.
+- `lnclient/`: Contains Lightning client examples. This is a good place to start.
 
 ## 🧠 Notes
 
-* All examples are written in **TypeScript** for type safety.
-* Designed to test features against a locally built version of the SDK.
-* Contributions are welcome! Feel free to submit more examples or improvements.
+- All examples should be written in **TypeScript** for type safety.
+- Designed to test features against a locally built version of the SDK.
+- Contributions are welcome! Feel free to submit more examples or improvements.
+
+## Legacy examples
+
+Javascript examples can be run directly using node:
+
+```bash
+node examples/nwc/client/get-balance.js
+```
 
 ---
 
 Made with ⚡ by the Alby contributors.
-
