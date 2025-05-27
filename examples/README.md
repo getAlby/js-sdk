@@ -48,10 +48,10 @@ Make sure you’ve installed the dev dependencies and TypeScript properly.
 
 ## Legacy examples
 
-Javascript examples can be run directly using node:
+Some older examples are still in JavaScript and can be run using node:
 
 ```bash
-node examples/nwc/client/get-balance.js
+node ./nwc/client/get-balance.js
 ```
 
 ---
