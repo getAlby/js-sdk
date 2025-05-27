@@ -1,5 +1,5 @@
 import { AlbyResponseError } from "./AlbyResponseError";
-import { RequestOptions } from "./request";
+import type { RequestOptions } from "./request";
 
 export type SuccessStatus = 200 | 201;
 export type ResponseType = "application/json";
