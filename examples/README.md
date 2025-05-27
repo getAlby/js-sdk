@@ -4,7 +4,10 @@ This directory contains example scripts demonstrating how to use the [`@getalby/
 
 ## ✅ Prerequisites
 
-Before running the examples, make sure to install and build the Alby SDK from the root directory:
+> 🛠️ Only needed if you're running the **legacy JavaScript examples** (not required for TypeScript examples)
+
+Before running legacy JS examples, make sure to install and build the Alby SDK from the root directory:
+
 
 ```bash
 cd ..
@@ -33,6 +36,8 @@ Use `tsx` to run a specific TypeScript file. For example:
 ```bash
 yarn tsx ./lnclient/pay_ln_address.ts
 ```
+ ✅ No need to build the SDK — just install dependencies and run.
+ 
 
 Make sure you’ve installed the dev dependencies and TypeScript properly.
 
@@ -53,6 +58,8 @@ Some older examples are still in JavaScript and can be run using node:
 ```bash
 node ./nwc/client/get-balance.js
 ```
+⚠️ For these to work, you must build the SDK first (yarn build in the root directory).
+
 
 ---
 

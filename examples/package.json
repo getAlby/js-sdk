@@ -8,7 +8,6 @@
     "start": "tsx ./lnclient/pay_ln_address.ts"
   },
   "dependencies": {
-    "@getalby/sdk": "portal:../",
     "websocket-polyfill": "^0.0.3"
   },
   "devDependencies": {
