@@ -55,7 +55,10 @@ export type Nip47SingleMethod =
   | "lookup_invoice"
   | "list_transactions"
   | "sign_message"
-  | "create_connection";
+  | "create_connection"
+  | "make_hold_invoice"
+  | "settle_hold_invoice"
+  | "cancel_hold_invoice";
 
 export type Nip47MultiMethod = "multi_pay_invoice" | "multi_pay_keysend";
 
@@ -138,6 +141,9 @@ export interface Nip47ListTransactionsRequest {
 
 export type Nip47ListTransactionsResponse = {
   transactions: Nip47Transaction[];
+  /**
+   * NOTE: non-NIP-47 spec compliant
+   */
   total_count: number;
 };
 
@@ -157,6 +163,10 @@ export type Nip47Transaction = {
   settled_at: number;
   created_at: number;
   expires_at: number;
+  /**
+   * NOTE: non-NIP-47 spec compliant
+   */
+  settle_deadline?: number;
   metadata?: Nip47TransactionMetadata;
 };
 
@@ -186,6 +196,10 @@ export type Nip47Notification =
   | {
       notification_type: "payment_sent";
       notification: Nip47Transaction;
+    }
+  | {
+      notification_type: "hold_invoice_accepted";
+      notification: Nip47Transaction;
     };
 
 export type Nip47PayInvoiceRequest = {
@@ -208,6 +222,22 @@ export type Nip47MakeInvoiceRequest = {
   expiry?: number; // in seconds
   metadata?: Nip47TransactionMetadata;
 };
+
+export type Nip47MakeHoldInvoiceRequest = Nip47MakeInvoiceRequest & {
+  payment_hash: string;
+};
+
+export type Nip47SettleHoldInvoiceRequest = {
+  preimage: string;
+};
+// eslint-disable-next-line @typescript-eslint/ban-types
+export type Nip47SettleHoldInvoiceResponse = {};
+
+export type Nip47CancelHoldInvoiceRequest = {
+  payment_hash: string;
+};
+// eslint-disable-next-line @typescript-eslint/ban-types
+export type Nip47CancelHoldInvoiceResponse = {};
 
 export type Nip47LookupInvoiceRequest = {
   payment_hash?: string;
