@@ -24,6 +24,8 @@ const client = new nwc.NWCClient({
 const response = await client.makeInvoice({
   amount, // in millisats
   description: "NWC Client example",
+  // or set a 256-bit description hash:
+  //description_hash: "a40f2b27a4414044995b26b73eb5aa66688b5f18d6a8a2513827d9a116ad95f1",
 });
 
 console.info(response);
