@@ -3,7 +3,7 @@ import "websocket-polyfill"; // required in node.js
 import * as readline from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
 
-import { LN, USD } from "../../src/index";
+import { LN, USD } from "@getalby/sdk";
 
 async function main(): Promise<void> {
   const rl = readline.createInterface({ input, output });
@@ -29,7 +29,7 @@ async function main(): Promise<void> {
   } catch (error) {
     console.error("Payment failed:", error);
   } finally {
-    client.close();
+    client.close(); 
   }
 }
 
