@@ -1,0 +1,24 @@
+{
+  "name": "alby-sdk-examples",
+  "version": "1.0.0",
+  "description": "Example usage of the Alby SDK including Nostr Wallet Connect and Lightning utilities",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "tsx ./lnclient/pay_ln_address.ts"
+  },
+  "dependencies": {
+    "@getalby/sdk": "portal:../",
+    "websocket-polyfill": "^0.0.3"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.4",
+    "typescript": "^5.1.6"
+  },
+  "engines": {
+    "node": ">=14"
+  },
+  "author": "Alby contributors",
+  "license": "MIT",
+  "packageManager": "yarn@4.9.0"
+}
