@@ -181,9 +181,9 @@ __metadata:
   linkType: hard
 
 "@getalby/lightning-tools@npm:^5.1.2":
-  version: 5.1.2
-  resolution: "@getalby/lightning-tools@npm:5.1.2"
-  checksum: 10c0/6d54613e742caa2aaec2b874eae1b3b105f2edeb7dafeb0ea8b081c58cc03be9b90a71404dfbea9545f07350ad7989863c192382913adce12c19d450899a35b7
+  version: 5.2.0
+  resolution: "@getalby/lightning-tools@npm:5.2.0"
+  checksum: 10c0/09842118aa592871bdf6d5e17a7bf5ce203174b0ecb89bdb9d6f13b81a000a935268d167c88bdeb566effd8d79ff8048d2b5784ff28f2f5df081d91be480e626
   languageName: node
   linkType: hard
 
@@ -697,14 +697,14 @@ __metadata:
   linkType: hard
 
 "fdir@npm:^6.4.4":
-  version: 6.4.4
-  resolution: "fdir@npm:6.4.4"
+  version: 6.4.5
+  resolution: "fdir@npm:6.4.5"
   peerDependencies:
     picomatch: ^3 || ^4
   peerDependenciesMeta:
     picomatch:
       optional: true
-  checksum: 10c0/6ccc33be16945ee7bc841e1b4178c0b4cf18d3804894cb482aa514651c962a162f96da7ffc6ebfaf0df311689fb70091b04dd6caffe28d56b9ebdc0e7ccadfdd
+  checksum: 10c0/5d63330a1b97165e9b0fb20369fafc7cf826bc4b3e374efcb650bc77d7145ac01193b5da1a7591eab89ae6fd6b15cdd414085910b2a2b42296b1480c9f2677af
   languageName: node
   linkType: hard
 
