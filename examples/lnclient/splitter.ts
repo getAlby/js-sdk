@@ -4,7 +4,7 @@ import qrcode from "qrcode-terminal";
 import * as readline from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
 
-import { LN, USD, SATS, nwc } from "@getalby/sdk";
+import { LN, USD, SATS } from "@getalby/sdk";
 
 /*  
  * This example shows how to use the Alby SDK to create a split payment
@@ -41,26 +41,6 @@ async function main(): Promise<void> {
   console.info("Please pay the above invoice within 60 seconds.");
   console.info("Waiting for payment...");
 
-  //the feilds here are optional, but can be used to store metadata about the payment
-  const payArgs = (r: string): nwc.Nip47TransactionMetadata => {
-    return {
-      comment: "[TEST] Payment from Alby SDK Split Payment Example",
-      payer_data: {
-        email: "dunsin@getalby.com",
-        name: "Dunsin (Test User)",
-        pubkey:
-          "npub183zjuwwlud4tyvntp76zugkg4vlewuwcutcle05w6ysm77jast2sqyxqgv",
-      },
-      recipient_data: {
-        identifier: r,
-      },
-      nostr: {
-        pubkey: "npub1yyy...",
-        tags: [["p", "npub1zzz..."]],
-      },
-    };
-  };
-
   // once the invoice got paid by the user run this callback
   request
     .onPaid(async () => {
@@ -77,7 +57,7 @@ async function main(): Promise<void> {
       await Promise.all(
         recipients.map(async (r) => {
           const response = await client.pay(r, SATS(satsToForward), {
-            metadata: payArgs(r),
+            metadata: { comment: "splitter" },
           });
           console.info(
             `Forwarded ${satsToForward} sats to ${r} (preimage: ${response.preimage})`,
