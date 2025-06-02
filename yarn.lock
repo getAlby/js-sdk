@@ -5123,10 +5123,10 @@ normalize-url@^6.0.1:
   resolved "https://registry.npmjs.org/normalize-url/-/normalize-url-6.1.0.tgz"
   integrity sha512-DlL+XwOy3NxAQ8xuC0okPgK46iuVNAK01YN7RueYBqqFeGsBjV9XmCAzAdgt+667bCl5kPh9EqKKDwnaPG1I7A==
 
-nostr-tools@2.12.0:
-  version "2.12.0"
-  resolved "https://registry.yarnpkg.com/nostr-tools/-/nostr-tools-2.12.0.tgz#09f270e32453611a85c3670ff86ae856f3cbd21a"
-  integrity sha512-pUWEb020gTvt1XZvTa8AKNIHWFapjsv2NKyk43Ez2nnvz6WSXsrTFE0XtkNLSRBjPn6EpxumKeNiVzLz74jNSA==
+nostr-tools@2.13.2:
+  version "2.13.2"
+  resolved "https://registry.yarnpkg.com/nostr-tools/-/nostr-tools-2.13.2.tgz#37ed11d11a34b8cff1ff5cfdc409ef10ed4f9726"
+  integrity sha512-Siz9r1sHcde3iVwo6ogU3HS6p0TDp4OkSMMjOu/eGsOIFJVsXH25bzqJjgV9miImRVnOhNVDx4HyYR0Ye7A3hw==
   dependencies:
     "@noble/ciphers" "^0.5.1"
     "@noble/curves" "1.2.0"
@@ -5134,7 +5134,6 @@ nostr-tools@2.12.0:
     "@scure/base" "1.1.1"
     "@scure/bip32" "1.3.1"
     "@scure/bip39" "1.2.1"
-  optionalDependencies:
     nostr-wasm "0.1.0"
 
 nostr-wasm@0.1.0:
