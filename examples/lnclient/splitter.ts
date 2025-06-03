@@ -6,13 +6,12 @@ import { stdin as input, stdout as output } from "node:process";
 
 import { LN, USD, SATS } from "@getalby/sdk";
 
-/*  
+/*
  * This example shows how to use the Alby SDK to create a split payment
  * where a user pays an invoice and the payment is split between multiple
  * recipients. The user pays a single invoice, and the server forwards the
- * payment to multiple recipients based on a specified percentage. 
-
-*/
+ * payment to multiple recipients based on a specified percentage.
+ */
 
 async function main(): Promise<void> {
   const rl = readline.createInterface({ input, output });
@@ -32,7 +31,7 @@ async function main(): Promise<void> {
 
   // request an lightning invoice
   const request = await client.requestPayment(amount, {
-    description: "[TEST] Split Payment Example",
+    description: "prism payment",
   });
 
   // prompt the user to pay the invoice
@@ -50,7 +49,7 @@ async function main(): Promise<void> {
         (satsReceived * forwardPercentage) / 100 / recipients.length,
       );
       console.info(
-        `Received ${satsReceived} sats! Forwarding ${satsToForward} to the ${recipients.join(", ")}`,
+        `Received ${satsReceived} sats! Forwarding ${satsToForward} to ${recipients.join(", ")}`,
       );
 
       // iterate over all recipients and pay them the amount
