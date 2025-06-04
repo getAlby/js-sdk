@@ -5123,10 +5123,10 @@ normalize-url@^6.0.1:
   resolved "https://registry.npmjs.org/normalize-url/-/normalize-url-6.1.0.tgz"
   integrity sha512-DlL+XwOy3NxAQ8xuC0okPgK46iuVNAK01YN7RueYBqqFeGsBjV9XmCAzAdgt+667bCl5kPh9EqKKDwnaPG1I7A==
 
-nostr-tools@2.13.2:
-  version "2.13.2"
-  resolved "https://registry.yarnpkg.com/nostr-tools/-/nostr-tools-2.13.2.tgz#37ed11d11a34b8cff1ff5cfdc409ef10ed4f9726"
-  integrity sha512-Siz9r1sHcde3iVwo6ogU3HS6p0TDp4OkSMMjOu/eGsOIFJVsXH25bzqJjgV9miImRVnOhNVDx4HyYR0Ye7A3hw==
+nostr-tools@2.13.3:
+  version "2.13.3"
+  resolved "https://registry.yarnpkg.com/nostr-tools/-/nostr-tools-2.13.3.tgz#4d2b9c050d701db95d1c5a1fe4defb45af351b7f"
+  integrity sha512-+jAc/k380znY02Vtc6HCTkbDHwjpnRr+ikEkmzi4jrpFX+1Mdw+YuXxmOQKw99B6qjKb4iEqwCEetWm9n6k6Iw==
   dependencies:
     "@noble/ciphers" "^0.5.1"
     "@noble/curves" "1.2.0"
