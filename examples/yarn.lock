@@ -192,7 +192,7 @@ __metadata:
   resolution: "@getalby/sdk@portal:../::locator=alby-sdk-examples%40workspace%3A."
   dependencies:
     "@getalby/lightning-tools": "npm:^5.1.2"
-    nostr-tools: "npm:2.12.0"
+    nostr-tools: "npm:2.13.2"
   languageName: node
   linkType: soft
 
@@ -392,11 +392,11 @@ __metadata:
   linkType: hard
 
 "brace-expansion@npm:^2.0.1":
-  version: 2.0.1
-  resolution: "brace-expansion@npm:2.0.1"
+  version: 2.0.2
+  resolution: "brace-expansion@npm:2.0.2"
   dependencies:
     balanced-match: "npm:^1.0.0"
-  checksum: 10c0/b358f2fe060e2d7a87aa015979ecea07f3c37d4018f8d6deb5bd4c229ad3a0384fe6029bb76cd8be63c81e516ee52d1a0673edbe2023d53a5191732ae3c3e49f
+  checksum: 10c0/6d117a4c793488af86b83172deb6af143e94c17bc53b0b3cec259733923b4ca84679d506ac261f4ba3c7ed37c46018e2ff442f9ce453af8643ecd64f4a54e6cf
   languageName: node
   linkType: hard
 
@@ -1069,9 +1069,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nostr-tools@npm:2.12.0":
-  version: 2.12.0
-  resolution: "nostr-tools@npm:2.12.0"
+"nostr-tools@npm:2.13.2":
+  version: 2.13.2
+  resolution: "nostr-tools@npm:2.13.2"
   dependencies:
     "@noble/ciphers": "npm:^0.5.1"
     "@noble/curves": "npm:1.2.0"
@@ -1082,13 +1082,10 @@ __metadata:
     nostr-wasm: "npm:0.1.0"
   peerDependencies:
     typescript: ">=5.0.0"
-  dependenciesMeta:
-    nostr-wasm:
-      optional: true
   peerDependenciesMeta:
     typescript:
       optional: true
-  checksum: 10c0/1ecd5b3987ad21cdc63d9273a0258aa5583e42b7d327ad5cc99dbf657306d131b45e4be8d01261aa411f6ea6a7fdbb8981c94368aa3155fce245376c1c5ed4c9
+  checksum: 10c0/46c0fff852244b3385a375cda1916c6395853202a88455836864bbf0571998614742675f8a0b44699ee04925fa74860cace6d7e7c539c101ecd982a61d025bbe
   languageName: node
   linkType: hard
 
