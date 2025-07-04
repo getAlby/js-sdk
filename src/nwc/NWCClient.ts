@@ -472,7 +472,7 @@ export class NWCClient {
       const result = await this.executeNip47Request<Nip47PayResponse>(
         "pay_invoice",
         request,
-        (result) => !!result.preimage,
+        (result) => !!result,
       );
       return result;
     } catch (error) {
