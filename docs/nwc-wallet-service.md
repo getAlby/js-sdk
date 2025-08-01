@@ -17,9 +17,10 @@ The Alby JS SDK allows you to easily integrate Nostr Wallet Connect into any Jav
 See [the full example](/examples/nwc/wallet-service/example.js)
 
 ```js
-import { nwc } from "@getalby/sdk";
+// import { NWCWalletService } from "@getalby/sdk"; (or)
+import { NWCWalletService } from "@getalby/sdk/nwc";
 
-const walletService = new nwc.NWCWalletService({
+const walletService = new NWCWalletService({
   relayUrl: "wss://relay.getalby.com/v1",
 });
 
