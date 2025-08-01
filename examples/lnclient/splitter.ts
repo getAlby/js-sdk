@@ -4,7 +4,7 @@ import qrcode from "qrcode-terminal";
 import * as readline from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
 
-import { LN, USD, SATS } from "@getalby/sdk";
+import { LN, USD, SATS } from "@getalby/sdk/lnclient";
 
 /*
  * This example shows how to use the Alby SDK to create a split payment

@@ -23,8 +23,9 @@ There are two interfaces you can use to access NWC:
 ### NWCClient Quick start example
 
 ```js
-import { nwc } from "@getalby/sdk";
-const nwcClient = new nwc.NWCClient({
+// import { NWCClient } from "@getalby/sdk"; (or)
+import { NWCClient } from "@getalby/sdk/nwc";
+const nwcClient = new NWCClient({
   nostrWalletConnectUrl: loadNWCUrl(),
 }); // loadNWCUrl is some function to get the NWC URL from some (encrypted) storage
 
@@ -66,8 +67,9 @@ See [the NWC client examples directory](../examples/nwc/client) for a full list 
 ### WebLN Quick start example
 
 ```js
-import { webln } from "@getalby/sdk";
-const nwc = new webln.NostrWebLNProvider({
+// import { NostrWebLNProvider } from "@getalby/sdk"; (or)
+import { NostrWebLNProvider } from "@getalby/sdk/webln";
+const nwc = new NostrWebLNProvider({
   nostrWalletConnectUrl: loadNWCUrl(),
 }); // loadNWCUrl is some function to get the NWC URL from some (encrypted) storage
 // or use the short version
@@ -105,8 +107,9 @@ It returns a promise object that is resolved with an object with the preimage or
 #### Payment Example
 
 ```js
-import { webln } from "@getalby/sdk";
-const nwc = new webln.NostrWebLNProvider({ nostrWalletConnectUrl: loadNWCUrl });
+// import { NostrWebLNProvider } from "@getalby/sdk"; (or)
+import { NostrWebLNProvider } from "@getalby/sdk/webln";
+const nwc = new NostrWebLNProvider({ nostrWalletConnectUrl: loadNWCUrl });
 await nwc.enable();
 const response = await nwc.sendPayment(invoice);
 console.log(response);
@@ -124,10 +127,11 @@ The promise resolves when the connection is authorized and the popup sends a `nw
 Pass a `name` to the NWC provider describing the application.
 
 ```js
-import { webln } from "@getalby/sdk";
+// import { NostrWebLNProvider } from "@getalby/sdk"; (or)
+import { NostrWebLNProvider } from "@getalby/sdk/webln";
 
 try {
-  const nwc = await webln.NostrWebLNProvider.fromAuthorizationUrl(
+  const nwc = await NostrWebLNProvider.fromAuthorizationUrl(
     "https://my.albyhub.com/apps/new",
     {
       name: "My app name",
@@ -173,9 +177,10 @@ globalThis.crypto = crypto as any;
 #### Defaults
 
 ```js
-import { webln } from "@getalby/sdk";
+// import { NostrWebLNProvider } from "@getalby/sdk"; (or)
+import { NostrWebLNProvider } from "@getalby/sdk/webln";
 
-const nwc = new webln.NostrWebLNProvider(); // use defaults (connects to Alby's relay, will use window.nostr to sign the request)
+const nwc = new NostrWebLNProvider(); // use defaults (connects to Alby's relay, will use window.nostr to sign the request)
 await nwc.enable(); // connect to the relay
 const response = await nwc.sendPayment(invoice);
 console.log(response.preimage);
@@ -186,9 +191,10 @@ nwc.close(); // close the websocket connection
 #### Use a custom, user provided Nostr Wallet Connect URL
 
 ```js
-import { webln } from "@getalby/sdk";
+// import { NostrWebLNProvider } from "@getalby/sdk"; (or)
+import { NostrWebLNProvider } from "@getalby/sdk/webln";
 
-const nwc = new webln.NostrWebLNProvider({
+const nwc = new NostrWebLNProvider({
   nostrWalletConnectUrl:
     "nostr+walletconnect://69effe7b49a6dd5cf525bd0905917a5005ffe480b58eeb8e861418cf3ae760d9?relay=wss://nostr.bitcoiner.social&secret=c60320b3ecb6c15557510d1518ef41194e9f9337c82621ddef3f979f668bfebd",
 }); // use defaults
@@ -230,8 +236,9 @@ The app will generate an NWA URI which should be opened in the wallet, where the
 #### Generating an NWA URI (For Client apps)
 
 ```js
-import { nwa } from "@getalby/sdk";
-const connectionUri = new nwa.NWAClient({
+// import { NWAClient } from "@getalby/sdk"; (or)
+import { NWAClient } from "@getalby/sdk/nwc";
+const connectionUri = new NWAClient({
   relayUrl,
   requestMethods: ["get_info"],
 }).connectionUri;
@@ -244,8 +251,9 @@ See full [NWA example](../examples/nwc/client/nwa.js)
 ### Accepting and creating a connection from an NWA URI (For Wallet services)
 
 ```js
-import { nwa } from "@getalby/sdk";
-const nwaOptions = nwa.NWAClient.parseWalletAuthUrl(nwaUrl);
+// import { NWAClient } from "@getalby/sdk"; (or)
+import { NWAClient } from "@getalby/sdk/nwc";
+const nwaOptions = NWAClient.parseWalletAuthUrl(nwaUrl);
 
 // then use `nwaOptions` to display a confirmation page to the user and create a connection.
 ```
