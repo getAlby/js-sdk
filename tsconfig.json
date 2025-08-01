@@ -1,19 +1,16 @@
 {
   "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "target": "es2020",
     "strict": true,
     "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
-    "checkJs": true,
-    "allowJs": true,
-    "declarationMap": false,
     "declaration": true,
-    "allowSyntheticDefaultImports": true,
-    "target": "es2020",
-    "module": "ESNext",
+    "emitDeclarationOnly": true,
+    "outDir": "dist/types",
     "rootDir": "./src",
-    "sourceMap": false,
-    "moduleResolution": "node"
+    "noImplicitAny": false
   },
   "ts-node": {
     "esm": true

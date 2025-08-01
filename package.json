@@ -2,25 +2,46 @@
   "name": "@getalby/sdk",
   "version": "5.1.1",
   "description": "The SDK to integrate with Nostr Wallet Connect and the Alby API",
+  "type": "module",
   "repository": "https://github.com/getAlby/js-sdk.git",
   "bugs": "https://github.com/getAlby/js-sdk/issues",
   "funding": {
     "type": "lightning",
     "url": "lightning:hello@getalby.com"
   },
-  "type": "module",
-  "source": "src/index.ts",
-  "main": "./dist/index.umd.js",
-  "module": "./dist/index.module.js",
-  "unpkg": "./dist/index.umd.js",
-  "types": "./dist/index.d.ts",
   "files": [
-    "dist/**/*"
+    "dist"
   ],
+  "sideEffects": false,
+  "module": "./dist/esm/index.js",
+  "main": "./dist/cjs/index.cjs",
+  "types": "./dist/types/index.d.ts",
   "exports": {
-    "require": "./dist/index.cjs",
-    "types": "./dist/index.d.ts",
-    "default": "./dist/index.modern.js"
+    ".": {
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.cjs",
+      "types": "./dist/types/index.d.ts"
+    },
+    "./lnclient": {
+      "import": "./dist/esm/lnclient.js",
+      "require": "./dist/cjs/lnclient.cjs",
+      "types": "./dist/types/lnclient.d.ts"
+    },
+    "./nwc": {
+      "import": "./dist/esm/nwc.js",
+      "require": "./dist/cjs/nwc.cjs",
+      "types": "./dist/types/nwc.d.ts"
+    },
+    "./oauth": {
+      "import": "./dist/esm/oauth.js",
+      "require": "./dist/cjs/oauth.cjs",
+      "types": "./dist/types/oauth.d.ts"
+    },
+    "./webln": {
+      "import": "./dist/esm/webln.js",
+      "require": "./dist/cjs/webln.cjs",
+      "types": "./dist/types/webln.d.ts"
+    }
   },
   "scripts": {
     "prebuild": "yarn run clean",
@@ -33,17 +54,21 @@
     "prepack": "yarn run build",
     "test": "jest",
     "clean": "rm -rf dist",
-    "build": "microbundle --no-sourcemap",
+    "build": "rollup -c",
     "dev": "microbundle watch",
     "prepare": "husky"
   },
   "dependencies": {
-    "nostr-tools": "2.15.0",
-    "@getalby/lightning-tools": "^5.2.0"
+    "@getalby/lightning-tools": "^5.2.0",
+    "nostr-tools": "2.15.0"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.4.1",
     "@commitlint/config-conventional": "^19.4.1",
+    "@rollup/plugin-commonjs": "^28.0.6",
+    "@rollup/plugin-node-resolve": "^16.0.1",
+    "@rollup/plugin-terser": "^0.4.4",
+    "@rollup/plugin-typescript": "^12.1.4",
     "@types/jest": "^29.5.5",
     "@types/node": "^22.15.21",
     "@typescript-eslint/eslint-plugin": "^7.0.0",
@@ -55,11 +80,13 @@
     "husky": "^9.1.7",
     "jest": "^29.7.0",
     "lint-staged": "^16.0.0",
-    "microbundle": "^0.15.1",
     "prettier": "^3.0.1",
     "qrcode-terminal": "^0.12.0",
+    "rollup": "^4.46.2",
+    "rollup-plugin-dts": "^6.2.1",
     "ts-jest": "^29.3.4",
     "ts-node": "^10.9.1",
+    "tslib": "^2.8.1",
     "typescript": "^5.1.6",
     "websocket-polyfill": "^0.0.3"
   },
