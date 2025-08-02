@@ -154,6 +154,9 @@ export class NWCClient {
     if (includeSecret) {
       url = `${url}&secret=${this.secret}`;
     }
+    if (this.lud16) {
+      url = `${url}&lud16=${this.lud16}`;
+    }
     return url;
   }
 
