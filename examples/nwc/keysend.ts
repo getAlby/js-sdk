@@ -20,10 +20,9 @@ await webln.enable();
 const response = await webln.keysend({
   amount: 1,
   destination:
-    "030a58b8653d32b99200a2334cfe913e51dc7d155aa0116c176657a4f1722677a3",
+    "02947ea84b359c2e902c10e173aa209a36c2f92a6143c73170eb72b2077c592187",
   customRecords: {
-    696969: "017rsl75kNnSke4mMHYE", // hello@getalby.com
-    34349334: "example keysend message",
+    696969: "304", // keysend payment to example Alby Hub sub-wallet (app ID 304) or a custodial wallet account
   },
 });
 
