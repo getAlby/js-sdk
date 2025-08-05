@@ -56,7 +56,7 @@ const umdBundle = {
   input: "src/index.ts",
   plugins: [...plugins, terser()],
   output: {
-    file: "dist/lightning-sdk.bundle.js",
+    file: "dist/lightning-sdk.umd.js",
     format: "umd",
     name: "LightningSdk",
     sourcemap: true,
