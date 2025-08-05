@@ -23,7 +23,6 @@ There are two interfaces you can use to access NWC:
 ### NWCClient Quick start example
 
 ```js
-// import { NWCClient } from "@getalby/sdk"; (or)
 import { NWCClient } from "@getalby/sdk/nwc";
 const nwcClient = new NWCClient({
   nostrWalletConnectUrl: loadNWCUrl(),
@@ -67,7 +66,6 @@ See [the NWC client examples directory](../examples/nwc/client) for a full list 
 ### WebLN Quick start example
 
 ```js
-// import { NostrWebLNProvider } from "@getalby/sdk"; (or)
 import { NostrWebLNProvider } from "@getalby/sdk/webln";
 const nwc = new NostrWebLNProvider({
   nostrWalletConnectUrl: loadNWCUrl(),
@@ -107,7 +105,6 @@ It returns a promise object that is resolved with an object with the preimage or
 #### Payment Example
 
 ```js
-// import { NostrWebLNProvider } from "@getalby/sdk"; (or)
 import { NostrWebLNProvider } from "@getalby/sdk/webln";
 const nwc = new NostrWebLNProvider({ nostrWalletConnectUrl: loadNWCUrl });
 await nwc.enable();
@@ -127,7 +124,6 @@ The promise resolves when the connection is authorized and the popup sends a `nw
 Pass a `name` to the NWC provider describing the application.
 
 ```js
-// import { NostrWebLNProvider } from "@getalby/sdk"; (or)
 import { NostrWebLNProvider } from "@getalby/sdk/webln";
 
 try {
@@ -177,7 +173,6 @@ globalThis.crypto = crypto as any;
 #### Defaults
 
 ```js
-// import { NostrWebLNProvider } from "@getalby/sdk"; (or)
 import { NostrWebLNProvider } from "@getalby/sdk/webln";
 
 const nwc = new NostrWebLNProvider(); // use defaults (connects to Alby's relay, will use window.nostr to sign the request)
@@ -191,7 +186,6 @@ nwc.close(); // close the websocket connection
 #### Use a custom, user provided Nostr Wallet Connect URL
 
 ```js
-// import { NostrWebLNProvider } from "@getalby/sdk"; (or)
 import { NostrWebLNProvider } from "@getalby/sdk/webln";
 
 const nwc = new NostrWebLNProvider({
@@ -236,7 +230,6 @@ The app will generate an NWA URI which should be opened in the wallet, where the
 #### Generating an NWA URI (For Client apps)
 
 ```js
-// import { NWAClient } from "@getalby/sdk"; (or)
 import { NWAClient } from "@getalby/sdk/nwc";
 const connectionUri = new NWAClient({
   relayUrl,
@@ -251,7 +244,6 @@ See full [NWA example](../examples/nwc/client/nwa.js)
 ### Accepting and creating a connection from an NWA URI (For Wallet services)
 
 ```js
-// import { NWAClient } from "@getalby/sdk"; (or)
 import { NWAClient } from "@getalby/sdk/nwc";
 const nwaOptions = NWAClient.parseWalletAuthUrl(nwaUrl);
 
