@@ -37,7 +37,7 @@ Quickly get started adding lightning payments to your app.
 For example, to make a payment:
 
 ```js
-import { LN, USD } from "@getalby/sdk";
+import { LN, USD } from "@getalby/sdk/lnclient";
 const credentials = "nostr+walletconnect://..."; // the NWC connection credentials
 await new LN(credentials).pay("lnbc..."); // pay a lightning invoice
 await new LN(credentials).pay("hello@getalby.com", USD(1)); // or pay $1 USD to a lightning address

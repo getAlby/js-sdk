@@ -7,7 +7,7 @@ See [LNClient class documentation](https://getalby.github.io/js-sdk/classes/LNCl
 For example, to make a payment:
 
 ```js
-import { LN, USD, SATS } from "@getalby/sdk";
+import { LN, USD, SATS } from "@getalby/sdk/lnclient";
 const credentials = "nostr+walletconnect://..."; // the NWC connection credentials
 await new LN(credentials).pay("lnbc..."); // pay a lightning invoice
 await new LN(credentials).pay("hello@getalby.com", SATS(21)); // or pay 21 sats to a lightning address
