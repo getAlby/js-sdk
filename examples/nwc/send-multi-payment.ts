@@ -5,7 +5,7 @@ import { LightningAddress } from "@getalby/lightning-tools";
 import * as readline from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
 
-import { webln as providers } from "../../dist/index.module.js";
+import { NostrWebLNProvider } from "@getalby/sdk/webln";
 
 const rl = readline.createInterface({ input, output });
 
@@ -32,7 +32,7 @@ const nwcUrl =
   (await rl.question("Nostr Wallet Connect URL (nostr+walletconnect://...): "));
 rl.close();
 
-const webln = new providers.NostrWebLNProvider({
+const webln = new NostrWebLNProvider({
   nostrWalletConnectUrl: nwcUrl,
 });
 await webln.enable();
