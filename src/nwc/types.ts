@@ -149,10 +149,11 @@ export type Nip47ListTransactionsResponse = {
 
 export type Nip47Transaction = {
   type: "incoming" | "outgoing";
-  /**
-   * NOTE: non-NIP-47 spec compliant
-   */
-  state: "settled" | "pending" | "failed" | "accepted";
+  state:
+    | "settled"
+    | "pending"
+    | "failed"
+    | "accepted" /* accepted for hold invoices - NOTE: not spec compliant yet */;
   invoice: string;
   description: string;
   description_hash: string;
