@@ -152,7 +152,7 @@ export type Nip47Transaction = {
   /**
    * NOTE: non-NIP-47 spec compliant
    */
-  state: "settled" | "pending" | "failed";
+  state: "settled" | "pending" | "failed" | "accepted";
   invoice: string;
   description: string;
   description_hash: string;
