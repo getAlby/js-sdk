@@ -3,7 +3,7 @@ import "websocket-polyfill"; // required in node.js
 import * as readline from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
 
-import { nwc } from "../../../dist/index.module.js";
+import { NWCClient } from "@getalby/sdk/nwc";
 import { generateSecretKey, getPublicKey } from "nostr-tools";
 
 import { bytesToHex } from "@noble/hashes/utils";
@@ -15,12 +15,12 @@ const nwcUrl =
   (await rl.question("Nostr Wallet Connect URL (nostr+walletconnect://...): "));
 rl.close();
 
-const client = new nwc.NWCClient({
+const client = new NWCClient({
   nostrWalletConnectUrl: nwcUrl,
 });
 
-let secretKey = generateSecretKey();
-let pubkey = getPublicKey(secretKey);
+const secretKey = generateSecretKey();
+const pubkey = getPublicKey(secretKey);
 
 const response = await client.createConnection({
   pubkey,
@@ -41,7 +41,7 @@ console.info(response);
 
 client.close();
 
-const childClient = new nwc.NWCClient({
+const childClient = new NWCClient({
   relayUrl: client.relayUrl,
   secret: bytesToHex(secretKey),
   walletPubkey: response.wallet_pubkey,
