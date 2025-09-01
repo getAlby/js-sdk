@@ -1,7 +1,7 @@
 import * as readline from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
 
-import {  Client, OAuth2User } from "@getalby/sdk/oauth";
+import {  Client, GetInvoicesRequestParams, OAuth2User } from "@getalby/sdk/oauth";
 
 const rl = readline.createInterface({ input, output });
 
@@ -34,7 +34,11 @@ await authClient.requestAccessToken(code);
 console.log(authClient.token);
 const client = new Client(authClient);
 
-const response = await client.incomingInvoices();
+const params:GetInvoicesRequestParams = {
+  page: 1,
+  items: 5
+}
+const response = await client.incomingInvoices(params);
 
 console.log(JSON.stringify(response, null, 2));
 
