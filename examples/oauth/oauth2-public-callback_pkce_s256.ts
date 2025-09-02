@@ -37,7 +37,7 @@ app.get("/callback", async function (req, res) {
     if (state !== STATE) return res.status(500).send("State isn't matching");
     await authClient.requestAccessToken(code as string);
     console.log(authClient);
-    const invoices = await client.accountBalance();
+    const invoices = await client.accountBalance({});
     res.send(invoices);
   } catch (error) {
     console.log(error);
@@ -53,17 +53,17 @@ app.get("/login", async function (req, res) {
 });
 
 app.get("/balance", async function (req, res) {
-  const result = await client.accountBalance();
+  const result = await client.accountBalance({});
   res.send(result);
 });
 
 app.get("/summary", async function (req, res) {
-  const result = await client.accountSummary();
+  const result = await client.accountSummary({});
   res.send(result);
 });
 
 app.get("/value4value", async function (req, res) {
-  const result = await client.accountValue4Value();
+  const result = await client.accountValue4Value({});
   res.send(result);
 });
 
@@ -78,10 +78,14 @@ app.get("/bolt11/:invoice", async function (req, res) {
 });
 
 app.get("/keysend/:destination", async function (req, res) {
+ if (typeof req.query.memo !== "string") {
+  res.status(400).send("Please provide 'memo' query param");
+  return;
+}
   const result = await client.keysend({
     destination: req.params.destination,
     amount: 10,
-    memo: req.query.memo,
+    memo: req.query.memo as string,
   });
   res.send(result);
 });
