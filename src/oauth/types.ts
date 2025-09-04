@@ -93,8 +93,9 @@ export type ExtractAlbyResponse<T> = "responses" extends keyof T
 export type GetInvoicesRequestParams = {
   q?: {
     since?: string;
-    created_at_lt?: string;
-    created_at_gt?: string;
+    before?: string;
+    created_at_lt?: number;
+    created_at_gt?: number;
   };
   page?: number;
   items?: number;
