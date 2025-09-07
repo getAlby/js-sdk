@@ -56,9 +56,9 @@ const umdBundle = {
   input: "src/index.ts",
   plugins: [...plugins, terser()],
   output: {
-    file: "dist/lightning-sdk.umd.js",
+    file: "dist/alby-sdk.umd.js",
     format: "umd",
-    name: "LightningSdk",
+    name: "AlbySdk",
     sourcemap: true,
   },
 };

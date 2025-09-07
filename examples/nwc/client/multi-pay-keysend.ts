@@ -3,7 +3,7 @@ import "websocket-polyfill"; // required in node.js
 import * as readline from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
 
-import { nwc } from "../../../dist/index.module.js";
+import { NWCClient } from "@getalby/sdk/nwc";
 
 const rl = readline.createInterface({ input, output });
 
@@ -12,7 +12,7 @@ const nwcUrl =
   (await rl.question("Nostr Wallet Connect URL (nostr+walletconnect://...): "));
 rl.close();
 
-const client = new nwc.NWCClient({
+const client = new NWCClient({
   nostrWalletConnectUrl: nwcUrl,
 });
 
@@ -39,7 +39,7 @@ const toHexString = (bytes) =>
 const keysends = [
   {
     pubkey:
-      "030a58b8653d32b99200a2334cfe913e51dc7d155aa0116c176657a4f1722677a3",
+      "02947ea84b359c2e902c10e173aa209a36c2f92a6143c73170eb72b2077c592187",
     amount: 1000, // millisats
     tlv_records: [
       {
@@ -54,7 +54,7 @@ const keysends = [
   },
   {
     pubkey:
-      "030a58b8653d32b99200a2334cfe913e51dc7d155aa0116c176657a4f1722677a3",
+      "02947ea84b359c2e902c10e173aa209a36c2f92a6143c73170eb72b2077c592187",
     amount: 1000, // millisats
     tlv_records: [
       {

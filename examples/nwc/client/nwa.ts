@@ -4,7 +4,7 @@ import qrcode from "qrcode-terminal";
 import * as readline from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
 
-import { nwa } from "../../../dist/index.module.js";
+import { NWAClient } from "@getalby/sdk/nwc";
 
 const rl = readline.createInterface({ input, output });
 
@@ -15,7 +15,7 @@ const relayUrl =
   DEFAULT_RELAY_URL;
 rl.close();
 
-const nwaClient = new nwa.NWAClient({
+const nwaClient = new NWAClient({
   relayUrl,
   requestMethods: ["get_info"],
 });
