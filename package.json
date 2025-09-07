@@ -1,6 +1,6 @@
 {
   "name": "@getalby/sdk",
-  "version": "6.0.0",
+  "version": "6.0.1",
   "description": "The SDK to integrate with Nostr Wallet Connect and the Alby API",
   "type": "module",
   "repository": "https://github.com/getAlby/js-sdk.git",
