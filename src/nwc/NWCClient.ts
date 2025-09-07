@@ -1102,10 +1102,13 @@ export class NWCClient {
       if (!this.relay.connected) {
         await this.relay.connect();
       }
-    } catch (_ /* error is always undefined */) {
-      console.error("failed to connect to relay", this.relayUrl);
+    } catch (error) {
+      console.error("failed to connect to relay", {
+        url: this.relayUrl,
+        error,
+      });
       throw new Nip47NetworkError(
-        "Failed to connect to " + this.relayUrl,
+        "Failed to connect to " + this.relayUrl + ": " + error,
         "OTHER",
       );
     }
