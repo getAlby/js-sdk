@@ -1,16 +1,21 @@
 import * as readline from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
 
-import { oauth } from "../../dist/index.module.js";
-const { auth, Client } = oauth;
+import {  Client, GetInvoicesRequestParams, OAuth2User } from "@getalby/sdk/oauth";
 
 const rl = readline.createInterface({ input, output });
 
-const authClient = new auth.OAuth2User({
+if (!process.env.CLIENT_ID || !process.env.CLIENT_SECRET) {
+  throw new Error("Please set CLIENT_ID and CLIENT_SECRET");
+}
+
+
+const authClient = new OAuth2User({
   client_id: process.env.CLIENT_ID,
   client_secret: process.env.CLIENT_SECRET,
   callback: "http://localhost:8080",
   scopes: ["invoices:read", "account:read", "balance:read"],
+  user_agent:"AlbySDK-Example/0.1 (invoices-demo)",
   token: {
     access_token: undefined,
     refresh_token: undefined,
@@ -29,7 +34,11 @@ await authClient.requestAccessToken(code);
 console.log(authClient.token);
 const client = new Client(authClient);
 
-const response = await client.incomingInvoices();
+const params:GetInvoicesRequestParams = {
+  page: 1,
+  items: 5
+}
+const response = await client.incomingInvoices(params);
 
 console.log(JSON.stringify(response, null, 2));
 
