@@ -1,4 +1,5 @@
-// https://stackoverflow.com/a/62969380 + fix to remove empty entries (.filter(entry => entry)) + fix to map nested objects well
+// https://stackoverflow.com/a/62969380 + fix to remove empty entries (.filter(entry => entry))
+// also maps nested objects e.g. {q: {since: 123}} will become ?q[since]=123
 export function buildQueryString(query: Record<string, unknown>): string {
   const build = (obj: Record<string, unknown>, prefix?: string): string[] => {
     return Object.entries(obj).flatMap(([key, value]) => {
