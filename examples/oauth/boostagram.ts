@@ -1,15 +1,20 @@
 import * as readline from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
 
-import { oauth } from "../../dist/index.module.js";
-const { auth, Client } = oauth;
+import {  Client, OAuth2User } from "@getalby/sdk/oauth";
+
 
 const rl = readline.createInterface({ input, output });
 
-const authClient = new auth.OAuth2User({
+if (!process.env.CLIENT_ID || !process.env.CLIENT_SECRET) {
+  throw new Error("Please set CLIENT_ID and CLIENT_SECRET");
+}
+
+const authClient = new OAuth2User({
   client_id: process.env.CLIENT_ID,
   client_secret: process.env.CLIENT_SECRET,
   callback: "http://localhost:8080/callback",
+   user_agent:"AlbySDK-Example/0.1 (boostagram-demo)",
   scopes: [
     "invoices:read",
     "account:read",
@@ -41,9 +46,9 @@ const response = await client.sendBoostagram([
   {
     recipient: {
       address:
-        "030a58b8653d32b99200a2334cfe913e51dc7d155aa0116c176657a4f1722677a3",
-      customKey: "696969",
-      customValue: "bNVHj0WZ0aLPPAesnn9M",
+        "03006fcf3312dae8d068ea297f58e2bd00ec1ffe214b793eda46966b6294a53ce6",
+      customKey: "34349334",
+      customValue: "I love amboss",
     },
     amount: 10,
     // spec: https://github.com/lightning/blips/blob/master/blip-0010.md
