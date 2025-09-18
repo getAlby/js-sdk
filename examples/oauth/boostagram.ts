@@ -46,9 +46,9 @@ const response = await client.sendBoostagram([
   {
     recipient: {
       address:
-        "03006fcf3312dae8d068ea297f58e2bd00ec1ffe214b793eda46966b6294a53ce6",
-      customKey: "34349334",
-      customValue: "I love amboss",
+        "02947ea84b359c2e902c10e173aa209a36c2f92a6143c73170eb72b2077c592187",
+      customKey: "696969",
+      customValue: "bNVHj0WZ0aLPPAesnn9M",
     },
     amount: 10,
     // spec: https://github.com/lightning/blips/blob/master/blip-0010.md
