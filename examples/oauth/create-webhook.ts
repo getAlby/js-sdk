@@ -1,7 +1,7 @@
 import * as readline from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
 
-import { Client, OAuth2User  } from "@getalby/sdk/oauth";
+import { Client, OAuth2User } from "@getalby/sdk/oauth";
 
 const rl = readline.createInterface({ input, output });
 
@@ -14,7 +14,7 @@ const authClient = new OAuth2User({
   client_id: process.env.CLIENT_ID,
   client_secret: process.env.CLIENT_SECRET,
   callback: "http://localhost:8080/callback",
-  user_agent:"AlbySDK-Example/0.1 (webhooks-demo)",
+  user_agent:"AlbySDK-Example/0.1 (create_webhook-demo)",
   scopes: [
     "invoices:read",
     "account:read",
@@ -35,6 +35,8 @@ console.log(await authClient.generateAuthURL());
 console.log("----\n");
 
 const code = await rl.question("Code: (localhost:8080?code=[THIS CODE]: ");
+
+const webhookUrl = await rl.question("Enter your webhook URL (get a test URL at https://webhook.site/): ");
 rl.close();
 
 await authClient.requestAccessToken(code);
@@ -43,12 +45,9 @@ const client = new Client(authClient);
 
 // Create a webhook
 const webhook = await client.createWebhookEndpoint({
-  url: "https://example.com",
+  url: webhookUrl,
   filter_types: ["invoice.incoming.settled", "invoice.outgoing.settled"],
 });
-console.log("webhook created", JSON.stringify(webhook));
+console.log("Webhook Id: ", JSON.stringify(webhook.id));
 
 
-// Delete a webhook
-const deleteResult  = await client.deleteWebhookEndpoint(webhook.id)
-console.log("webhook deleted", JSON.stringify(deleteResult));
