@@ -1,15 +1,20 @@
 import * as readline from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
 
-import { oauth } from "../../dist/index.module.js";
-const { auth, Client } = oauth;
+import {  Client, OAuth2User } from "@getalby/sdk/oauth";
+
 
 const rl = readline.createInterface({ input, output });
 
-const authClient = new auth.OAuth2User({
+if (!process.env.CLIENT_ID || !process.env.CLIENT_SECRET) {
+  throw new Error("Please set CLIENT_ID and CLIENT_SECRET");
+}
+
+const authClient = new OAuth2User({
   client_id: process.env.CLIENT_ID,
   client_secret: process.env.CLIENT_SECRET,
   callback: "http://localhost:8080/callback",
+   user_agent:"AlbySDK-Example/0.1 (boostagram-demo)",
   scopes: [
     "invoices:read",
     "account:read",
@@ -41,7 +46,7 @@ const response = await client.sendBoostagram([
   {
     recipient: {
       address:
-        "030a58b8653d32b99200a2334cfe913e51dc7d155aa0116c176657a4f1722677a3",
+        "02947ea84b359c2e902c10e173aa209a36c2f92a6143c73170eb72b2077c592187",
       customKey: "696969",
       customValue: "bNVHj0WZ0aLPPAesnn9M",
     },
