@@ -1,11 +1,9 @@
-import { Client, GetInvoicesRequestParams } from "@getalby/sdk/oauth";
+import { GetInvoicesRequestParams } from "@getalby/sdk/oauth";
 import { getAuthClient } from "./helper";
 
 const userAgent = "AlbySDK-Example/0.1 (invoices-demo)";
 
-const auth = await getAuthClient(userAgent);
-
-const client = new Client(auth);
+const client = await getAuthClient(userAgent);
 
 const params: GetInvoicesRequestParams = {
   page: 1,
