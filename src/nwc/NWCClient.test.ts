@@ -14,7 +14,7 @@ describe("parseWalletConnectUrl", () => {
     expect(parsed.secret).toBe(
       "e839faf78693765b3833027fefa5a305c78f6965d0a5d2e47a3fcb25aa7cc45b",
     );
-    expect(parsed.relayUrl).toBe("wss://relay.getalby.com/v1");
+    expect(parsed.relayUrls).toEqual(["wss://relay.getalby.com/v1"]);
     expect(parsed.lud16).toBe("hello@getalby.com");
   });
   test("protocol without double slash", () => {
@@ -27,7 +27,7 @@ describe("parseWalletConnectUrl", () => {
     expect(parsed.secret).toBe(
       "e839faf78693765b3833027fefa5a305c78f6965d0a5d2e47a3fcb25aa7cc45b",
     );
-    expect(parsed.relayUrl).toBe("wss://relay.getalby.com/v1");
+    expect(parsed.relayUrls).toEqual(["wss://relay.getalby.com/v1"]);
   });
   test("legacy protocol without double slash", () => {
     const parsed = NWCClient.parseWalletConnectUrl(
@@ -39,8 +39,9 @@ describe("parseWalletConnectUrl", () => {
     expect(parsed.secret).toBe(
       "e839faf78693765b3833027fefa5a305c78f6965d0a5d2e47a3fcb25aa7cc45b",
     );
-    expect(parsed.relayUrl).toBe("wss://relay.getalby.com/v1");
+    expect(parsed.relayUrls).toEqual(["wss://relay.getalby.com/v1"]);
   });
+  // TODO: add tests for multiple relays
 });
 
 describe("NWCClient", () => {
