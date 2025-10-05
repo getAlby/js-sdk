@@ -29,6 +29,7 @@ export type NewNWAClientOptions = Omit<NWAOptions, "appPubkey"> & {
   appSecretKey?: string;
 };
 
+// TODO: add support for multiple relay URLs
 export class NWAClient {
   options: NWAOptions;
   appSecretKey: string;
@@ -200,7 +201,7 @@ export class NWAClient {
 
           sub.onevent = async (event) => {
             const client = new NWCClient({
-              relayUrl: this.options.relayUrl,
+              relayUrls: [this.options.relayUrl],
               secret: this.appSecretKey,
               walletPubkey: event.pubkey,
             });
