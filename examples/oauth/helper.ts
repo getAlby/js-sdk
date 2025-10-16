@@ -17,9 +17,7 @@ async function getAuthClient(
       client_secret: process.env.CLIENT_SECRET,
       callback: "http://localhost:8080",
       scopes: [
-        "invoices:read",
-        "account:read",
-        "balance:read",
+        "invoices:read", // At least one scope is required to get an access token.
         ...additionalScopes,
       ],
       user_agent,
