@@ -2,9 +2,12 @@ import * as readline from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
 import dotenv from "dotenv";
 dotenv.config();
-import { Client, OAuth2User } from "@getalby/sdk/oauth";
+import { Client, OAuth2Scopes, OAuth2User } from "@getalby/sdk/oauth";
 
-async function getAuthClient(user_agent: string) {
+async function getAuthClient(
+  user_agent: string,
+  additionalScopes: OAuth2Scopes[] = [],
+) {
   if (process.env.CLIENT_ID && process.env.CLIENT_SECRET) {
     const rl = readline.createInterface({ input, output });
 
@@ -13,7 +16,12 @@ async function getAuthClient(user_agent: string) {
       client_id: process.env.CLIENT_ID,
       client_secret: process.env.CLIENT_SECRET,
       callback: "http://localhost:8080",
-      scopes: ["invoices:read", "account:read", "balance:read"],
+      scopes: [
+        "invoices:read",
+        "account:read",
+        "balance:read",
+        ...additionalScopes,
+      ],
       user_agent,
       token: {
         access_token: undefined,
