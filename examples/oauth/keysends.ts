@@ -1,8 +1,8 @@
 import { getAuthClient } from "./helper";
 
-const userAgent = "AlbySDK-Example/0.1 (keysends-demo)"
+const userAgent = "AlbySDK-Example/0.1 (keysends-demo)";
 
-const client = await getAuthClient(userAgent);
+const client = await getAuthClient(userAgent, ["payments:send"]);
 
 const response = client.keysend([
   {

@@ -2,7 +2,7 @@ import { getAuthClient } from "./helper";
 
 const userAgent = "AlbySDK-Example/0.1 (boostagram-demo)";
 
-const client = await getAuthClient(userAgent);
+const client = await getAuthClient(userAgent, ["payments:send"]);
 
 // use an array if you want to send multiple boostagrams with one call
 const response = await client.sendBoostagram([
