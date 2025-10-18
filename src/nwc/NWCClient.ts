@@ -212,7 +212,7 @@ export class NWCClient {
     return encrypted;
   }
 
-  async decrypt(pubkey: string, content: string) {
+  async decrypt(pubkey: string, content: string): Promise<string> {
     if (!this.secret) {
       throw new Error("Missing secret");
     }
@@ -726,10 +726,16 @@ export class NWCClient {
           console.info("subscribed to relay");
 
           sub.onevent = async (event) => {
-            const decryptedContent = await this.decrypt(
-              this.walletPubkey,
-              event.content,
-            );
+            let decryptedContent;
+            try {
+              decryptedContent = await this.decrypt(
+                this.walletPubkey,
+                event.content,
+              );
+            } catch (error) {
+              console.error("failed to decrypt request event content", error);
+              return;
+            }
             let notification;
             try {
               notification = JSON.parse(decryptedContent) as Nip47Notification;
