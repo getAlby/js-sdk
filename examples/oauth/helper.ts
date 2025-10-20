@@ -4,10 +4,7 @@ import dotenv from "dotenv";
 dotenv.config();
 import { Client, OAuth2Scopes, OAuth2User } from "@getalby/sdk/oauth";
 
-async function getAuthClient(
-  user_agent: string,
-  additionalScopes: OAuth2Scopes[] = [],
-) {
+async function getAuthClient(user_agent: string, scopes: OAuth2Scopes[]) {
   if (process.env.CLIENT_ID && process.env.CLIENT_SECRET) {
     const rl = readline.createInterface({ input, output });
 
@@ -16,10 +13,7 @@ async function getAuthClient(
       client_id: process.env.CLIENT_ID,
       client_secret: process.env.CLIENT_SECRET,
       callback: "http://localhost:8080",
-      scopes: [
-        "invoices:read", // At least one scope is required to get an access token.
-        ...additionalScopes,
-      ],
+      scopes: [...scopes],
       user_agent,
       token: {
         access_token: undefined,
