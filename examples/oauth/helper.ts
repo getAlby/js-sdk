@@ -13,7 +13,7 @@ async function getAuthClient(user_agent: string, scopes: OAuth2Scopes[]) {
       client_id: process.env.CLIENT_ID,
       client_secret: process.env.CLIENT_SECRET,
       callback: "http://localhost:8080",
-      scopes: [...scopes],
+      scopes,
       user_agent,
       token: {
         access_token: undefined,
