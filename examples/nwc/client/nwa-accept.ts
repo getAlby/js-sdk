@@ -3,7 +3,7 @@ import "websocket-polyfill"; // required in node.js
 import * as readline from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
 
-import { nwa, nwc } from "../../../dist/index.module.js";
+import { NWAClient, NWCClient } from "@getalby/sdk/nwc";
 
 const rl = readline.createInterface({ input, output });
 
@@ -13,7 +13,7 @@ const nwcUrl =
     "Nostr Wallet Connect URL (nostr+walletconnect://...) with create_connection method: ",
   ));
 
-const client = new nwc.NWCClient({
+const client = new NWCClient({
   nostrWalletConnectUrl: nwcUrl,
 });
 const infoResponse = await client.getInfo();
@@ -27,7 +27,7 @@ const nwaUrl = await rl.question(
   "Nostr Wallet Auth URL (nostr+walletauth://...): ",
 );
 
-const nwaOptions = nwa.NWAClient.parseWalletAuthUrl(nwaUrl);
+const nwaOptions = NWAClient.parseWalletAuthUrl(nwaUrl);
 
 // (here the user would choose to accept the connection)
 

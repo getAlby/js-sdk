@@ -1,5 +1,4 @@
-import { oauth } from "../../dist/index.module.js";
-const { auth, Client } = oauth;
+import {  Client, OAuth2User  } from "@getalby/sdk/oauth";
 import express from "express";
 
 if (!process.env.CLIENT_ID || !process.env.CLIENT_SECRET) {
@@ -8,10 +7,11 @@ if (!process.env.CLIENT_ID || !process.env.CLIENT_SECRET) {
 
 const app = express();
 
-const authClient = new auth.OAuth2User({
+const authClient = new OAuth2User({
   client_id: process.env.CLIENT_ID,
   client_secret: process.env.CLIENT_SECRET,
   callback: "http://localhost:8080/callback",
+  user_agent:"AlbySDK-Example/0.1 (oauth_pub_callback-demo)",
   scopes: [
     "invoices:read",
     "account:read",
@@ -35,9 +35,9 @@ app.get("/callback", async function (req, res) {
   try {
     const { code, state } = req.query;
     if (state !== STATE) return res.status(500).send("State isn't matching");
-    await authClient.requestAccessToken(code);
+    await authClient.requestAccessToken(code as string);
     console.log(authClient);
-    const invoices = await client.accountBalance();
+    const invoices = await client.accountBalance({});
     res.send(invoices);
   } catch (error) {
     console.log(error);
@@ -53,17 +53,17 @@ app.get("/login", async function (req, res) {
 });
 
 app.get("/balance", async function (req, res) {
-  const result = await client.accountBalance();
+  const result = await client.accountBalance({});
   res.send(result);
 });
 
 app.get("/summary", async function (req, res) {
-  const result = await client.accountSummary();
+  const result = await client.accountSummary({});
   res.send(result);
 });
 
 app.get("/value4value", async function (req, res) {
-  const result = await client.accountValue4Value();
+  const result = await client.accountValue4Value({});
   res.send(result);
 });
 
@@ -78,10 +78,14 @@ app.get("/bolt11/:invoice", async function (req, res) {
 });
 
 app.get("/keysend/:destination", async function (req, res) {
+ if (typeof req.query.memo !== "string") {
+  res.status(400).send("Please provide 'memo' query param");
+  return;
+}
   const result = await client.keysend({
     destination: req.params.destination,
     amount: 10,
-    memo: req.query.memo,
+    memo: req.query.memo as string,
   });
   res.send(result);
 });
