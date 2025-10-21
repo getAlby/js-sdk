@@ -9,7 +9,9 @@ export function buildQueryString(query: Record<string, unknown>): string {
         return build(value as Record<string, unknown>, paramKey);
       }
 
-      return value !== undefined && value !== null ? `${paramKey}=${value}` : [];
+      return value !== undefined && value !== null
+        ? `${paramKey}=${value}`
+        : [];
     });
   };
 
