@@ -1179,9 +1179,9 @@
     picomatch "^4.0.2"
 
 "@rollup/plugin-node-resolve@^16.0.1":
-  version "16.0.1"
-  resolved "https://registry.yarnpkg.com/@rollup/plugin-node-resolve/-/plugin-node-resolve-16.0.1.tgz#2fc6b54ca3d77e12f3fb45b2a55b50720de4c95d"
-  integrity sha512-tk5YCxJWIG81umIvNkSod2qK5KyQW19qcBF/B78n1bjtOON6gzKoVeSzAE8yHCZEDmqkHKkxplExA8KzdJLJpA==
+  version "16.0.3"
+  resolved "https://registry.yarnpkg.com/@rollup/plugin-node-resolve/-/plugin-node-resolve-16.0.3.tgz#0988e6f2cbb13316b0f5e7213f757bc9ed44928f"
+  integrity sha512-lUYM3UBGuM93CnMPG1YocWu7X802BrNF3jW2zny5gQyLQgRFJhV1Sq0Zi74+dh/6NBx1DxFC4b4GXg9wUCG5Qg==
   dependencies:
     "@rollup/pluginutils" "^5.0.1"
     "@types/resolve" "1.20.2"
@@ -2319,12 +2319,7 @@ deep-is@^0.1.3:
   resolved "https://registry.npmjs.org/deep-is/-/deep-is-0.1.4.tgz"
   integrity sha512-oIPzksmTg4/MriiaYGO+okXDT7ztn/w3Eptv/+gSIdMdKsJo0u4CfYNFJPy+4SKMuCqGw2wxnA+URMg3t8a/bQ==
 
-deepmerge@^4.2.2:
-  version "4.2.2"
-  resolved "https://registry.npmjs.org/deepmerge/-/deepmerge-4.2.2.tgz"
-  integrity sha512-FJ3UgI4gIl+PHZm53knsuSFpE+nESMr7M4v9QcgB7S63Kj/6WqMiFQJpBBYz1Pt+66bZpP3Q7Lye0Oo9MPKEdg==
-
-deepmerge@^4.3.1:
+deepmerge@^4.2.2, deepmerge@^4.3.1:
   version "4.3.1"
   resolved "https://registry.yarnpkg.com/deepmerge/-/deepmerge-4.3.1.tgz#44b5f2147cd3b00d4b56137685966f26fd25dd4a"
   integrity sha512-3sUqbMEc77XqpdNO7FRyRog+eW3ph+GYCbj+rK+uYyRMuwsVy0rMiVtPn+QJlKFvWP/1PYpapqYn0Me2knFn+A==
