@@ -3,7 +3,7 @@ import { getAuthClient } from "./helper";
 
 const userAgent = "AlbySDK-Example/0.1 (invoices-demo)";
 
-const client = await getAuthClient(userAgent);
+const client = await getAuthClient(userAgent, ["invoices:read"]);
 
 const params: GetInvoicesRequestParams = {
   page: 1,
