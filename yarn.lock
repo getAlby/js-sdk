@@ -3655,10 +3655,10 @@ normalize-path@^3.0.0:
   resolved "https://registry.npmjs.org/normalize-path/-/normalize-path-3.0.0.tgz"
   integrity sha512-6eZs5Ls3WtCisHWp9S2GUy8dqkpGi4BVSz3GaqiE6ezub0512ESztXUwUB6C6IKbQkY2Pnb/mD4WYojCRwcwLA==
 
-nostr-tools@2.16.2:
-  version "2.16.2"
-  resolved "https://registry.yarnpkg.com/nostr-tools/-/nostr-tools-2.16.2.tgz#eca1e0ed24428afcdd74708c6fd7f42ed8194101"
-  integrity sha512-ZxH9EbSt5ypURZj2TGNJxZd0Omb5ag5KZSu8IyJMCdLyg2KKz+2GA0sP/cSawCQEkyviIN4eRT4G2gB/t9lMRw==
+nostr-tools@^2.17.0:
+  version "2.17.0"
+  resolved "https://registry.yarnpkg.com/nostr-tools/-/nostr-tools-2.17.0.tgz#ae357479b957ff897ae404761d5cd88f8064d713"
+  integrity sha512-lrvHM7cSaGhz7F0YuBvgHMoU2s8/KuThihDoOYk8w5gpVHTy0DeUCAgCN8uLGeuSl5MAWekJr9Dkfo5HClqO9w==
   dependencies:
     "@noble/ciphers" "^0.5.1"
     "@noble/curves" "1.2.0"
