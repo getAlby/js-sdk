@@ -1,10 +1,10 @@
-import { fiat } from "@getalby/lightning-tools";
+import { getSatoshiValue } from "@getalby/lightning-tools";
 
 // TODO: move to Lightning Tools
 export class FiatAmount {
   satoshi: Promise<number>;
   constructor(amount: number, currency: string) {
-    this.satoshi = fiat.getSatoshiValue({
+    this.satoshi = getSatoshiValue({
       amount,
       currency,
     });
