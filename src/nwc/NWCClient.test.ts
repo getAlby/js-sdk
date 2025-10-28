@@ -3,7 +3,7 @@ import { NWCClient } from "./NWCClient";
 
 // this has no funds on it, I think ;-)
 const exampleNwcUrl =
-  "nostr+walletconnect://69effe7b49a6dd5cf525bd0905917a5005ffe480b58eeb8e861418cf3ae760d9?relay=wss://relay.getalby.com/v1&secret=e839faf78693765b3833027fefa5a305c78f6965d0a5d2e47a3fcb25aa7cc45b&lud16=hello@getalby.com";
+  "nostr+walletconnect://69effe7b49a6dd5cf525bd0905917a5005ffe480b58eeb8e861418cf3ae760d9?relay=wss://relay.getalby.com/v1&relay=wss://relay2.getalby.com/v1&secret=e839faf78693765b3833027fefa5a305c78f6965d0a5d2e47a3fcb25aa7cc45b&lud16=hello@getalby.com";
 
 describe("parseWalletConnectUrl", () => {
   test("standard protocol", () => {
@@ -14,7 +14,10 @@ describe("parseWalletConnectUrl", () => {
     expect(parsed.secret).toBe(
       "e839faf78693765b3833027fefa5a305c78f6965d0a5d2e47a3fcb25aa7cc45b",
     );
-    expect(parsed.relayUrls).toEqual(["wss://relay.getalby.com/v1"]);
+    expect(parsed.relayUrls).toEqual([
+      "wss://relay.getalby.com/v1",
+      "wss://relay2.getalby.com/v1",
+    ]);
     expect(parsed.lud16).toBe("hello@getalby.com");
   });
   test("protocol without double slash", () => {
@@ -27,7 +30,10 @@ describe("parseWalletConnectUrl", () => {
     expect(parsed.secret).toBe(
       "e839faf78693765b3833027fefa5a305c78f6965d0a5d2e47a3fcb25aa7cc45b",
     );
-    expect(parsed.relayUrls).toEqual(["wss://relay.getalby.com/v1"]);
+    expect(parsed.relayUrls).toEqual([
+      "wss://relay.getalby.com/v1",
+      "wss://relay2.getalby.com/v1",
+    ]);
   });
   test("legacy protocol without double slash", () => {
     const parsed = NWCClient.parseWalletConnectUrl(
@@ -39,9 +45,11 @@ describe("parseWalletConnectUrl", () => {
     expect(parsed.secret).toBe(
       "e839faf78693765b3833027fefa5a305c78f6965d0a5d2e47a3fcb25aa7cc45b",
     );
-    expect(parsed.relayUrls).toEqual(["wss://relay.getalby.com/v1"]);
+    expect(parsed.relayUrls).toEqual([
+      "wss://relay.getalby.com/v1",
+      "wss://relay2.getalby.com/v1",
+    ]);
   });
-  // TODO: add tests for multiple relays
 });
 
 describe("NWCClient", () => {
