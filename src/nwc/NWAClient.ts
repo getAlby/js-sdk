@@ -1,5 +1,5 @@
 import { bytesToHex, hexToBytes } from "@noble/hashes/utils";
-import { generateSecretKey, getPublicKey, Relay } from "nostr-tools";
+import { generateSecretKey, getPublicKey, SimplePool } from "nostr-tools";
 import {
   BudgetRenewalPeriod,
   Nip47Method,
@@ -7,10 +7,10 @@ import {
   Nip47NotificationType,
 } from "./types";
 import { NWCClient } from "./NWCClient";
-import { Subscription } from "nostr-tools/lib/types/abstract-relay";
+import { SubCloser } from "nostr-tools/lib/types/abstract-pool";
 
 export type NWAOptions = {
-  relayUrl: string;
+  relayUrls: string[];
   appPubkey: string;
   requestMethods: Nip47Method[];
 
@@ -33,7 +33,7 @@ export type NewNWAClientOptions = Omit<NWAOptions, "appPubkey"> & {
 export class NWAClient {
   options: NWAOptions;
   appSecretKey: string;
-  relay: Relay;
+  pool: SimplePool;
 
   constructor(options: NewNWAClientOptions) {
     this.appSecretKey = options.appSecretKey || bytesToHex(generateSecretKey());
@@ -42,13 +42,13 @@ export class NWAClient {
       appPubkey: getPublicKey(hexToBytes(this.appSecretKey)),
     };
 
-    if (!this.options.relayUrl) {
-      throw new Error("Missing relay url");
+    if (!this.options.relayUrls) {
+      throw new Error("Missing relay urls");
     }
     if (!this.options.requestMethods) {
       throw new Error("Missing request methods");
     }
-    this.relay = new Relay(this.options.relayUrl);
+    this.pool = new SimplePool();
 
     if (globalThis.WebSocket === undefined) {
       console.error(
@@ -71,7 +71,6 @@ export class NWAClient {
    */
   getConnectionUri(nwaSchemeSuffix = "") {
     const searchParams = new URLSearchParams({
-      relay: this.options.relayUrl,
       request_methods: this.options.requestMethods.join(" "),
       ...(this.options.name ? { name: this.options.name } : {}),
       ...(this.options.icon ? { icon: this.options.icon } : {}),
@@ -97,6 +96,10 @@ export class NWAClient {
         ? { metadata: JSON.stringify(this.options.metadata) }
         : {}),
     });
+
+    for (const relay of this.options.relayUrls) {
+      searchParams.append("relay", relay);
+    }
 
     return `nostr+walletauth${nwaSchemeSuffix ? `+${nwaSchemeSuffix}` : ""}://${this.options.appPubkey}?${searchParams
       .toString()
@@ -125,8 +128,8 @@ export class NWAClient {
       throw new Error("Incorrect app pubkey found in auth string");
     }
 
-    const relayUrl = url.searchParams.get("relay");
-    if (!relayUrl) {
+    const relayUrls = url.searchParams.getAll("relay");
+    if (!relayUrls) {
       throw new Error("No relay URL found in auth string");
     }
     const requestMethods = url.searchParams
@@ -148,7 +151,7 @@ export class NWAClient {
       name: url.searchParams.get("name") || undefined,
       icon: url.searchParams.get("icon") || undefined,
       returnTo: url.searchParams.get("return_to") || undefined,
-      relayUrl,
+      relayUrls,
       appPubkey,
       requestMethods,
       notificationTypes,
@@ -174,64 +177,54 @@ export class NWAClient {
   }> {
     let subscribed = true;
     let endPromise: (() => void) | undefined;
-    let onRelayDisconnect: (() => void) | undefined;
-    let sub: Subscription | undefined;
+    let sub: SubCloser | undefined;
     (async () => {
       while (subscribed) {
         try {
           await this._checkConnected();
 
-          const sub = this.relay.subscribe(
-            [
-              {
-                kinds: [13194], // NIP-47 info event
-                "#p": [this.options.appPubkey],
-              },
-            ],
+          sub = this.pool.subscribe(
+            this.options.relayUrls,
             {
-              // eoseTimeout: 10000,
+              kinds: [13194], // NIP-47 info event
+              "#p": [this.options.appPubkey],
+            },
+            {
+              onevent: async (event) => {
+                const client = new NWCClient({
+                  relayUrls: this.options.relayUrls,
+                  secret: this.appSecretKey,
+                  walletPubkey: event.pubkey,
+                });
+
+                // try to fetch the lightning address
+                try {
+                  const info = await client.getInfo();
+                  client.options.lud16 = info.lud16;
+                  client.lud16 = info.lud16;
+                } catch (error) {
+                  console.error("failed to fetch get_info", error);
+                }
+
+                args.onSuccess(client);
+
+                subscribed = false;
+                endPromise?.();
+                sub?.close();
+              },
+              onclose: (reasons) => {
+                console.info("relay connection closed", reasons);
+                endPromise?.();
+              },
             },
           );
           console.info("subscribed to relays");
-
-          const unsub = () => {
-            sub.close();
-            this.relay.close();
-          };
-
-          sub.onevent = async (event) => {
-            const client = new NWCClient({
-              relayUrls: [this.options.relayUrl],
-              secret: this.appSecretKey,
-              walletPubkey: event.pubkey,
-            });
-
-            // try to fetch the lightning address
-            try {
-              const info = await client.getInfo();
-              client.options.lud16 = info.lud16;
-              client.lud16 = info.lud16;
-            } catch (error) {
-              console.error("failed to fetch get_info", error);
-            }
-
-            args.onSuccess(client);
-            unsub();
-          };
 
           await new Promise<void>((resolve) => {
             endPromise = () => {
               resolve();
             };
-            onRelayDisconnect = () => {
-              console.info("relay disconnected");
-              endPromise?.();
-            };
-            this.relay.onclose = onRelayDisconnect;
           });
-          if (onRelayDisconnect !== undefined) {
-            this.relay.onclose = null;
-          }
         } catch (error) {
           console.error(
             "error subscribing to info event",
@@ -260,17 +253,19 @@ export class NWAClient {
     if (!this.appSecretKey) {
       throw new Error("Missing secret key");
     }
-    if (!this.options.relayUrl) {
-      throw new Error("Missing relay url");
+    if (!this.options.relayUrls) {
+      throw new Error("Missing relay urls");
     }
     try {
-      if (!this.relay.connected) {
-        await this.relay.connect();
-      }
-    } catch (_ /* error is always undefined */) {
-      console.error("failed to connect to relay", this.options.relayUrl);
+      await Promise.any(
+        this.options.relayUrls.map((relayUrl) =>
+          this.pool.ensureRelay(relayUrl),
+        ),
+      );
+    } catch (error) {
+      console.error("failed to connect any relay", error);
       throw new Nip47NetworkError(
-        "Failed to connect to " + this.options.relayUrl,
+        "Failed to connect to " + this.options.relayUrls.join(","),
         "OTHER",
       );
     }

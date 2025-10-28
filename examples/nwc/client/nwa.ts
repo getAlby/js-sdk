@@ -8,15 +8,17 @@ import { NWAClient } from "@getalby/sdk/nwc";
 
 const rl = readline.createInterface({ input, output });
 
-const DEFAULT_RELAY_URL = "wss://relay.getalby.com/v1";
+//const DEFAULT_RELAY_URLs = "ws://localhost:7447/v1,ws://localhost:7448/v1";
+const DEFAULT_RELAY_URLs = "wss://relay.getalby.com/v1";
 
-const relayUrl =
-  (await rl.question(`Relay URL (${DEFAULT_RELAY_URL}): `)) ||
-  DEFAULT_RELAY_URL;
+const relayUrls =
+  (await rl.question(
+    `Relay URLs, comma separated (${DEFAULT_RELAY_URLs}): `,
+  )) || DEFAULT_RELAY_URLs;
 rl.close();
 
 const nwaClient = new NWAClient({
-  relayUrl,
+  relayUrls: relayUrls.split(","),
   requestMethods: ["get_info"],
 });
 
