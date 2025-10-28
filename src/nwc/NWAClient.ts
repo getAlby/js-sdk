@@ -192,7 +192,7 @@ export class NWAClient {
               // eoseTimeout: 10000,
             },
           );
-          console.info("subscribed to relay");
+          console.info("subscribed to relays");
 
           const unsub = () => {
             sub.close();

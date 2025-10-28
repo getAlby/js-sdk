@@ -90,14 +90,14 @@ export class NWCClient {
       .replace("nostrwalletconnect:", "http://")
       .replace("nostr+walletconnect:", "http://");
     const url = new URL(walletConnectUrl);
-    const relayParam = url.searchParams.get("relay");
-    if (!relayParam) {
+    const relayParams = url.searchParams.getAll("relay");
+    if (!relayParams) {
       throw new Error("No relay URL found in connection string");
     }
 
     const options: NWCOptions = {
       walletPubkey: url.host,
-      relayUrls: relayParam.split(","),
+      relayUrls: relayParams,
     };
     const secret = url.searchParams.get("secret");
     if (secret) {
@@ -123,7 +123,6 @@ export class NWCClient {
 
     this.relayUrls = this.options.relayUrls;
     this.pool = new SimplePool({
-      enablePing: true,
       // TODO: enableReconnect: true, once nostr-tools is updated
     });
     if (this.options.secret) {
@@ -153,7 +152,7 @@ export class NWCClient {
   }
 
   getNostrWalletConnectUrl(includeSecret = true) {
-    let url = `nostr+walletconnect://${this.walletPubkey}?relay=${this.relayUrls.join(",")}&pubkey=${this.publicKey}`;
+    let url = `nostr+walletconnect://${this.walletPubkey}?relay=${this.relayUrls.join("&relay=")}&pubkey=${this.publicKey}`;
     if (includeSecret) {
       url = `${url}&secret=${this.secret}`;
     }
@@ -334,6 +333,7 @@ export class NWCClient {
       const onMessage = (message: {
         data?: {
           type: "nwc:success" | unknown;
+          relayUrls?: string[];
           relayUrl?: string;
           walletPubkey?: string;
           lud16?: string;
@@ -346,15 +346,21 @@ export class NWCClient {
           data.type === "nwc:success" &&
           message.origin === `${url.protocol}//${url.host}`
         ) {
-          if (!data.relayUrl) {
-            reject(new Error("no relayUrl in response"));
+          if (!data.relayUrls && data.relayUrl) {
+            data.relayUrls = [data.relayUrl];
           }
+          if (!data.relayUrls) {
+            reject(new Error("no relayUrls or relayUrl in response"));
+            return;
+          }
+
           if (!data.walletPubkey) {
             reject(new Error("no walletPubkey in response"));
+            return;
           }
           resolve(
             new NWCClient({
-              relayUrls: data.relayUrl?.split(","),
+              relayUrls: data.relayUrls,
               walletPubkey: data.walletPubkey,
               secret,
               lud16: data.lud16,
@@ -713,6 +719,7 @@ export class NWCClient {
         try {
           await this._checkConnected();
           await this._selectEncryptionType();
+          console.info("subscribing to relays");
           sub = this.pool.subscribe(
             this.relayUrls,
             {
@@ -747,12 +754,13 @@ export class NWCClient {
                   console.error("No notification in response", notification);
                 }
               },
-              onclose: () => {
+              onclose: (reasons) => {
+                console.info("relay connection closed", reasons);
                 endPromise?.();
               },
             },
           );
-          console.info("subscribed to relay");
+          console.info("subscribed to relays");
 
           await new Promise<void>((resolve) => {
             endPromise = () => {
