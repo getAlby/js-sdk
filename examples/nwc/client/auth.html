@@ -1,10 +1,10 @@
 <script type="module">
-  import { nwc } from "https://esm.sh/@getalby/sdk@5.1.0"; // jsdelivr.net, skypack.dev also work
+  import { NWCClient } from "https://esm.sh/@getalby/sdk@7.0.0"; // jsdelivr.net, skypack.dev also work
 
   window.launchNwc = async () => {
     try {
       const authUrl = prompt("Auth URL", "https://my.albyhub.com/apps/new");
-      const nwcClient = await nwc.NWCClient.fromAuthorizationUrl(authUrl, {
+      const nwcClient = await NWCClient.fromAuthorizationUrl(authUrl, {
         name: "Deeplink " + Date.now(),
       });
       const result = await nwcClient.getInfo();
