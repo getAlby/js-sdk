@@ -755,6 +755,8 @@ export class NWCClient {
                 }
               },
               onclose: (reasons) => {
+                // NOTE: this fires when all relays were closed once. There is no reconnect logic in nostr-tools
+                // See https://github.com/nbd-wtf/nostr-tools/issues/513
                 console.info("relay connection closed", reasons);
                 endPromise?.();
               },
