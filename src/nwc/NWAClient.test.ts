@@ -16,7 +16,7 @@ describe("NWA URI", () => {
     });
 
     expect(nwaClient.connectionUri).toEqual(
-      `nostr+walletauth://${appPubkey}?relay=${encodeURIComponent(nwaClient.options.relayUrls[0])}&relay=${encodeURIComponent(nwaClient.options.relayUrls[1])}&request_methods=get_info`,
+      `nostr+walletauth://${appPubkey}?request_methods=get_info&relay=${encodeURIComponent(nwaClient.options.relayUrls[0])}&relay=${encodeURIComponent(nwaClient.options.relayUrls[1])}`,
     );
   });
   test("constructs correct connection URI", () => {
@@ -37,7 +37,7 @@ describe("NWA URI", () => {
     });
 
     expect(nwaClient.connectionUri).toEqual(
-      `nostr+walletauth://${nwaClient.options.appPubkey}?relay=wss%3A%2F%2Frelay.getalby.com%2Fv1&request_methods=get_info%20pay_invoice&name=App%20Name&icon=https%3A%2F%2Fexample.com%2Fimage.png&return_to=https%3A%2F%2Fexample.com&notification_types=payment_received%20payment_sent&max_amount=${maxAmount}&budget_renewal=monthly&expires_at=${expiresAt}&isolated=true&metadata=%7B%22message%22%3A%22hello%20world%22%7D`,
+      `nostr+walletauth://${nwaClient.options.appPubkey}?request_methods=get_info%20pay_invoice&name=App%20Name&icon=https%3A%2F%2Fexample.com%2Fimage.png&return_to=https%3A%2F%2Fexample.com&notification_types=payment_received%20payment_sent&max_amount=${maxAmount}&budget_renewal=monthly&expires_at=${expiresAt}&isolated=true&metadata=%7B%22message%22%3A%22hello%20world%22%7D&relay=wss%3A%2F%2Frelay.getalby.com%2Fv1`,
     );
   });
 
@@ -48,7 +48,7 @@ describe("NWA URI", () => {
     });
 
     expect(nwaClient.getConnectionUri("alby")).toEqual(
-      `nostr+walletauth+alby://${nwaClient.options.appPubkey}?relay=wss%3A%2F%2Frelay.getalby.com%2Fv1&request_methods=get_info`,
+      `nostr+walletauth+alby://${nwaClient.options.appPubkey}?request_methods=get_info&relay=wss%3A%2F%2Frelay.getalby.com%2Fv1`,
     );
   });
 
