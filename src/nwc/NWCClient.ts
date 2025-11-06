@@ -123,7 +123,6 @@ export class NWCClient {
 
     this.relayUrls = this.options.relayUrls;
     this.pool = new SimplePool({
-      // TODO: enableReconnect: true, once nostr-tools is updated
     });
     if (this.options.secret) {
       this.secret = (
