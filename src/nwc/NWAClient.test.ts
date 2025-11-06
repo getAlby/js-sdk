@@ -10,13 +10,13 @@ describe("NWA URI", () => {
     const appPubkey = getPublicKey(hexToBytes(appSecretKey));
 
     const nwaClient = new NWAClient({
-      relayUrl: "wss://relay.getalby.com/v1",
+      relayUrls: ["wss://relay.getalby.com/v1", "wss://relay2.getalby.com/v1"],
       appSecretKey,
       requestMethods: ["get_info"],
     });
 
     expect(nwaClient.connectionUri).toEqual(
-      `nostr+walletauth://${appPubkey}?relay=${encodeURIComponent(nwaClient.options.relayUrl)}&request_methods=get_info`,
+      `nostr+walletauth://${appPubkey}?request_methods=get_info&relay=${encodeURIComponent(nwaClient.options.relayUrls[0])}&relay=${encodeURIComponent(nwaClient.options.relayUrls[1])}`,
     );
   });
   test("constructs correct connection URI", () => {
@@ -25,7 +25,7 @@ describe("NWA URI", () => {
     const nwaClient = new NWAClient({
       name: "App Name",
       icon: "https://example.com/image.png",
-      relayUrl: "wss://relay.getalby.com/v1",
+      relayUrls: ["wss://relay.getalby.com/v1"],
       requestMethods: ["get_info", "pay_invoice"],
       notificationTypes: ["payment_received", "payment_sent"],
       expiresAt,
@@ -37,18 +37,18 @@ describe("NWA URI", () => {
     });
 
     expect(nwaClient.connectionUri).toEqual(
-      `nostr+walletauth://${nwaClient.options.appPubkey}?relay=wss%3A%2F%2Frelay.getalby.com%2Fv1&request_methods=get_info%20pay_invoice&name=App%20Name&icon=https%3A%2F%2Fexample.com%2Fimage.png&return_to=https%3A%2F%2Fexample.com&notification_types=payment_received%20payment_sent&max_amount=${maxAmount}&budget_renewal=monthly&expires_at=${expiresAt}&isolated=true&metadata=%7B%22message%22%3A%22hello%20world%22%7D`,
+      `nostr+walletauth://${nwaClient.options.appPubkey}?request_methods=get_info%20pay_invoice&name=App%20Name&icon=https%3A%2F%2Fexample.com%2Fimage.png&return_to=https%3A%2F%2Fexample.com&notification_types=payment_received%20payment_sent&max_amount=${maxAmount}&budget_renewal=monthly&expires_at=${expiresAt}&isolated=true&metadata=%7B%22message%22%3A%22hello%20world%22%7D&relay=wss%3A%2F%2Frelay.getalby.com%2Fv1`,
     );
   });
 
   test("constructs correct connection URI for specific app", () => {
     const nwaClient = new NWAClient({
-      relayUrl: "wss://relay.getalby.com/v1",
+      relayUrls: ["wss://relay.getalby.com/v1"],
       requestMethods: ["get_info"],
     });
 
     expect(nwaClient.getConnectionUri("alby")).toEqual(
-      `nostr+walletauth+alby://${nwaClient.options.appPubkey}?relay=wss%3A%2F%2Frelay.getalby.com%2Fv1&request_methods=get_info`,
+      `nostr+walletauth+alby://${nwaClient.options.appPubkey}?request_methods=get_info&relay=wss%3A%2F%2Frelay.getalby.com%2Fv1`,
     );
   });
 
@@ -60,13 +60,16 @@ describe("NWA URI", () => {
   ]) {
     test(`parses connection URI (${scheme})`, () => {
       const nwaOptions = NWAClient.parseWalletAuthUrl(
-        `${scheme}e73575d76c731102aefd4eb6fb0ddfaaf335eabe60255a22e6ca5e7074eb4992?relay=wss%3A%2F%2Frelay.getalby.com%2Fv1&request_methods=get_info%20pay_invoice&name=App%20Name&icon=https%3A%2F%2Fexample.com%2Fimage.png&return_to=https%3A%2F%2Fexample.com&notification_types=payment_received%20payment_sent&max_amount=1000000&budget_renewal=monthly&expires_at=1740470142968&isolated=true&metadata=%7B%22message%22%3A%22hello%20world%22%7D`,
+        `${scheme}e73575d76c731102aefd4eb6fb0ddfaaf335eabe60255a22e6ca5e7074eb4992?relay=wss%3A%2F%2Frelay.getalby.com%2Fv1&relay=wss%3A%2F%2Frelay2.getalby.com%2Fv1&request_methods=get_info%20pay_invoice&name=App%20Name&icon=https%3A%2F%2Fexample.com%2Fimage.png&return_to=https%3A%2F%2Fexample.com&notification_types=payment_received%20payment_sent&max_amount=1000000&budget_renewal=monthly&expires_at=1740470142968&isolated=true&metadata=%7B%22message%22%3A%22hello%20world%22%7D`,
       );
 
       expect(nwaOptions.appPubkey).toEqual(
         "e73575d76c731102aefd4eb6fb0ddfaaf335eabe60255a22e6ca5e7074eb4992",
       );
-      expect(nwaOptions.relayUrl).toEqual("wss://relay.getalby.com/v1");
+      expect(nwaOptions.relayUrls).toEqual([
+        "wss://relay.getalby.com/v1",
+        "wss://relay2.getalby.com/v1",
+      ]);
       expect(nwaOptions.requestMethods).toEqual([
         "get_info",
         "pay_invoice",

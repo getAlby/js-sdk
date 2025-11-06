@@ -2,6 +2,10 @@
 <button id="reset-button" onclick="window.resetNwc()">Reset</button>
 
 <script type="module">
+  import {
+    NostrWebLNProvider,
+    NWCClient,
+  } from "https://esm.sh/@getalby/sdk@7.0.0"; // jsdelivr.net, skypack.dev also work
   import { webln, nwc } from "https://esm.sh/@getalby/sdk@5.1.0"; // jsdelivr.net, skypack.dev also work
   import {
     generateSecretKey,
@@ -14,23 +18,23 @@
 
   const params = new URL(window.location.href).searchParams;
   const walletPubkey = params.get("pubkey");
-  const relayUrl = params.get("relay");
+  const relayUrls = params.getAll("relay");
   const lud16 = params.get("lud16");
   const secret = window.localStorage.getItem("demo_secret");
 
-  if (walletPubkey && relayUrl) {
+  if (walletPubkey && relayUrls) {
     try {
       if (!secret) {
         throw new Error("No secret saved locally");
       }
       window.document.getElementById("connect-button").remove();
-      const nwcClient = new nwc.NWCClient({
+      const nwcClient = new NWCClient({
         secret,
         walletPubkey,
-        relayUrl,
+        relayUrls,
         lud16,
       });
-      const weblnProvider = new webln.NostrWebLNProvider({
+      const weblnProvider = new NostrWebLNProvider({
         client: nwcClient,
       });
       await weblnProvider.enable();
@@ -64,7 +68,7 @@
         "Auth URL",
         "https://my.albyhub.com/apps/new",
       );
-      const authUrl = await nwc.NWCClient.getAuthorizationUrl(
+      const authUrl = await NWCClient.getAuthorizationUrl(
         authorizationBasePath,
         {
           name: "Deeplink " + Date.now(),

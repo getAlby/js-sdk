@@ -115,7 +115,7 @@ export class NWCWalletService {
             ],
             {},
           );
-          console.info("subscribed to relay");
+          console.info("subscribed to relays");
 
           sub.onevent = async (event) => {
             try {
