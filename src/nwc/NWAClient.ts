@@ -265,7 +265,7 @@ export class NWAClient {
         ),
       );
     } catch (error) {
-      console.error("failed to connect any relay", error);
+      console.error("failed to connect to any relay", error);
       throw new Nip47NetworkError(
         "Failed to connect to " + this.options.relayUrls.join(","),
         "OTHER",
