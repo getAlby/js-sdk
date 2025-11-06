@@ -22,7 +22,9 @@ or for use without any build tools:
 
 ```html
 <script type="module">
-  import { LN /* or nwc, webln */ } from "https://esm.sh/@getalby/sdk@7.0.0"; // jsdelivr.net, skypack.dev also work
+  import {
+    LN /* or NWCClient, or NostrWebLNProvider */,
+  } from "https://esm.sh/@getalby/sdk@7.0.0"; // jsdelivr.net, skypack.dev also work
 
   // ... then use the SDK as normal (see below)
 </script>
