@@ -3,7 +3,7 @@ import "websocket-polyfill"; // required in node.js
 import * as readline from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
 
-import { NWCClient } from "@getalby/sdk/nwc";
+import { Nip47Notification, NWCClient } from "@getalby/sdk/nwc";
 
 const rl = readline.createInterface({ input, output });
 
@@ -21,7 +21,7 @@ const client = new NWCClient({
   nostrWalletConnectUrl: nwcUrl,
 });
 
-const toHexString = (bytes) =>
+const toHexString = (bytes: Uint8Array<ArrayBuffer>) =>
   bytes.reduce((str, byte) => str + byte.toString(16).padStart(2, "0"), "");
 
 const preimageBytes = crypto.getRandomValues(new Uint8Array(32));
@@ -41,7 +41,7 @@ const response = await client.makeHoldInvoice({
 
 console.info(response.invoice);
 
-const onNotification = async (notification) => {
+const onNotification = async (notification: Nip47Notification) => {
   if (notification.notification.payment_hash !== paymentHash) {
     console.info("Skipping unrelated notification", notification);
     return;
