@@ -5,10 +5,9 @@ import {
   getPublicKey,
   Event,
   EventTemplate,
-  Relay,
+  SimplePool,
 } from "nostr-tools";
 import { hexToBytes } from "@noble/hashes/utils";
-import { Subscription } from "nostr-tools/lib/types/abstract-relay";
 
 import {
   Nip47MakeInvoiceRequest,
@@ -30,7 +29,8 @@ import {
 } from "./NWCWalletServiceRequestHandler";
 
 export type NewNWCWalletServiceOptions = {
-  relayUrl: string;
+  relayUrl?: string;
+  relayUrls?: string[];
 };
 
 export class NWCWalletServiceKeyPair {
@@ -51,13 +51,19 @@ export class NWCWalletServiceKeyPair {
 }
 
 export class NWCWalletService {
-  relay: Relay;
-  relayUrl: string;
+  pool: SimplePool;
+  relayUrls: string[];
 
   constructor(options: NewNWCWalletServiceOptions) {
-    this.relayUrl = options.relayUrl;
+    if (options.relayUrls && options.relayUrls.length > 0) {
+      this.relayUrls = options.relayUrls;
+    } else if (options.relayUrl) {
+      this.relayUrls = [options.relayUrl];
+    } else {
+      throw new Error("Missing relayUrl or relayUrls");
+    }
 
-    this.relay = new Relay(this.relayUrl);
+    this.pool = new SimplePool({ enableReconnect: true });
 
     if (globalThis.WebSocket === undefined) {
       console.error(
@@ -84,7 +90,7 @@ export class NWCWalletService {
       };
 
       const event = await this.signEvent(eventTemplate, walletSecret);
-      await this.relay.publish(event);
+      await Promise.allSettled(this.pool.publish(this.relayUrls, event));
     } catch (error) {
       console.error("failed to publish wallet service info event", error);
       throw error;
@@ -95,166 +101,137 @@ export class NWCWalletService {
     keypair: NWCWalletServiceKeyPair,
     handler: NWCWalletServiceRequestHandler,
   ): Promise<() => void> {
-    let subscribed = true;
-    let endPromise: (() => void) | undefined;
-    let onRelayDisconnect: (() => void) | undefined;
-    let sub: Subscription | undefined;
-    (async () => {
-      while (subscribed) {
-        try {
-          console.info("checking connection to relay");
-          await this._checkConnected();
-          console.info("subscribing to relay");
-          sub = this.relay.subscribe(
-            [
-              {
-                kinds: [23194],
-                authors: [keypair.clientPubkey],
-                "#p": [keypair.walletPubkey],
-              },
-            ],
-            {},
-          );
-          console.info("subscribed to relays");
+    console.info("checking connection to relay");
+    await this._checkConnected();
 
-          sub.onevent = async (event) => {
-            try {
-              // console.info("Got event", event);
-              const encryptionType = (event.tags.find(
-                (t) => t[0] === "encryption",
-              )?.[1] || "nip04") as Nip47EncryptionType;
+    console.info("subscribing to relay");
+    const sub = this.pool.subscribe(
+      this.relayUrls,
 
-              const decryptedContent = await this.decrypt(
-                keypair,
-                event.content,
-                encryptionType,
-              );
-              const request = JSON.parse(decryptedContent) as {
-                method: Nip47Method;
-                params: unknown;
-              };
+      {
+        kinds: [23194],
+        authors: [keypair.clientPubkey],
+        "#p": [keypair.walletPubkey],
+      },
 
-              let responsePromise:
-                | NWCWalletServiceResponsePromise<unknown>
-                | undefined;
+      {
+        onevent: async (event) => {
+          try {
+            // console.info("Got event", event);
+            const encryptionType = (event.tags.find(
+              (t) => t[0] === "encryption",
+            )?.[1] || "nip04") as Nip47EncryptionType;
 
-              switch (request.method) {
-                case "get_info":
-                  responsePromise = handler.getInfo?.();
-                  break;
-                case "make_invoice":
-                  responsePromise = handler.makeInvoice?.(
-                    request.params as Nip47MakeInvoiceRequest,
-                  );
-                  break;
-                case "pay_invoice":
-                  responsePromise = handler.payInvoice?.(
-                    request.params as Nip47PayInvoiceRequest,
-                  );
-                  break;
-                case "pay_keysend":
-                  responsePromise = handler.payKeysend?.(
-                    request.params as Nip47PayKeysendRequest,
-                  );
-                  break;
-                case "get_balance":
-                  responsePromise = handler.getBalance?.();
-                  break;
-                case "lookup_invoice":
-                  responsePromise = handler.lookupInvoice?.(
-                    request.params as Nip47LookupInvoiceRequest,
-                  );
-                  break;
-                case "list_transactions":
-                  responsePromise = handler.listTransactions?.(
-                    request.params as Nip47ListTransactionsRequest,
-                  );
-                  break;
-                case "sign_message":
-                  responsePromise = handler.signMessage?.(
-                    request.params as Nip47SignMessageRequest,
-                  );
-                  break;
-                // TODO: handle multi_* methods
-              }
+            const decryptedContent = await this.decrypt(
+              keypair,
+              event.content,
+              encryptionType,
+            );
+            const request = JSON.parse(decryptedContent) as {
+              method: Nip47Method;
+              params: unknown;
+            };
 
-              let response: NWCWalletServiceResponse<unknown> | undefined =
-                await responsePromise;
+            let responsePromise:
+              | NWCWalletServiceResponsePromise<unknown>
+              | undefined;
 
-              if (!response) {
-                console.warn("received unsupported method", request.method);
-                response = {
-                  error: {
-                    code: "NOT_IMPLEMENTED",
-                    message:
-                      "This method is not supported by the wallet service",
-                  },
-                  result: undefined,
-                };
-              }
-
-              const responseEventTemplate: EventTemplate = {
-                kind: 23195,
-                created_at: Math.floor(Date.now() / 1000),
-                tags: [["e", event.id]],
-                content: await this.encrypt(
-                  keypair,
-                  JSON.stringify({
-                    result_type: request.method,
-                    ...response,
-                  }),
-                  encryptionType,
-                ),
-              };
-
-              const responseEvent = await this.signEvent(
-                responseEventTemplate,
-                keypair.walletSecret,
-              );
-              await this.relay.publish(responseEvent);
-            } catch (e) {
-              console.error("Failed to parse decrypted event content", e);
-              return;
+            switch (request.method) {
+              case "get_info":
+                responsePromise = handler.getInfo?.();
+                break;
+              case "make_invoice":
+                responsePromise = handler.makeInvoice?.(
+                  request.params as Nip47MakeInvoiceRequest,
+                );
+                break;
+              case "pay_invoice":
+                responsePromise = handler.payInvoice?.(
+                  request.params as Nip47PayInvoiceRequest,
+                );
+                break;
+              case "pay_keysend":
+                responsePromise = handler.payKeysend?.(
+                  request.params as Nip47PayKeysendRequest,
+                );
+                break;
+              case "get_balance":
+                responsePromise = handler.getBalance?.();
+                break;
+              case "lookup_invoice":
+                responsePromise = handler.lookupInvoice?.(
+                  request.params as Nip47LookupInvoiceRequest,
+                );
+                break;
+              case "list_transactions":
+                responsePromise = handler.listTransactions?.(
+                  request.params as Nip47ListTransactionsRequest,
+                );
+                break;
+              case "sign_message":
+                responsePromise = handler.signMessage?.(
+                  request.params as Nip47SignMessageRequest,
+                );
+                break;
+              // TODO: handle multi_* methods
             }
-          };
 
-          await new Promise<void>((resolve) => {
-            endPromise = () => {
-              resolve();
+            let response: NWCWalletServiceResponse<unknown> | undefined =
+              await responsePromise;
+
+            if (!response) {
+              console.warn("received unsupported method", request.method);
+              response = {
+                error: {
+                  code: "NOT_IMPLEMENTED",
+                  message: "This method is not supported by the wallet service",
+                },
+                result: undefined,
+              };
+            }
+
+            const responseEventTemplate: EventTemplate = {
+              kind: 23195,
+              created_at: Math.floor(Date.now() / 1000),
+              tags: [["e", event.id]],
+              content: await this.encrypt(
+                keypair,
+                JSON.stringify({
+                  result_type: request.method,
+                  ...response,
+                }),
+                encryptionType,
+              ),
             };
-            onRelayDisconnect = () => {
-              console.error("relay disconnected");
-              endPromise?.();
-            };
-            this.relay.onclose = onRelayDisconnect;
-          });
-          if (onRelayDisconnect !== undefined) {
-            this.relay.onclose = null;
+
+            const responseEvent = await this.signEvent(
+              responseEventTemplate,
+              keypair.walletSecret,
+            );
+
+            // Tries to publish, but ignores failures if relay is dead
+            Promise.allSettled(
+              this.pool.publish(this.relayUrls, responseEvent),
+            );
+          } catch (e) {
+            console.error("Failed to parse decrypted event content", e);
+            return;
           }
-        } catch (error) {
-          console.error(
-            "error subscribing to requests",
-            error || "unknown relay error",
-          );
-        }
-        if (subscribed) {
-          // wait a second and try re-connecting
-          // any notifications during this period will be lost
-          // unless using a relay that keeps events until client reconnect
-          await new Promise((resolve) => setTimeout(resolve, 1000));
-        }
-      }
-    })();
+        },
+        onclose: (reasons) => {
+          console.warn("Subscription closed:", reasons);
+        },
+      },
+    );
 
     return () => {
-      subscribed = false;
-      endPromise?.();
       sub?.close();
     };
   }
 
   get connected() {
-    return this.relay.connected;
+    const statuses = Array.from(this.pool.listConnectionStatus().values());
+    return statuses.some((status) => status === true);
   }
 
   signEvent(event: EventTemplate, secretKey: string): Promise<Event> {
@@ -262,7 +239,7 @@ export class NWCWalletService {
   }
 
   close() {
-    return this.relay.close();
+    return this.pool.close(this.relayUrls);
   }
 
   async encrypt(
@@ -312,17 +289,15 @@ export class NWCWalletService {
   }
 
   private async _checkConnected() {
-    if (!this.relayUrl) {
-      throw new Error("Missing relay url");
-    }
+    // Waits for the socket to open, then proceeds
     try {
-      if (!this.relay.connected) {
-        await this.relay.connect();
-      }
-    } catch (_ /* error is always undefined */) {
-      console.error("failed to connect to relay", this.relayUrl);
+      await Promise.any(
+        this.relayUrls.map((relayUrl) => this.pool.ensureRelay(relayUrl)),
+      );
+    } catch (error) {
+      console.error("failed to connect to relay", this.relayUrls, error);
       throw new Nip47NetworkError(
-        "Failed to connect to " + this.relayUrl,
+        "Failed to connect to " + this.relayUrls.join(","),
         "OTHER",
       );
     }

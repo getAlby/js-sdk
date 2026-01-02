@@ -55,7 +55,6 @@ import {
   Nip47CancelHoldInvoiceResponse,
   Nip47NetworkError,
 } from "./types";
-import { SubCloser } from "nostr-tools/lib/types/abstract-pool";
 
 export interface NWCOptions {
   relayUrls: string[];
@@ -122,8 +121,7 @@ export class NWCClient {
     } as NWCOptions;
 
     this.relayUrls = this.options.relayUrls;
-    this.pool = new SimplePool({
-    });
+    this.pool = new SimplePool({ enableReconnect: true });
     if (this.options.secret) {
       this.secret = (
         this.options.secret.toLowerCase().startsWith("nsec")
@@ -710,91 +708,58 @@ export class NWCClient {
     onNotification: (notification: Nip47Notification) => void,
     notificationTypes?: Nip47NotificationType[],
   ): Promise<() => void> {
-    let subscribed = true;
-    let endPromise: (() => void) | undefined;
-    let sub: SubCloser | undefined;
-    (async () => {
-      while (subscribed) {
-        try {
-          await this._checkConnected();
-          await this._selectEncryptionType();
-          console.info("subscribing to relays");
-          sub = this.pool.subscribe(
-            this.relayUrls,
-            {
-              kinds: [...(this.encryptionType === "nip04" ? [23196] : [23197])],
-              authors: [this.walletPubkey],
-              "#p": [this.publicKey],
-            },
-            {
-              onevent: async (event) => {
-                let decryptedContent;
-                try {
-                  decryptedContent = await this.decrypt(
-                    this.walletPubkey,
-                    event.content,
-                  );
-                } catch (error) {
-                  console.error(
-                    "failed to decrypt request event content",
-                    error,
-                  );
-                  return;
-                }
-                let notification;
-                try {
-                  notification = JSON.parse(
-                    decryptedContent,
-                  ) as Nip47Notification;
-                } catch (e) {
-                  console.error("Failed to parse decrypted event content", e);
-                  return;
-                }
-                if (notification.notification) {
-                  if (
-                    !notificationTypes ||
-                    notificationTypes.indexOf(notification.notification_type) >
-                      -1
-                  ) {
-                    onNotification(notification);
-                  }
-                } else {
-                  console.error("No notification in response", notification);
-                }
-              },
-              onclose: (reasons) => {
-                // NOTE: this fires when all relays were closed once. There is no reconnect logic in nostr-tools
-                // See https://github.com/nbd-wtf/nostr-tools/issues/513
-                console.info("relay connection closed", reasons);
-                endPromise?.();
-              },
-            },
-          );
-          console.info("subscribed to relays");
+    await this._checkConnected();
+    await this._selectEncryptionType();
 
-          await new Promise<void>((resolve) => {
-            endPromise = () => {
-              resolve();
-            };
-          });
-        } catch (error) {
-          console.error(
-            "error subscribing to notifications",
-            error || "unknown relay error",
-          );
-        }
-        if (subscribed) {
-          // wait a second and try re-connecting
-          // any notifications during this period will be lost
-          // unless using a relay that keeps events until client reconnect
-          await new Promise((resolve) => setTimeout(resolve, 1000));
-        }
-      }
-    })();
+    console.info("subscribing to relays");
+
+    const sub = this.pool.subscribe(
+      this.relayUrls,
+      {
+        kinds: [...(this.encryptionType === "nip04" ? [23196] : [23197])],
+        authors: [this.walletPubkey],
+        "#p": [this.publicKey],
+      },
+      {
+        onevent: async (event) => {
+          let decryptedContent;
+          try {
+            decryptedContent = await this.decrypt(
+              this.walletPubkey,
+              event.content,
+            );
+          } catch (error) {
+            console.error("failed to decrypt request event content", error);
+            return;
+          }
+          let notification;
+          try {
+            notification = JSON.parse(decryptedContent) as Nip47Notification;
+          } catch (e) {
+            console.error("Failed to parse decrypted event content", e);
+            return;
+          }
+          if (notification.notification) {
+            if (
+              !notificationTypes ||
+              notificationTypes.indexOf(notification.notification_type) > -1
+            ) {
+              onNotification(notification);
+            }
+          } else {
+            console.error("No notification in response", notification);
+          }
+        },
+        onclose: (reasons) => {
+          // Since we have auto-reconnect, this usually only fires on fatal errors,
+          // all relays were closed once or explicit closure, not temp disconnects.
+          console.warn("subscription closed", reasons);
+        },
+      },
+    );
+    console.info("subscribed to relays");
 
     return () => {
-      subscribed = false;
-      endPromise?.();
       sub?.close();
     };
   }
