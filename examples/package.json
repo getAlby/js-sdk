@@ -10,7 +10,7 @@
   "dependencies": {
     "@getalby/sdk": "portal:../",
     "dotenv": "^17.2.2",
-    "express": "^5.1.0",
+    "express": "^5.2.0",
     "websocket-polyfill": "^0.0.3"
   },
   "devDependencies": {
