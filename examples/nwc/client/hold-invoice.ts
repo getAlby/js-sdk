@@ -1,4 +1,6 @@
 import "websocket-polyfill"; // required in node.js
+import { generatePreimageAndPaymentHash } from "../../../src/utils";
+
 
 import * as readline from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
@@ -21,15 +23,12 @@ const client = new NWCClient({
   nostrWalletConnectUrl: nwcUrl,
 });
 
-const toHexString = (bytes) =>
-  bytes.reduce((str, byte) => str + byte.toString(16).padStart(2, "0"), "");
 
-const preimageBytes = crypto.getRandomValues(new Uint8Array(32));
-const preimage = toHexString(preimageBytes);
+// Use shared utility instead of duplicating crypto logic
 
-const hashBuffer = await crypto.subtle.digest("SHA-256", preimageBytes);
-const paymentHashBytes = new Uint8Array(hashBuffer);
-const paymentHash = toHexString(paymentHashBytes);
+const { preimage, paymentHash } =
+  await generatePreimageAndPaymentHash();
+
 
 const response = await client.makeHoldInvoice({
   amount, // in millisats
