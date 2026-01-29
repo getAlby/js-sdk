@@ -180,10 +180,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@getalby/lightning-tools@npm:^5.2.0":
-  version: 5.2.1
-  resolution: "@getalby/lightning-tools@npm:5.2.1"
-  checksum: 10c0/1f208126acb2c1d6b2acff8b9078f8599740ae60cfd35c8a19955ecf58f99bedfa56ab6ca49cf75a55241e098fdb119b4ea18adf27b143934cbdde77a1460113
+"@getalby/lightning-tools@npm:^6.0.0":
+  version: 6.1.0
+  resolution: "@getalby/lightning-tools@npm:6.1.0"
+  checksum: 10c0/d65c455fea65cdd799e90933acd1e5eef20984e394dc2c42604a17f66be8700cf8ab840fc75ad8086af2d9405fd44d31eba9f010479ec231111b37c4e9332bcf
   languageName: node
   linkType: hard
 
@@ -191,8 +191,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@getalby/sdk@portal:../::locator=alby-sdk-examples%40workspace%3A."
   dependencies:
-    "@getalby/lightning-tools": "npm:^5.2.0"
-    nostr-tools: "npm:2.16.2"
+    "@getalby/lightning-tools": "npm:^6.0.0"
+    nostr-tools: "npm:^2.17.0"
   languageName: node
   linkType: soft
 
@@ -219,49 +219,33 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@noble/ciphers@npm:^0.5.1":
-  version: 0.5.3
-  resolution: "@noble/ciphers@npm:0.5.3"
-  checksum: 10c0/2303217304baf51ec6caa2d984f4e640a66d3d586162ed8fecf37a00268fbf362e22cd5bceae4b0ccda4fa06ad0cb294d6a6b158260bbd2eac6a3dc0448f5254
-  languageName: node
-  linkType: hard
-
-"@noble/curves@npm:1.2.0":
-  version: 1.2.0
-  resolution: "@noble/curves@npm:1.2.0"
+"@jsr/noble__curves@npm:2.0.1, @noble/curves@npm:@jsr/noble__curves@2.0.1":
+  version: 2.0.1
+  resolution: "@jsr/noble__curves@npm:2.0.1::__archiveUrl=https%3A%2F%2Fnpm.jsr.io%2F~%2F11%2F%40jsr%2Fnoble__curves%2F2.0.1.tgz"
   dependencies:
-    "@noble/hashes": "npm:1.3.2"
-  checksum: 10c0/0bac7d1bbfb3c2286910b02598addd33243cb97c3f36f987ecc927a4be8d7d88e0fcb12b0f0ef8a044e7307d1844dd5c49bb724bfa0a79c8ec50ba60768c97f6
+    "@jsr/noble__hashes": "npm:^2.0.0"
+  checksum: 10c0/8e50606c5a50e9318781548b1706960ffcfec8eb70b14fcf96c75c691857892b55a7d740c756c5cb77655259a367782e9cd7ffe5222b96e48b333fb3a22a366b
   languageName: node
   linkType: hard
 
-"@noble/curves@npm:~1.1.0":
-  version: 1.1.0
-  resolution: "@noble/curves@npm:1.1.0"
-  dependencies:
-    "@noble/hashes": "npm:1.3.1"
-  checksum: 10c0/81115c3ebfa7e7da2d7e18d44d686f98dc6d35dbde3964412c05707c92d0994a01545bc265d5c0bc05c8c49333f75b99c9acef6750f5a79b3abcc8e0546acf88
+"@jsr/noble__hashes@npm:2.0.1, @jsr/noble__hashes@npm:^2.0.0, @noble/hashes@npm:@jsr/noble__hashes@2.0.1":
+  version: 2.0.1
+  resolution: "@jsr/noble__hashes@npm:2.0.1::__archiveUrl=https%3A%2F%2Fnpm.jsr.io%2F~%2F11%2F%40jsr%2Fnoble__hashes%2F2.0.1.tgz"
+  checksum: 10c0/62d17e5eaf8a247ead37d6fd6b358e404d4d50f071ad356ad5751a578e6540b548a73d5e56c3fccc2bbbfafaf5a51b064fdf6829085eb434b9eb75046f2cf691
   languageName: node
   linkType: hard
 
-"@noble/hashes@npm:1.3.1":
-  version: 1.3.1
-  resolution: "@noble/hashes@npm:1.3.1"
-  checksum: 10c0/86512713aaf338bced594bc2046ab249fea4e1ba1e7f2ecd02151ef1b8536315e788c11608fafe1b56f04fad1aa3c602da7e5f8e5fcd5f8b0aa94435fe65278e
+"@jsr/scure__base@npm:2.0.0, @scure/base@npm:@jsr/scure__base@2.0.0":
+  version: 2.0.0
+  resolution: "@jsr/scure__base@npm:2.0.0::__archiveUrl=https%3A%2F%2Fnpm.jsr.io%2F~%2F11%2F%40jsr%2Fscure__base%2F2.0.0.tgz"
+  checksum: 10c0/7cd54e575591a594125aa27ccc5272f64fc0c165e3a4aeb9c4b360cde0dafed2e454d958a1a9be3333cf27d11784d6eb519d7c9962cbda7e19978eaad2f6d07b
   languageName: node
   linkType: hard
 
-"@noble/hashes@npm:1.3.2":
-  version: 1.3.2
-  resolution: "@noble/hashes@npm:1.3.2"
-  checksum: 10c0/2482cce3bce6a596626f94ca296e21378e7a5d4c09597cbc46e65ffacc3d64c8df73111f2265444e36a3168208628258bbbaccba2ef24f65f58b2417638a20e7
-  languageName: node
-  linkType: hard
-
-"@noble/hashes@npm:~1.3.0, @noble/hashes@npm:~1.3.1":
-  version: 1.3.3
-  resolution: "@noble/hashes@npm:1.3.3"
-  checksum: 10c0/23c020b33da4172c988e44100e33cd9f8f6250b68b43c467d3551f82070ebd9716e0d9d2347427aa3774c85934a35fa9ee6f026fca2117e3fa12db7bedae7668
+"@noble/ciphers@npm:@jsr/noble__ciphers@2.1.1":
+  version: 2.1.1
+  resolution: "@jsr/noble__ciphers@npm:2.1.1::__archiveUrl=https%3A%2F%2Fnpm.jsr.io%2F~%2F11%2F%40jsr%2Fnoble__ciphers%2F2.1.1.tgz"
+  checksum: 10c0/dcb881a5c4cb0da4a9955ca78ecf2ebaf733e5a89eecf50b5130eca61fcc74dc8cdb24b5657bef21bd3e8bd8da3e47fb2e34483138f97526afb41241fcc62fbb
   languageName: node
   linkType: hard
 
@@ -294,38 +278,24 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@scure/base@npm:1.1.1":
-  version: 1.1.1
-  resolution: "@scure/base@npm:1.1.1"
-  checksum: 10c0/97d200da8915ca18a4eceb73c23dda7fc3a4b8509f620c9b7756ee451d7c9ebbc828c6662f9ffa047806fbe41f37bf236c6ef75692690688b7659196cb2dc804
-  languageName: node
-  linkType: hard
-
-"@scure/base@npm:~1.1.0":
-  version: 1.1.9
-  resolution: "@scure/base@npm:1.1.9"
-  checksum: 10c0/77a06b9a2db8144d22d9bf198338893d77367c51b58c72b99df990c0a11f7cadd066d4102abb15e3ca6798d1529e3765f55c4355742465e49aed7a0c01fe76e8
-  languageName: node
-  linkType: hard
-
-"@scure/bip32@npm:1.3.1":
-  version: 1.3.1
-  resolution: "@scure/bip32@npm:1.3.1"
+"@scure/bip32@npm:@jsr/scure__bip32@2.0.1":
+  version: 2.0.1
+  resolution: "@jsr/scure__bip32@npm:2.0.1::__archiveUrl=https%3A%2F%2Fnpm.jsr.io%2F~%2F11%2F%40jsr%2Fscure__bip32%2F2.0.1.tgz"
   dependencies:
-    "@noble/curves": "npm:~1.1.0"
-    "@noble/hashes": "npm:~1.3.1"
-    "@scure/base": "npm:~1.1.0"
-  checksum: 10c0/9ff0ad56f512794aed1ed62e582bf855db829e688235420a116b210169dc31e3e2a8cc4a908126aaa07b6dcbcc4cd085eb12f9d0a8b507a88946d6171a437195
+    "@jsr/noble__curves": "npm:2.0.1"
+    "@jsr/noble__hashes": "npm:2.0.1"
+    "@jsr/scure__base": "npm:2.0.0"
+  checksum: 10c0/736671545c3f411057bc61520ef8fc56fd2320c5fd8733ba639cf5a80c29d8c56f10238cf310d2ad90a52da744a9744e47ddc4d052fe16c04872f2c71b267da4
   languageName: node
   linkType: hard
 
-"@scure/bip39@npm:1.2.1":
-  version: 1.2.1
-  resolution: "@scure/bip39@npm:1.2.1"
+"@scure/bip39@npm:@jsr/scure__bip39@2.0.1":
+  version: 2.0.1
+  resolution: "@jsr/scure__bip39@npm:2.0.1::__archiveUrl=https%3A%2F%2Fnpm.jsr.io%2F~%2F11%2F%40jsr%2Fscure__bip39%2F2.0.1.tgz"
   dependencies:
-    "@noble/hashes": "npm:~1.3.0"
-    "@scure/base": "npm:~1.1.0"
-  checksum: 10c0/fe951f69dd5a7cdcefbe865bce1b160d6b59ba19bd01d09f0718e54fce37a7d8be158b32f5455f0e9c426a7fbbede3e019bf0baa99bacc88ef26a76a07e115d4
+    "@jsr/noble__hashes": "npm:2.0.1"
+    "@jsr/scure__base": "npm:2.0.0"
+  checksum: 10c0/24026d074952b53d6f1fd1f36dfa664b0b5ba18d27c0b4e4959eaa77c916b06166ab202ecebe30d82338a01f577b395488d2fc6ab838fbda214fed787dcff972
   languageName: node
   linkType: hard
 
@@ -1490,12 +1460,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mkdirp@npm:^3.0.1":
-  version: 3.0.1
-  resolution: "mkdirp@npm:3.0.1"
-  bin:
-    mkdirp: dist/cjs/src/bin.js
-  checksum: 10c0/9f2b975e9246351f5e3a40dcfac99fcd0baa31fbfab615fe059fb11e51f10e4803c63de1f384c54d656e4db31d000e4767e9ef076a22e12a641357602e31d57d
+"minizlib@npm:^3.1.0":
+  version: 3.1.0
+  resolution: "minizlib@npm:3.1.0"
+  dependencies:
+    minipass: "npm:^7.1.2"
+  checksum: 10c0/5aad75ab0090b8266069c9aabe582c021ae53eb33c6c691054a13a45db3b4f91a7fb1bd79151e6b4e9e9a86727b522527c0a06ec7d45206b745d54cd3097bcec
   languageName: node
   linkType: hard
 
@@ -1569,23 +1539,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nostr-tools@npm:2.16.2":
-  version: 2.16.2
-  resolution: "nostr-tools@npm:2.16.2"
+"nostr-tools@npm:^2.17.0":
+  version: 2.21.0
+  resolution: "nostr-tools@npm:2.21.0"
   dependencies:
-    "@noble/ciphers": "npm:^0.5.1"
-    "@noble/curves": "npm:1.2.0"
-    "@noble/hashes": "npm:1.3.1"
-    "@scure/base": "npm:1.1.1"
-    "@scure/bip32": "npm:1.3.1"
-    "@scure/bip39": "npm:1.2.1"
+    "@noble/ciphers": "npm:@jsr/noble__ciphers@2.1.1"
+    "@noble/curves": "npm:@jsr/noble__curves@2.0.1"
+    "@noble/hashes": "npm:@jsr/noble__hashes@2.0.1"
+    "@scure/base": "npm:@jsr/scure__base@2.0.0"
+    "@scure/bip32": "npm:@jsr/scure__bip32@2.0.1"
+    "@scure/bip39": "npm:@jsr/scure__bip39@2.0.1"
     nostr-wasm: "npm:0.1.0"
   peerDependencies:
     typescript: ">=5.0.0"
   peerDependenciesMeta:
     typescript:
       optional: true
-  checksum: 10c0/36b456d33b9eb55dc9893ea93687700ea78b3c9d73c502d0bdb5ec74b3f1501faf89e93d45d654460bbb6c8be23243c34fcaf1b7011cd9fa5f3f71d81df38a97
+  checksum: 10c0/0592892680355f8f21ae8e758eade6111fa4147488e40ef91c3b2e46cd3ad69d23723667ad499b868fdc21d30eb187ddc4e178ba9760c1783f69bf32b8c03d39
   languageName: node
   linkType: hard
 
@@ -1986,16 +1956,15 @@ __metadata:
   linkType: hard
 
 "tar@npm:^7.4.3":
-  version: 7.4.3
-  resolution: "tar@npm:7.4.3"
+  version: 7.5.7
+  resolution: "tar@npm:7.5.7"
   dependencies:
     "@isaacs/fs-minipass": "npm:^4.0.0"
     chownr: "npm:^3.0.0"
     minipass: "npm:^7.1.2"
-    minizlib: "npm:^3.0.1"
-    mkdirp: "npm:^3.0.1"
+    minizlib: "npm:^3.1.0"
     yallist: "npm:^5.0.0"
-  checksum: 10c0/d4679609bb2a9b48eeaf84632b6d844128d2412b95b6de07d53d8ee8baf4ca0857c9331dfa510390a0727b550fd543d4d1a10995ad86cdf078423fbb8d99831d
+  checksum: 10c0/51f261afc437e1112c3e7919478d6176ea83f7f7727864d8c2cce10f0b03a631d1911644a567348c3063c45abdae39718ba97abb073d22aa3538b9a53ae1e31c
   languageName: node
   linkType: hard
 
