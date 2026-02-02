@@ -6,7 +6,7 @@ Build zero-custody bitcoin payments into apps with a few lines of code.
 
 This JavaScript SDK is for interacting with a bitcoin lightning wallet via Nostr Wallet Connect or the Alby Wallet API.
 
-Before you start coding, look at example scenarios in our **[Developer Sandbox](https://getalby.github.io/developer-sandbox/)**
+Before you start coding, look at example scenarios in our **[Developer Sandbox](https://sandbox.albylabs.com/)**
 
 ## 🤖 🚀 ⚡ For Developers using Agents / LLMs / Vibe Coding
 
