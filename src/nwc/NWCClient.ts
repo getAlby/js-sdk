@@ -81,6 +81,37 @@ export class NWCClient {
   options: NWCOptions;
   private _encryptionType: Nip47EncryptionType | undefined;
 
+
+
+
+  static validateWalletConnectUrl(
+    options: NWCOptions,
+    requireSecret = false,
+  ) {
+    if (!options.walletPubkey) {
+      throw new Error("Invalid WalletConnect URL: missing wallet pubkey");
+    }
+
+    if (!options.relayUrls || options.relayUrls.length === 0) {
+      throw new Error("Invalid WalletConnect URL: no relay URLs provided");
+    }
+
+    for (const relay of options.relayUrls) {
+      try {
+        new URL(relay);
+      } catch {
+        throw new Error(`Invalid relay URL: ${relay}`);
+      }
+    }
+
+    if (requireSecret && !options.secret) {
+      throw new Error(
+        "Invalid WalletConnect URL: missing secret parameter",
+      );
+    }
+  }
+
+
   static parseWalletConnectUrl(walletConnectUrl: string): NWCOptions {
     // makes it possible to parse with URL in the different environments (browser/node/...)
     // parses both new and legacy protocols, with or without "//"
@@ -107,13 +138,18 @@ export class NWCClient {
     if (lud16) {
       options.lud16 = lud16;
     }
+    NWCClient.validateWalletConnectUrl(options);
     return options;
   }
 
   constructor(options?: NewNWCClientOptions) {
     if (options && options.nostrWalletConnectUrl) {
+      const parsed = NWCClient.parseWalletConnectUrl(
+        options.nostrWalletConnectUrl,
+      );
+      NWCClient.validateWalletConnectUrl(parsed, true);
       options = {
-        ...NWCClient.parseWalletConnectUrl(options.nostrWalletConnectUrl),
+        ...parsed,
         ...options,
       };
     }
