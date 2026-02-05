@@ -180,10 +180,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@getalby/lightning-tools@npm:^5.2.0":
-  version: 5.2.1
-  resolution: "@getalby/lightning-tools@npm:5.2.1"
-  checksum: 10c0/1f208126acb2c1d6b2acff8b9078f8599740ae60cfd35c8a19955ecf58f99bedfa56ab6ca49cf75a55241e098fdb119b4ea18adf27b143934cbdde77a1460113
+"@getalby/lightning-tools@npm:^6.0.0":
+  version: 6.0.0
+  resolution: "@getalby/lightning-tools@npm:6.0.0"
+  checksum: 10c0/e366e94a4bebbb74765594e677a17f10de95526fcc63b292f401520e8bd6bc7aeb0e92f3ee2d581afe18f7bc3dcd61eff83f4285555da380cf8cf1379c004447
   languageName: node
   linkType: hard
 
@@ -191,8 +191,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@getalby/sdk@portal:../::locator=alby-sdk-examples%40workspace%3A."
   dependencies:
-    "@getalby/lightning-tools": "npm:^5.2.0"
-    nostr-tools: "npm:2.16.2"
+    "@getalby/lightning-tools": "npm:^6.0.0"
+    nostr-tools: "npm:^2.17.0"
   languageName: node
   linkType: soft
 
@@ -1569,9 +1569,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nostr-tools@npm:2.16.2":
-  version: 2.16.2
-  resolution: "nostr-tools@npm:2.16.2"
+"nostr-tools@npm:^2.17.0":
+  version: 2.19.4
+  resolution: "nostr-tools@npm:2.19.4"
   dependencies:
     "@noble/ciphers": "npm:^0.5.1"
     "@noble/curves": "npm:1.2.0"
@@ -1585,7 +1585,7 @@ __metadata:
   peerDependenciesMeta:
     typescript:
       optional: true
-  checksum: 10c0/36b456d33b9eb55dc9893ea93687700ea78b3c9d73c502d0bdb5ec74b3f1501faf89e93d45d654460bbb6c8be23243c34fcaf1b7011cd9fa5f3f71d81df38a97
+  checksum: 10c0/43e3a23a55ebf5446ccc12878dd6c2d4ea324cf4a1a7b220e9d5572139fe7464905bac7c92b1dbcd02883f262c3c4c3cfd1446cf34040d40027f50f31ddadac2
   languageName: node
   linkType: hard
 
@@ -1701,11 +1701,11 @@ __metadata:
   linkType: hard
 
 "qs@npm:^6.14.0":
-  version: 6.14.0
-  resolution: "qs@npm:6.14.0"
+  version: 6.14.1
+  resolution: "qs@npm:6.14.1"
   dependencies:
     side-channel: "npm:^1.1.0"
-  checksum: 10c0/8ea5d91bf34f440598ee389d4a7d95820e3b837d3fd9f433871f7924801becaa0cd3b3b4628d49a7784d06a8aea9bc4554d2b6d8d584e2d221dc06238a42909c
+  checksum: 10c0/0e3b22dc451f48ce5940cbbc7c7d9068d895074f8c969c0801ac15c1313d1859c4d738e46dc4da2f498f41a9ffd8c201bd9fb12df67799b827db94cc373d2613
   languageName: node
   linkType: hard
 
