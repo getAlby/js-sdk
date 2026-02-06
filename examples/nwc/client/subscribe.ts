@@ -3,7 +3,7 @@ import "websocket-polyfill"; // required in node.js
 import * as readline from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
 
-import { NWCClient } from "@getalby/sdk/nwc";
+import { NWCClient, Nip47Notification } from "@getalby/sdk/nwc";
 
 const rl = readline.createInterface({ input, output });
 
@@ -16,10 +16,12 @@ const client = new NWCClient({
   nostrWalletConnectUrl: nwcUrl,
 });
 
-const onNotification = (notification) =>
+const onNotification = (notification: Nip47Notification) =>
   console.info("Got notification", notification);
 
-const unsub = await client.subscribeNotifications(onNotification);
+const unsub = await client.subscribeNotifications((n) => {
+  onNotification(n);
+});
 
 console.info("Waiting for notifications...");
 process.on("SIGINT", function () {
