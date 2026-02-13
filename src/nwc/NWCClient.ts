@@ -123,8 +123,7 @@ export class NWCClient {
     } as NWCOptions;
 
     this.relayUrls = this.options.relayUrls;
-    this.pool = new SimplePool({
-    });
+    this.pool = new SimplePool({ enablePing: true });
     if (this.options.secret) {
       this.secret = (
         this.options.secret.toLowerCase().startsWith("nsec")
@@ -730,7 +729,7 @@ export class NWCClient {
     let endPromise: (() => void) | undefined;
     let sub: SubCloser | undefined;
     (async () => {
-      while (subscribed) {
+
         try {
           await this._checkConnected();
           await this._selectEncryptionType();
@@ -799,13 +798,7 @@ export class NWCClient {
             error || "unknown relay error",
           );
         }
-        if (subscribed) {
-          // wait a second and try re-connecting
-          // any notifications during this period will be lost
-          // unless using a relay that keeps events until client reconnect
-          await new Promise((resolve) => setTimeout(resolve, 1000));
-        }
-      }
+
     })();
 
     return () => {

@@ -58,6 +58,7 @@ export class NWCWalletService {
     this.relayUrl = options.relayUrl;
 
     this.relay = new Relay(this.relayUrl);
+    this.relay.enablePing = true;
 
     if (globalThis.WebSocket === undefined) {
       console.error(
@@ -100,7 +101,7 @@ export class NWCWalletService {
     let onRelayDisconnect: (() => void) | undefined;
     let sub: Subscription | undefined;
     (async () => {
-      while (subscribed) {
+
         try {
           console.info("checking connection to relay");
           await this._checkConnected();
@@ -237,13 +238,7 @@ export class NWCWalletService {
             error || "unknown relay error",
           );
         }
-        if (subscribed) {
-          // wait a second and try re-connecting
-          // any notifications during this period will be lost
-          // unless using a relay that keeps events until client reconnect
-          await new Promise((resolve) => setTimeout(resolve, 1000));
-        }
-      }
+
     })();
 
     return () => {

@@ -48,7 +48,7 @@ export class NWAClient {
     if (!this.options.requestMethods) {
       throw new Error("Missing request methods");
     }
-    this.pool = new SimplePool();
+    this.pool = new SimplePool({ enablePing: true });
 
     if (globalThis.WebSocket === undefined) {
       console.error(
@@ -179,7 +179,7 @@ export class NWAClient {
     let endPromise: (() => void) | undefined;
     let sub: SubCloser | undefined;
     (async () => {
-      while (subscribed) {
+
         try {
           await this._checkConnected();
 
@@ -233,13 +233,7 @@ export class NWAClient {
             error || "unknown relay error",
           );
         }
-        if (subscribed) {
-          // wait a second and try re-connecting
-          // any events during this period will be lost
-          // unless using a relay that keeps events until client reconnect
-          await new Promise((resolve) => setTimeout(resolve, 1000));
-        }
-      }
+
     })();
 
     return {
