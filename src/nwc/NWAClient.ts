@@ -7,7 +7,7 @@ import {
   Nip47NotificationType,
 } from "./types";
 import { NWCClient } from "./NWCClient";
-import { SubCloser } from "nostr-tools/lib/types/abstract-pool";
+import { SubCloser } from "nostr-tools/abstract-pool";
 
 export type NWAOptions = {
   relayUrls: string[];
@@ -51,8 +51,8 @@ export class NWAClient {
     this.pool = new SimplePool();
 
     if (globalThis.WebSocket === undefined) {
-      console.error(
-        "WebSocket is undefined. Make sure to `import websocket-polyfill` for nodejs environments",
+      throw new Error(
+        "WebSocket is undefined. Make sure to polyfill it for nodejs environments",
       );
     }
   }

@@ -8,7 +8,7 @@ import {
   Relay,
 } from "nostr-tools";
 import { hexToBytes } from "@noble/hashes/utils";
-import { Subscription } from "nostr-tools/lib/types/abstract-relay";
+import { Subscription } from "nostr-tools/abstract-relay";
 
 import {
   Nip47MakeInvoiceRequest,
@@ -60,8 +60,8 @@ export class NWCWalletService {
     this.relay = new Relay(this.relayUrl);
 
     if (globalThis.WebSocket === undefined) {
-      console.error(
-        "WebSocket is undefined. Make sure to `import websocket-polyfill` for nodejs environments",
+      throw new Error(
+        "WebSocket is undefined. Make sure to polyfill it for nodejs environments",
       );
     }
   }

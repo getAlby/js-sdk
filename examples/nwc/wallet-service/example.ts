@@ -1,4 +1,3 @@
-import "websocket-polyfill"; // required in node.js
 
 import { generateSecretKey, getPublicKey } from "nostr-tools";
 import { bytesToHex, hexToBytes } from "@noble/hashes/utils";
