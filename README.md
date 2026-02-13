@@ -83,14 +83,8 @@ The [Alby OAuth API](https://guides.getalby.com/alby-wallet-api/reference/gettin
 
 **This library relies on a global fetch() function which will work in browsers and node v18.x or newer.** (In older versions you have to use a polyfill.)
 
-#### Websocket polyfill
-
-To use this on Node.js you first must install `websocket-polyfill@0.0.3` and import it:
-
-```js
-import "websocket-polyfill";
-// or: require('websocket-polyfill');
-```
+#### WebSocket Polyfill
+If you are using Node.js < v22, you may need a WebSocket polyfill. We recommend `websocket-polyfill` but checking your node version is preferred.
 
 ## WebLN Documentation
 

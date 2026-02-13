@@ -1,4 +1,3 @@
-import "websocket-polyfill"; // required in node.js
 import qrcode from "qrcode-terminal";
 
 import * as readline from "node:readline/promises";
