@@ -102,142 +102,172 @@ export class NWCWalletService {
     let sub: Subscription | undefined;
     (async () => {
 
-        try {
-          console.info("checking connection to relay");
-          await this._checkConnected();
-          console.info("subscribing to relay");
-          sub = this.relay.subscribe(
-            [
-              {
-                kinds: [23194],
-                authors: [keypair.clientPubkey],
-                "#p": [keypair.walletPubkey],
-              },
-            ],
-            {},
-          );
-          console.info("subscribed to relays");
+      // Auto-reconnect logic
+      const maintainSubscription = async () => {
+        let retryCount = 0;
+        const baseDelay = 1000;
 
-          sub.onevent = async (event) => {
-            try {
-              // console.info("Got event", event);
-              const encryptionType = (event.tags.find(
-                (t) => t[0] === "encryption",
-              )?.[1] || "nip04") as Nip47EncryptionType;
+        while (subscribed) {
+          try {
+            console.info("checking connection to relay");
+            await this._checkConnected();
+            console.info("subscribing to relay");
 
-              const decryptedContent = await this.decrypt(
-                keypair,
-                event.content,
-                encryptionType,
-              );
-              const request = JSON.parse(decryptedContent) as {
-                method: Nip47Method;
-                params: unknown;
-              };
-
-              let responsePromise:
-                | NWCWalletServiceResponsePromise<unknown>
-                | undefined;
-
-              switch (request.method) {
-                case "get_info":
-                  responsePromise = handler.getInfo?.();
-                  break;
-                case "make_invoice":
-                  responsePromise = handler.makeInvoice?.(
-                    request.params as Nip47MakeInvoiceRequest,
-                  );
-                  break;
-                case "pay_invoice":
-                  responsePromise = handler.payInvoice?.(
-                    request.params as Nip47PayInvoiceRequest,
-                  );
-                  break;
-                case "pay_keysend":
-                  responsePromise = handler.payKeysend?.(
-                    request.params as Nip47PayKeysendRequest,
-                  );
-                  break;
-                case "get_balance":
-                  responsePromise = handler.getBalance?.();
-                  break;
-                case "lookup_invoice":
-                  responsePromise = handler.lookupInvoice?.(
-                    request.params as Nip47LookupInvoiceRequest,
-                  );
-                  break;
-                case "list_transactions":
-                  responsePromise = handler.listTransactions?.(
-                    request.params as Nip47ListTransactionsRequest,
-                  );
-                  break;
-                case "sign_message":
-                  responsePromise = handler.signMessage?.(
-                    request.params as Nip47SignMessageRequest,
-                  );
-                  break;
-                // TODO: handle multi_* methods
-              }
-
-              let response: NWCWalletServiceResponse<unknown> | undefined =
-                await responsePromise;
-
-              if (!response) {
-                console.warn("received unsupported method", request.method);
-                response = {
-                  error: {
-                    code: "NOT_IMPLEMENTED",
-                    message:
-                      "This method is not supported by the wallet service",
+            await new Promise<void>((resolve) => {
+              const sub = this.relay.subscribe(
+                [
+                  {
+                    kinds: [23194],
+                    authors: [keypair.clientPubkey],
+                    "#p": [keypair.walletPubkey],
                   },
-                  result: undefined,
-                };
-              }
+                ],
+                {},
+              );
+              console.info("subscribed to relays");
 
-              const responseEventTemplate: EventTemplate = {
-                kind: 23195,
-                created_at: Math.floor(Date.now() / 1000),
-                tags: [["e", event.id]],
-                content: await this.encrypt(
-                  keypair,
-                  JSON.stringify({
-                    result_type: request.method,
-                    ...response,
-                  }),
-                  encryptionType,
-                ),
+              sub.onevent = async (event) => {
+                retryCount = 0; // Reset retry on success
+                try {
+                  // console.info("Got event", event);
+                  const encryptionType = (event.tags.find(
+                    (t) => t[0] === "encryption",
+                  )?.[1] || "nip04") as Nip47EncryptionType;
+
+                  const decryptedContent = await this.decrypt(
+                    keypair,
+                    event.content,
+                    encryptionType,
+                  );
+                  const request = JSON.parse(decryptedContent) as {
+                    method: Nip47Method;
+                    params: unknown;
+                  };
+
+                  let responsePromise:
+                    | NWCWalletServiceResponsePromise<unknown>
+                    | undefined;
+
+                  switch (request.method) {
+                    case "get_info":
+                      responsePromise = handler.getInfo?.();
+                      break;
+                    case "make_invoice":
+                      responsePromise = handler.makeInvoice?.(
+                        request.params as Nip47MakeInvoiceRequest,
+                      );
+                      break;
+                    case "pay_invoice":
+                      responsePromise = handler.payInvoice?.(
+                        request.params as Nip47PayInvoiceRequest,
+                      );
+                      break;
+                    case "pay_keysend":
+                      responsePromise = handler.payKeysend?.(
+                        request.params as Nip47PayKeysendRequest,
+                      );
+                      break;
+                    case "get_balance":
+                      responsePromise = handler.getBalance?.();
+                      break;
+                    case "lookup_invoice":
+                      responsePromise = handler.lookupInvoice?.(
+                        request.params as Nip47LookupInvoiceRequest,
+                      );
+                      break;
+                    case "list_transactions":
+                      responsePromise = handler.listTransactions?.(
+                        request.params as Nip47ListTransactionsRequest,
+                      );
+                      break;
+                    case "sign_message":
+                      responsePromise = handler.signMessage?.(
+                        request.params as Nip47SignMessageRequest,
+                      );
+                      break;
+                    // TODO: handle multi_* methods
+                  }
+
+                  let response: NWCWalletServiceResponse<unknown> | undefined =
+                    await responsePromise;
+
+                  if (!response) {
+                    console.warn("received unsupported method", request.method);
+                    response = {
+                      error: {
+                        code: "NOT_IMPLEMENTED",
+                        message:
+                          "This method is not supported by the wallet service",
+                      },
+                      result: undefined,
+                    };
+                  }
+
+                  const responseEventTemplate: EventTemplate = {
+                    kind: 23195,
+                    created_at: Math.floor(Date.now() / 1000),
+                    tags: [["e", event.id]],
+                    content: await this.encrypt(
+                      keypair,
+                      JSON.stringify({
+                        result_type: request.method,
+                        ...response,
+                      }),
+                      encryptionType,
+                    ),
+                  };
+
+                  const responseEvent = await this.signEvent(
+                    responseEventTemplate,
+                    keypair.walletSecret,
+                  );
+                  await this.relay.publish(responseEvent);
+                } catch (e) {
+                  console.error("Failed to parse decrypted event content", e);
+                  return;
+                }
               };
 
-              const responseEvent = await this.signEvent(
-                responseEventTemplate,
-                keypair.walletSecret,
-              );
-              await this.relay.publish(responseEvent);
-            } catch (e) {
-              console.error("Failed to parse decrypted event content", e);
-              return;
-            }
-          };
+              // Handle disconnects
+              sub.onclose = () => {
+                console.info("Relay subscription closed, will reconnect...");
+                resolve();
+              }
+              // Keep track of the subscription so we can close it from outside if needed
+              // Note: sub is local scope here, but we can capture it in endPromise if needed
+              // or just rely on relay.close() cleaning up.
 
-          await new Promise<void>((resolve) => {
-            endPromise = () => {
-              resolve();
-            };
-            onRelayDisconnect = () => {
-              console.error("relay disconnected");
-              endPromise?.();
-            };
-            this.relay.onclose = onRelayDisconnect;
-          });
-          if (onRelayDisconnect !== undefined) {
-            this.relay.onclose = null;
+              endPromise = () => {
+                sub.close();
+                resolve();
+              };
+
+              onRelayDisconnect = () => {
+                console.error("relay disconnected");
+                resolve(); // Break the promise to trigger outer loop
+              };
+              this.relay.onclose = onRelayDisconnect;
+
+            });
+            if (onRelayDisconnect !== undefined) {
+              this.relay.onclose = null;
+            }
+          } catch (error) {
+            console.error(
+              "error subscribing to requests",
+              error || "unknown relay error",
+            );
+            if (!subscribed) break;
+
+            retryCount++;
+            const delay = Math.min(baseDelay * Math.pow(2, retryCount), 60000);
+            console.info(`Retrying subscription in ${delay}ms...`);
+            await new Promise((r) => setTimeout(r, delay));
           }
-        } catch (error) {
-          console.error(
-            "error subscribing to requests",
-            error || "unknown relay error",
-          );
         }
+      }
+
+      await maintainSubscription();
 
     })();
 

@@ -77,8 +77,8 @@ export class NWAClient {
       ...(this.options.returnTo ? { return_to: this.options.returnTo } : {}),
       ...(this.options.notificationTypes
         ? {
-            notification_types: this.options.notificationTypes.join(" "),
-          }
+          notification_types: this.options.notificationTypes.join(" "),
+        }
         : {}),
       ...(this.options.maxAmount
         ? { max_amount: this.options.maxAmount.toString() }
@@ -180,59 +180,89 @@ export class NWAClient {
     let sub: SubCloser | undefined;
     (async () => {
 
-        try {
-          await this._checkConnected();
+      // Auto-reconnect logic
+      const maintainSubscription = async () => {
+        let retryCount = 0;
+        const maxRetries = 10;
+        const baseDelay = 1000;
 
-          sub = this.pool.subscribe(
-            this.options.relayUrls,
-            {
-              kinds: [13194], // NIP-47 info event
-              "#p": [this.options.appPubkey],
-            },
-            {
-              onevent: async (event) => {
-                const client = new NWCClient({
-                  relayUrls: this.options.relayUrls,
-                  secret: this.appSecretKey,
-                  walletPubkey: event.pubkey,
-                });
+        while (subscribed) {
+          try {
+            await this._checkConnected();
 
-                // try to fetch the lightning address
+            await new Promise<void>((resolve) => {
+              const sub = this.pool.subscribe(
+                this.options.relayUrls,
+                {
+                  kinds: [13194], // NIP-47 info event
+                  "#p": [this.options.appPubkey],
+                },
+                {
+                  onevent: async (event) => {
+                    const client = new NWCClient({
+                      relayUrls: this.options.relayUrls,
+                      secret: this.appSecretKey,
+                      walletPubkey: event.pubkey,
+                    });
+
+                    // try to fetch the lightning address
+                    try {
+                      const info = await client.getInfo();
+                      client.options.lud16 = info.lud16;
+                      client.lud16 = info.lud16;
+                    } catch (error) {
+                      console.error("failed to fetch get_info", error);
+                    }
+
+                    args.onSuccess(client);
+
+                    // Once successful, we can stop the subscription loop
+                    subscribed = false;
+                    sub?.close();
+                    resolve();
+                  },
+                  onclose: (reasons) => {
+                    console.info("relay connection closed", reasons);
+                    resolve(); // Trigger reconnect loop
+                  },
+                  // onclose: (reasons) => {
+                  // // NOTE: this fires when all relays were closed once. There is no reconnect logic in nostr-tools
+                  // // See https://github.com/nbd-wtf/nostr-tools/issues/513
+                  // console.info("relay connection closed", reasons);
+                  // endPromise?.();
+                  // },
+                },
+              );
+              // Allow manual close
+              endPromise = () => {
                 try {
-                  const info = await client.getInfo();
-                  client.options.lud16 = info.lud16;
-                  client.lud16 = info.lud16;
-                } catch (error) {
-                  console.error("failed to fetch get_info", error);
+                  sub.close();
+                } catch (e) {
+                  console.error("Error closing subscription", e);
                 }
+                resolve();
+              };
+            });
 
-                args.onSuccess(client);
+            if (!subscribed) break;
 
-                subscribed = false;
-                endPromise?.();
-                sub?.close();
-              },
-              onclose: (reasons) => {
-                // NOTE: this fires when all relays were closed once. There is no reconnect logic in nostr-tools
-                // See https://github.com/nbd-wtf/nostr-tools/issues/513
-                console.info("relay connection closed", reasons);
-                endPromise?.();
-              },
-            },
-          );
-          console.info("subscribed to relays");
+          } catch (error) {
+            console.error(
+              "error subscribing to info event",
+              error || "unknown relay error",
+            );
 
-          await new Promise<void>((resolve) => {
-            endPromise = () => {
-              resolve();
-            };
-          });
-        } catch (error) {
-          console.error(
-            "error subscribing to info event",
-            error || "unknown relay error",
-          );
+            if (!subscribed) break;
+
+            retryCount++;
+            const delay = Math.min(baseDelay * Math.pow(2, retryCount), 60000);
+            console.info(`Retrying subscription in ${delay}ms...`);
+            await new Promise((r) => setTimeout(r, delay));
+          }
         }
+      };
+
+      await maintainSubscription();
 
     })();
 

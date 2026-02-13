@@ -730,74 +730,99 @@ export class NWCClient {
     let sub: SubCloser | undefined;
     (async () => {
 
-        try {
-          await this._checkConnected();
-          await this._selectEncryptionType();
-          console.info("subscribing to relays");
-          sub = this.pool.subscribe(
-            this.relayUrls,
-            {
-              kinds: [...(this.encryptionType === "nip04" ? [23196] : [23197])],
-              authors: [this.walletPubkey],
-              "#p": [this.publicKey],
-            },
-            {
-              onevent: async (event) => {
-                let decryptedContent;
-                try {
-                  decryptedContent = await this.decrypt(
-                    this.walletPubkey,
-                    event.content,
-                  );
-                } catch (error) {
-                  console.error(
-                    "failed to decrypt request event content",
-                    error,
-                  );
-                  return;
-                }
-                let notification;
-                try {
-                  notification = JSON.parse(
-                    decryptedContent,
-                  ) as Nip47Notification;
-                } catch (e) {
-                  console.error("Failed to parse decrypted event content", e);
-                  return;
-                }
-                if (notification.notification) {
-                  if (
-                    !notificationTypes ||
-                    notificationTypes.indexOf(notification.notification_type) >
-                      -1
-                  ) {
-                    onNotification(notification);
-                  }
-                } else {
-                  console.error("No notification in response", notification);
-                }
-              },
-              onclose: (reasons) => {
-                // NOTE: this fires when all relays were closed once. There is no reconnect logic in nostr-tools
-                // See https://github.com/nbd-wtf/nostr-tools/issues/513
-                console.info("relay connection closed", reasons);
-                endPromise?.();
-              },
-            },
-          );
-          console.info("subscribed to relays");
+          // Auto-reconnect logic
+          const maintainSubscription = async () => {
+             let retryCount = 0;
+             const maxRetries = 10;
+             const baseDelay = 1000;
 
-          await new Promise<void>((resolve) => {
-            endPromise = () => {
-              resolve();
-            };
-          });
-        } catch (error) {
-          console.error(
-            "error subscribing to notifications",
-            error || "unknown relay error",
-          );
-        }
+             while (subscribed) {
+               try {
+                 await this._checkConnected();
+                 await this._selectEncryptionType();
+                 console.info("subscribing to relays");
+                 
+                 await new Promise<void>((resolve, reject) => {
+                     const sub = this.pool.subscribe(
+                       this.relayUrls,
+                       {
+                         kinds: [...(this.encryptionType === "nip04" ? [23196] : [23197])],
+                         authors: [this.walletPubkey],
+                         "#p": [this.publicKey],
+                       },
+                       {
+                         onevent: async (event) => {
+                           // Reset retry count on successful event (optional strategy, 
+                           // but more standard to reset on successful connection/subscription)
+                           retryCount = 0; 
+                           
+                           let decryptedContent;
+                           try {
+                             decryptedContent = await this.decrypt(
+                               this.walletPubkey,
+                               event.content,
+                             );
+                           } catch (error) {
+                             console.error(
+                               "failed to decrypt request event content",
+                               error,
+                             );
+                             return;
+                           }
+                           let notification;
+                           try {
+                             notification = JSON.parse(
+                               decryptedContent,
+                             ) as Nip47Notification;
+                           } catch (e) {
+                             console.error("Failed to parse decrypted event content", e);
+                             return;
+                           }
+                           if (notification.notification) {
+                             if (
+                               !notificationTypes ||
+                               notificationTypes.indexOf(notification.notification_type) >
+                                 -1
+                             ) {
+                               onNotification(notification);
+                             }
+                           } else {
+                             console.error("No notification in response", notification);
+                           }
+                         },
+                         onclose: (reasons) => {
+                           console.info("relay connection closed", reasons);
+                           resolve(); // Trigger reconnect loop
+                         },
+                       },
+                     );
+                     console.info("subscribed to relays");
+
+                     // If subscription is manually closed
+                     endPromise = () => {
+                         try {
+                           sub.close();
+                         } catch (e) { console.error("Error closing sub", e); }
+                         resolve();
+                     };
+                 });
+
+               } catch (error) {
+                 console.error(
+                   "error subscribing to notifications",
+                   error || "unknown relay error",
+                 );
+                 if (!subscribed) break;
+
+                 retryCount++;
+                 const delay = Math.min(baseDelay * Math.pow(2, retryCount), 60000); // Max 60s
+                 console.info(`Retrying subscription in ${delay}ms...`);
+                 await new Promise((r) => setTimeout(r, delay));
+               }
+             }
+          };
+
+          await maintainSubscription();
 
     })();
 
