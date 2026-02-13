@@ -8,7 +8,7 @@ import {
   Relay,
 } from "nostr-tools";
 import { hexToBytes } from "@noble/hashes/utils";
-import { Subscription } from "nostr-tools/lib/types/abstract-relay";
+import { Subscription } from "nostr-tools/abstract-relay";
 
 import {
   Nip47MakeInvoiceRequest,

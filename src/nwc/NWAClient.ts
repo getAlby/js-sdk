@@ -7,7 +7,7 @@ import {
   Nip47NotificationType,
 } from "./types";
 import { NWCClient } from "./NWCClient";
-import { SubCloser } from "nostr-tools/lib/types/abstract-pool";
+import { SubCloser } from "nostr-tools/abstract-pool";
 
 export type NWAOptions = {
   relayUrls: string[];

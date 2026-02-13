@@ -10,6 +10,7 @@ import {
   EventTemplate,
   SimplePool,
 } from "nostr-tools";
+import { normalizeURL } from "nostr-tools/utils";
 import { hexToBytes, bytesToHex } from "@noble/hashes/utils";
 import {
   Nip47EncryptionType,
@@ -55,7 +56,7 @@ import {
   Nip47CancelHoldInvoiceResponse,
   Nip47NetworkError,
 } from "./types";
-import { SubCloser } from "nostr-tools/lib/types/abstract-pool";
+import { SubCloser } from "nostr-tools/abstract-pool";
 
 export interface NWCOptions {
   relayUrls: string[];
@@ -198,8 +199,23 @@ export class NWCClient {
     return getEventHash(event);
   }
 
-  close() {
-    return this.pool.close(this.relayUrls);
+
+  async close(): Promise<void> {
+    const closePromises: Promise<void>[] = [];
+    for (const url of this.relayUrls) {
+      const relayUrl = normalizeURL(url);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const relay = (this.pool as any).relays.get(relayUrl);
+      if (relay?.ws && relay.ws.readyState !== WebSocket.CLOSED) {
+        closePromises.push(
+          new Promise<void>((resolve) => {
+            relay.ws?.addEventListener("close", () => resolve(), { once: true });
+          }),
+        );
+      }
+    }
+    this.pool.close(this.relayUrls);
+    await Promise.all(closePromises);
   }
 
   async encrypt(pubkey: string, content: string) {
