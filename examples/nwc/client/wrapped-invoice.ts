@@ -60,8 +60,6 @@ const onNotification = async (notification: Nip47Notification) => {
 
   console.info("Paid upstream invoice", preimage);
 
-  //lnbcrt10u1p5cauyapp5mdxq8a3fwjnq77cyfzrq9sj0988n9z6x2ehkwathlrqj92ey08kqdqqcqzzsxqyz5vqsp5qzl9g4qxkm3cnfqu28j2fcelgfqg33pex6gstkf5h7t4sfdfsu4s9qyyssqzqm4w9xp2sntujxeplyw0uprzc7kwlfc0039gwfe7nl008zzvc249y3hhv7ssl9mw7elq29qw67zwe26kfru6gw9wqjadxr3qduzq7cqpxcamz
-
   await client.settleHoldInvoice({ preimage });
 
   process.exit();
