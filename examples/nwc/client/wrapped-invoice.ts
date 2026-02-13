@@ -4,6 +4,11 @@ import * as readline from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
 
 import { Nip47Notification, NWCClient } from "@getalby/sdk/nwc";
+import { Invoice } from "@getalby/lightning-tools";
+
+console.warn(
+  "Alby Hub WARNING: This currently only works with Alby Hub LND backend or self payments between sub-wallets\n",
+);
 
 const rl = readline.createInterface({ input, output });
 
@@ -11,25 +16,21 @@ const nwcUrl =
   process.env.NWC_URL ||
   (await rl.question("Nostr Wallet Connect URL (nostr+walletconnect://...): "));
 
+const upstreamInvoice = await rl.question("Upstream Invoice: ");
+
+const paymentHash = new Invoice({ pr: upstreamInvoice.trim() }).paymentHash;
+console.info("Payment hash:", paymentHash);
+
 const amount =
-  parseInt((await rl.question("Amount in sats (default 1 sat): ")) || "1") *
-  1000;
+  parseInt(
+    (await rl.question("Extra amount in sats (default 1 sat): ")) || "1",
+  ) * 1000;
 
 rl.close();
 
 const client = new NWCClient({
   nostrWalletConnectUrl: nwcUrl,
 });
-
-const toHexString = (bytes: Uint8Array<ArrayBuffer>) =>
-  bytes.reduce((str, byte) => str + byte.toString(16).padStart(2, "0"), "");
-
-const preimageBytes = crypto.getRandomValues(new Uint8Array(32));
-const preimage = toHexString(preimageBytes);
-
-const hashBuffer = await crypto.subtle.digest("SHA-256", preimageBytes);
-const paymentHashBytes = new Uint8Array(hashBuffer);
-const paymentHash = toHexString(paymentHashBytes);
 
 const response = await client.makeHoldInvoice({
   amount, // in millisats
@@ -51,18 +52,18 @@ const onNotification = async (notification: Nip47Notification) => {
       notification.notification.settle_deadline,
   );
 
-  const rl = readline.createInterface({ input, output });
+  console.info("Paying upstream invoice", upstreamInvoice);
 
-  const action = await rl.question("Type settle or cancel: ");
+  const { preimage } = await client.payInvoice({
+    invoice: upstreamInvoice,
+  });
 
-  rl.close();
-  if (action === "settle") {
-    console.info("Chose to settle invoice");
-    await client.settleHoldInvoice({ preimage });
-  } else {
-    console.info("Chose to cancel invoice");
-    await client.cancelHoldInvoice({ payment_hash: paymentHash });
-  }
+  console.info("Paid upstream invoice", preimage);
+
+  //lnbcrt10u1p5cauyapp5mdxq8a3fwjnq77cyfzrq9sj0988n9z6x2ehkwathlrqj92ey08kqdqqcqzzsxqyz5vqsp5qzl9g4qxkm3cnfqu28j2fcelgfqg33pex6gstkf5h7t4sfdfsu4s9qyyssqzqm4w9xp2sntujxeplyw0uprzc7kwlfc0039gwfe7nl008zzvc249y3hhv7ssl9mw7elq29qw67zwe26kfru6gw9wqjadxr3qduzq7cqpxcamz
+
+  await client.settleHoldInvoice({ preimage });
+
   process.exit();
 };
 
