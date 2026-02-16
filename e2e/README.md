@@ -17,11 +17,11 @@ E2E tests use [Playwright](https://playwright.dev/).
 ## Running Tests
 
 ```bash
-# All e2e tests
+# E2E tests (Chromium by default)
 yarn test:e2e
 
-# Chromium only (faster)
-yarn test:e2e --project=chromium
+# All browsers (requires: yarn test:e2e:install first)
+yarn playwright test
 
 # With UI for debugging
 yarn test:e2e:ui
