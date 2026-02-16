@@ -37,4 +37,5 @@ yarn test:e2e:headed
 - `e2e/amount.spec.ts` — lnclient/Amount tests
 - `e2e/fiat-amount.spec.ts` — lnclient/FiatAmount tests (mocked rates API)
 - `e2e/oauth.spec.ts` — oauth Client tests (mocked Alby API)
+- `e2e/webln.spec.ts` — webln OauthWeblnProvider tests (mocked Alby API)
 - `playwright.config.ts` — Playwright configuration
