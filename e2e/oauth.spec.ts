@@ -15,6 +15,22 @@ const mockAccountInfoResponse = {
   keysend_custom_key: "test-key",
 };
 
+const mockSignMessageResponse = {
+  message: "test-message",
+  signature: "mock-signature-123",
+};
+
+const mockCreateInvoiceResponse = {
+  payment_request: "lnbc100n1test-invoice",
+  payment_hash: "invoice-hash-123",
+};
+
+const mockDecodedInvoiceResponse = {
+  currency: "BTC",
+  amount: 100,
+  payment_hash: "hash123",
+};
+
 test.describe("oauth", () => {
   test.beforeEach(async ({ page }) => {
     await page.route(ALBY_API, (route) => {
@@ -33,6 +49,30 @@ test.describe("oauth", () => {
           status: 200,
           contentType: "application/json",
           body: JSON.stringify(mockAccountInfoResponse),
+        });
+      }
+
+      if (url.includes("/signatures") && route.request().method() === "POST") {
+        return route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify(mockSignMessageResponse),
+        });
+      }
+
+      if (url.includes("/invoices") && route.request().method() === "POST") {
+        return route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify(mockCreateInvoiceResponse),
+        });
+      }
+
+      if (url.includes("/decode/bolt11/")) {
+        return route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify(mockDecodedInvoiceResponse),
         });
       }
 
@@ -97,6 +137,65 @@ test.describe("oauth", () => {
       balance: mockBalanceResponse,
       accountInfo: mockAccountInfoResponse,
     });
+  });
+
+  test("signMessage returns mocked signature", async ({ page }) => {
+    const result = await page.evaluate(async () => {
+      const { Client } = await import("/dist/esm/oauth.js");
+      const client = new Client("test-token");
+      return await client.signMessage({ message: "Hello" });
+    });
+
+    expect(result).toEqual(mockSignMessageResponse);
+  });
+
+  test("createInvoice returns mocked invoice", async ({ page }) => {
+    const result = await page.evaluate(async () => {
+      const { Client } = await import("/dist/esm/oauth.js");
+      const client = new Client("test-token");
+      return await client.createInvoice({
+        amount: 100,
+        description: "Test invoice",
+      });
+    });
+
+    expect(result).toEqual(mockCreateInvoiceResponse);
+  });
+
+  test("decodeInvoice returns mocked decoded invoice", async ({ page }) => {
+    const result = await page.evaluate(async () => {
+      const { Client } = await import("/dist/esm/oauth.js");
+      const client = new Client("test-token");
+      return await client.decodeInvoice("lnbc100n1test");
+    });
+
+    expect(result).toEqual(mockDecodedInvoiceResponse);
+  });
+
+  test("Client uses custom base_url", async ({ page }) => {
+    await page.route(/custom-api\.test\/.*/, (route) => {
+      if (route.request().url().includes("/balance")) {
+        return route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify({ ...mockBalanceResponse, balance: 999 }),
+        });
+      }
+      route.continue();
+    });
+
+    await page.goto("/e2e/fixtures/oauth.html");
+    await page.waitForSelector("#app:has-text('Ready')", { timeout: 10000 });
+
+    const balance = await page.evaluate(async () => {
+      const { Client } = await import("/dist/esm/oauth.js");
+      const client = new Client("test-token", {
+        base_url: "https://custom-api.test",
+      });
+      return await client.accountBalance({});
+    });
+
+    expect(balance).toMatchObject({ balance: 999 });
   });
 });
 
