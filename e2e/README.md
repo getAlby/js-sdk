@@ -39,4 +39,14 @@ yarn test:e2e:headed
 - `e2e/oauth.spec.ts` — oauth Client tests (mocked Alby API)
 - `e2e/webln.spec.ts` — webln OauthWeblnProvider tests (mocked Alby API)
 - `e2e/nwc.spec.ts` — nwc NWCClient/NWAClient tests (no relay required)
+- `e2e/lnclient.spec.ts` — lnclient LNClient tests (constructor, close)
 - `playwright.config.ts` — Playwright configuration
+
+## Limitations
+
+The following are **not covered** by E2E tests (require real infrastructure or complex mocks):
+
+- **NWC relay-dependent flows** — `NWCClient.getInfo`, `getBalance`, `payInvoice`, `makeInvoice`, etc. require WebSocket connection to Nostr relay
+- **LNClient.pay / requestPayment** — depend on NWC relay
+- **NostrWeblnProvider** — depends on NWC relay
+- **OAuth2User** — OAuth authorization flow with redirects and popups
