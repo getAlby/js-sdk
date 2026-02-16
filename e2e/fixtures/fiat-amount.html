@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>FiatAmount E2E Fixture</title>
+  </head>
+  <body>
+    <div id="app">Loading...</div>
+    <script type="module">
+      import { USD, EUR, resolveAmount } from "/dist/esm/lnclient.js";
+
+      window.__runFiatAmountTests__ = async function () {
+        const results = {};
+
+        // USD(1) - 1 USD
+        const usdAmount = USD(1);
+        results.usdResolved = await resolveAmount(usdAmount);
+
+        // EUR(10) - 10 EUR
+        const eurAmount = EUR(10);
+        results.eurResolved = await resolveAmount(eurAmount);
+
+        return results;
+      };
+
+      document.getElementById("app").textContent = "Ready";
+    </script>
+  </body>
+</html>
