@@ -24,6 +24,9 @@
           satoshi: new Promise((resolve) => setTimeout(() => resolve(10), 50)),
         });
 
+        // resolveAmount with number
+        results.resolvedNumber = await resolveAmount(21);
+
         return results;
       };
 

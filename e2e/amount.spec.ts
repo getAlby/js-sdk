@@ -33,6 +33,15 @@ test.describe("lnclient/Amount", () => {
     expect(resolved).toEqual({ satoshi: 10, millisat: 10_000 });
   });
 
+  test("resolveAmount accepts number directly", async ({ page }) => {
+    const resolved = await page.evaluate(async () => {
+      const { resolveAmount } = await import("/dist/esm/lnclient.js");
+      return await resolveAmount(21);
+    });
+
+    expect(resolved).toEqual({ satoshi: 21, millisat: 21_000 });
+  });
+
   test("Amount functions work via fixture", async ({ page }) => {
     const results = await page.evaluate(() => {
       return (window as unknown as { __runAmountTests__: () => Promise<unknown> })
@@ -43,6 +52,7 @@ test.describe("lnclient/Amount", () => {
       satoshi: 10,
       resolved: { satoshi: 10, millisat: 10_000 },
       resolvedAsync: { satoshi: 10, millisat: 10_000 },
+      resolvedNumber: { satoshi: 21, millisat: 21_000 },
     });
   });
 });
