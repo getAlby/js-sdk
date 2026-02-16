@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>OAuth Client E2E Fixture</title>
+  </head>
+  <body>
+    <div id="app">Loading...</div>
+    <script type="module">
+      import { Client, OAuth2Bearer } from "/dist/esm/oauth.js";
+
+      window.__runOAuthTests__ = async function () {
+        const client = new Client("test-bearer-token");
+
+        const balance = await client.accountBalance({});
+        const accountInfo = await client.accountInformation({});
+
+        return {
+          balance,
+          accountInfo,
+        };
+      };
+
+      document.getElementById("app").textContent = "Ready";
+    </script>
+  </body>
+</html>
