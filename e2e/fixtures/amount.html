@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Amount E2E Fixture</title>
+  </head>
+  <body>
+    <div id="app">Loading...</div>
+    <script type="module">
+      import { SATS, resolveAmount } from "/dist/esm/lnclient.js";
+
+      window.__runAmountTests__ = async function () {
+        const results = {};
+
+        // SATS
+        const amount = SATS(10);
+        results.satoshi = amount.satoshi;
+
+        // resolveAmount sync
+        results.resolved = await resolveAmount({ satoshi: 10 });
+
+        // resolveAmount async
+        results.resolvedAsync = await resolveAmount({
+          satoshi: new Promise((resolve) => setTimeout(() => resolve(10), 50)),
+        });
+
+        // resolveAmount with number
+        results.resolvedNumber = await resolveAmount(21);
+
+        return results;
+      };
+
+      document.getElementById("app").textContent = "Ready";
+    </script>
+  </body>
+</html>

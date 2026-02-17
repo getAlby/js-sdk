@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>NWC E2E Fixture</title>
+  </head>
+  <body>
+    <div id="app">Loading...</div>
+    <script type="module">
+      import { NWCClient, NWAClient } from "/dist/esm/nwc.js";
+
+      const exampleNwcUrl =
+        "nostr+walletconnect://69effe7b49a6dd5cf525bd0905917a5005ffe480b58eeb8e861418cf3ae760d9?relay=wss://relay.getalby.com/v1&relay=wss://relay2.getalby.com/v1&secret=e839faf78693765b3833027fefa5a305c78f6965d0a5d2e47a3fcb25aa7cc45b&lud16=hello@getalby.com";
+
+      window.__runNwcTests__ = async function () {
+        const parsed = NWCClient.parseWalletConnectUrl(exampleNwcUrl);
+        const client = new NWCClient({ nostrWalletConnectUrl: exampleNwcUrl });
+        const publicKey = await client.getPublicKey();
+        const nwcUrl = client.getNostrWalletConnectUrl();
+
+        const authUrl = NWCClient.getAuthorizationUrl(
+          "https://nwc.getalby.com/apps/new",
+          { name: "TestApp", returnTo: "https://example.com" },
+          publicKey,
+        );
+
+        const nwaClient = new NWAClient({
+          relayUrls: ["wss://relay.getalby.com/v1"],
+          requestMethods: ["pay_invoice", "get_balance"],
+          name: "TestNWA",
+        });
+        const connectionUri = nwaClient.getConnectionUri();
+
+        return {
+          parsed,
+          walletPubkey: client.walletPubkey,
+          publicKey,
+          nwcUrl: nwcUrl.substring(0, 50) + "...",
+          authUrl: authUrl.toString(),
+          connectionUri: connectionUri.substring(0, 50) + "...",
+        };
+      };
+
+      document.getElementById("app").textContent = "Ready";
+    </script>
+  </body>
+</html>

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>WebLN E2E Fixture</title>
+  </head>
+  <body>
+    <div id="app">Loading...</div>
+    <script type="module">
+      import { OauthWeblnProvider } from "/dist/esm/webln.js";
+
+      const mockAuth = {
+        token: { access_token: "test-oauth-token" },
+        getAuthHeader: () => ({ Authorization: "Bearer test-oauth-token" }),
+      };
+
+      window.__runWeblnTests__ = async function () {
+        const provider = new OauthWeblnProvider({ auth: mockAuth });
+
+        const enableResult = await provider.enable();
+        const getInfoResult = await provider.getInfo();
+        const makeInvoiceResult = await provider.makeInvoice({
+          amount: 100,
+          defaultMemo: "Test invoice",
+        });
+
+        return {
+          enableResult,
+          getInfoResult,
+          makeInvoiceResult,
+        };
+      };
+
+      document.getElementById("app").textContent = "Ready";
+    </script>
+  </body>
+</html>
