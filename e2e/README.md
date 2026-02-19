@@ -8,11 +8,11 @@ Jest runs in Node and cannot detect browser-specific bundle issues. This single 
 
 ```bash
 yarn install
-yarn test:e2e:install
+yarn test:e2e:browser:install
 ```
 
 ## Run
 
 ```bash
-yarn test:e2e
+yarn test:e2e:browser
 ```
