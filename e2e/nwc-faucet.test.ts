@@ -1,9 +1,9 @@
 import "websocket-polyfill";
-import { NWCClient } from "../nwc/NWCClient";
+import { NWCClient } from "../src/nwc/NWCClient";
 import { createTestWallet } from "./helpers";
 
 /**
- * Integration test using the NWC faucet.
+ * E2E integration test using the NWC faucet.
  * Creates a wallet with 10_000 sats and verifies the balance via get_balance.
  * Requires network access.
  */

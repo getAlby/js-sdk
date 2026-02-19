@@ -1,5 +1,5 @@
 /**
- * Test helpers for integration tests using the NWC faucet.
+ * Test helpers for E2E integration tests using the NWC faucet.
  * @see https://github.com/getAlby/cli/tree/master/src/test
  */
 
