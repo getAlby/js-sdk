@@ -66,7 +66,7 @@
   },
   "dependencies": {
     "@getalby/lightning-tools": "^6.0.0",
-    "nostr-tools": "^2.17.0"
+    "nostr-tools": "^2.19.4"
   },
   "devDependencies": {
     "@commitlint/cli": "^20.1.0",
