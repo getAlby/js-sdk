@@ -1,17 +1,20 @@
 # E2E Tests
 
-Minimal Playwright smoke test to verify the bundled SDK loads and runs in a browser.
+- **`e2e/browser/`** — Playwright tests (run in real browser)
+- **`e2e/`** — Jest integration tests (NWC faucet, etc., see PR #535)
 
-Jest runs in Node and cannot detect browser-specific bundle issues. This single test validates that the build works in a real browser environment.
+## Browser tests (Playwright)
 
-## Setup
+Minimal smoke test to verify the bundled SDK loads and runs in a browser.
+
+### Setup
 
 ```bash
 yarn install
 yarn test:e2e:browser:install
 ```
 
-## Run
+### Run
 
 ```bash
 yarn test:e2e:browser
