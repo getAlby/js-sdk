@@ -51,6 +51,25 @@ describe("parseWalletConnectUrl", () => {
     ]);
   });
 });
+describe("parseWalletConnectUrl validation", () => {
+  test("throws when no relay is provided", () => {
+    expect(() =>
+      NWCClient.parseWalletConnectUrl(
+        "nostr+walletconnect://abc123",
+      ),
+    ).toThrow();
+  });
+
+  test("throws when secret is required but missing", () => {
+    expect(() =>
+      new NWCClient({
+        nostrWalletConnectUrl:
+          "nostr+walletconnect://abc123?relay=wss://relay.example.com",
+      }),
+    ).toThrow();
+  });
+});
+
 
 describe("NWCClient", () => {
   test("standard protocol", () => {
