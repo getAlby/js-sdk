@@ -10,7 +10,7 @@ Before you start coding, look at example scenarios in our **[Developer Sandbox](
 
 ## 🤖 🚀 ⚡ For Developers using Agents / LLMs / Vibe Coding
 
-Skip the rest of this README and use the [Alby Bitcoin Payments Agent Skill](https://github.com/getAlby/alby-agent-skill) instead. It will handle the rest!
+Skip the rest of this README and use the [Alby Bitcoin Builder Skill](https://github.com/getAlby/builder-skill) instead. It will handle the rest!
 
 ## Manual Installation
 
