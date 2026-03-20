@@ -1,3 +1,4 @@
+import "websocket-polyfill";
 import { NWCClient } from "../src/nwc/NWCClient";
 import { createTestWallet } from "./helpers";
 
