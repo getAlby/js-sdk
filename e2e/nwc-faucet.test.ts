@@ -1,4 +1,3 @@
-import "websocket-polyfill";
 import { NWCClient } from "../src/nwc/NWCClient";
 import { createTestWallet } from "./helpers";
 
@@ -14,7 +13,7 @@ describe("NWC faucet integration", () => {
   test(
     "creates wallet via faucet and balance is 10_000 sats",
     async () => {
-      const { nwcUrl } = await createTestWallet(EXPECTED_BALANCE_SATS, 3);
+      const { nwcUrl } = await createTestWallet(EXPECTED_BALANCE_SATS);
 
       const nwc = new NWCClient({ nostrWalletConnectUrl: nwcUrl });
       try {

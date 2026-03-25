@@ -1,4 +1,3 @@
-import "websocket-polyfill";
 import { NWCClient } from "../src/nwc/NWCClient";
 import { createTestWallet } from "./helpers";
 
@@ -14,8 +13,8 @@ describe("NWC pay_keysend", () => {
   let receiver: { nwcUrl: string };
 
   beforeAll(async () => {
-    receiver = await createTestWallet(BALANCE_SATS, 3);
-    sender = await createTestWallet(BALANCE_SATS, 3);
+    receiver = await createTestWallet(BALANCE_SATS);
+    sender = await createTestWallet(BALANCE_SATS);
   }, 60_000);
 
   test(
@@ -25,12 +24,12 @@ describe("NWC pay_keysend", () => {
       const senderClient = new NWCClient({ nostrWalletConnectUrl: sender.nwcUrl });
 
       try {
-        const infoResult = await receiverClient.getInfo();
-        expect(infoResult.pubkey).toBeDefined();
+        const receiverInfoResult = await receiverClient.getInfo();
+        expect(receiverInfoResult.pubkey).toBeDefined();
 
         const keysendResult = await senderClient.payKeysend({
           amount: AMOUNT_MSATS,
-          pubkey: infoResult.pubkey,
+          pubkey: receiverInfoResult.pubkey,
         });
         expect(keysendResult.preimage).toBeDefined();
         expect(typeof keysendResult.preimage).toBe("string");

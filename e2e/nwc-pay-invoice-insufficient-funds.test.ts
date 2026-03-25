@@ -1,4 +1,3 @@
-import "websocket-polyfill";
 import { NWCClient } from "../src/nwc/NWCClient";
 import { Nip47WalletError } from "../src/nwc/types";
 import { createTestWallet } from "./helpers";
@@ -16,8 +15,8 @@ describe("NWC pay_invoice insufficient funds", () => {
   let receiver: { nwcUrl: string };
 
   beforeAll(async () => {
-    receiver = await createTestWallet(RECEIVER_BALANCE_SATS, 3);
-    sender = await createTestWallet(SENDER_BALANCE_SATS, 3);
+    receiver = await createTestWallet(RECEIVER_BALANCE_SATS);
+    sender = await createTestWallet(SENDER_BALANCE_SATS);
   }, 60_000);
 
   test(

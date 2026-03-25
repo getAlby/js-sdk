@@ -1,4 +1,3 @@
-import "websocket-polyfill";
 import { NWCClient } from "../src/nwc/NWCClient";
 import { createTestWallet } from "./helpers";
 
@@ -14,8 +13,8 @@ describe("NWC lookup_invoice", () => {
   let receiver: { nwcUrl: string };
 
   beforeAll(async () => {
-    receiver = await createTestWallet(BALANCE_SATS, 3);
-    sender = await createTestWallet(BALANCE_SATS, 3);
+    receiver = await createTestWallet(BALANCE_SATS);
+    sender = await createTestWallet(BALANCE_SATS);
   }, 60_000);
 
   test(
