@@ -33,9 +33,13 @@ describe("NWC pay_invoice insufficient funds", () => {
           description: "E2E insufficient funds test",
         });
 
-        await expect(
-          senderClient.payInvoice({ invoice: invoiceResult.invoice }),
-        ).rejects.toBeInstanceOf(Nip47WalletError);
+        const payInvoicePromise = senderClient.payInvoice({
+          invoice: invoiceResult.invoice,
+        });
+        await expect(payInvoicePromise).rejects.toBeInstanceOf(Nip47WalletError);
+        await expect(payInvoicePromise).rejects.toMatchObject({
+          code: "INSUFFICIENT_BALANCE",
+        });
       } finally {
         receiverClient.close();
         senderClient.close();
