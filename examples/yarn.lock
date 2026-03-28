@@ -180,10 +180,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@getalby/lightning-tools@npm:^5.2.0":
-  version: 5.2.1
-  resolution: "@getalby/lightning-tools@npm:5.2.1"
-  checksum: 10c0/1f208126acb2c1d6b2acff8b9078f8599740ae60cfd35c8a19955ecf58f99bedfa56ab6ca49cf75a55241e098fdb119b4ea18adf27b143934cbdde77a1460113
+"@getalby/lightning-tools@npm:^6.0.0":
+  version: 6.0.0
+  resolution: "@getalby/lightning-tools@npm:6.0.0"
+  checksum: 10c0/e366e94a4bebbb74765594e677a17f10de95526fcc63b292f401520e8bd6bc7aeb0e92f3ee2d581afe18f7bc3dcd61eff83f4285555da380cf8cf1379c004447
   languageName: node
   linkType: hard
 
@@ -191,8 +191,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@getalby/sdk@portal:../::locator=alby-sdk-examples%40workspace%3A."
   dependencies:
-    "@getalby/lightning-tools": "npm:^5.2.0"
-    nostr-tools: "npm:2.16.2"
+    "@getalby/lightning-tools": "npm:^6.0.0"
+    nostr-tools: "npm:^2.17.0"
   languageName: node
   linkType: soft
 
@@ -1153,8 +1153,8 @@ __metadata:
   linkType: hard
 
 "glob@npm:^10.2.2":
-  version: 10.4.5
-  resolution: "glob@npm:10.4.5"
+  version: 10.5.0
+  resolution: "glob@npm:10.5.0"
   dependencies:
     foreground-child: "npm:^3.1.0"
     jackspeak: "npm:^3.1.2"
@@ -1164,7 +1164,7 @@ __metadata:
     path-scurry: "npm:^1.11.1"
   bin:
     glob: dist/esm/bin.mjs
-  checksum: 10c0/19a9759ea77b8e3ca0a43c2f07ecddc2ad46216b786bb8f993c445aee80d345925a21e5280c7b7c6c59e860a0154b84e4b2b60321fea92cd3c56b4a7489f160e
+  checksum: 10c0/100705eddbde6323e7b35e1d1ac28bcb58322095bd8e63a7d0bef1a2cdafe0d0f7922a981b2b48369a4f8c1b077be5c171804534c3509dfe950dde15fbe6d828
   languageName: node
   linkType: hard
 
@@ -1569,9 +1569,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nostr-tools@npm:2.16.2":
-  version: 2.16.2
-  resolution: "nostr-tools@npm:2.16.2"
+"nostr-tools@npm:^2.17.0":
+  version: 2.17.4
+  resolution: "nostr-tools@npm:2.17.4"
   dependencies:
     "@noble/ciphers": "npm:^0.5.1"
     "@noble/curves": "npm:1.2.0"
@@ -1585,7 +1585,7 @@ __metadata:
   peerDependenciesMeta:
     typescript:
       optional: true
-  checksum: 10c0/36b456d33b9eb55dc9893ea93687700ea78b3c9d73c502d0bdb5ec74b3f1501faf89e93d45d654460bbb6c8be23243c34fcaf1b7011cd9fa5f3f71d81df38a97
+  checksum: 10c0/a78687b06ab39c9eda6fa1520b02af405fca2ed4f7abab092a8f1e20009eeb1a30fe4f52bfe7ef12ce136fab0bf9bdc7bbdbc2e9d008904fa5f9451f5f36d460
   languageName: node
   linkType: hard
 
