@@ -149,7 +149,7 @@ export class OauthWeblnProvider {
           !processingCode
         ) {
           processingCode = true; // make sure we request the access token only once
-          console.info("Processing OAuth code response");
+          console.debug("Processing OAuth code response");
           const code = data.payload.code;
           try {
             await this.auth.requestAccessToken(code);

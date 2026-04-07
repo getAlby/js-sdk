@@ -122,8 +122,7 @@ export class NWCClient {
     } as NWCOptions;
 
     this.relayUrls = this.options.relayUrls;
-    this.pool = new SimplePool({
-    });
+    this.pool = new SimplePool({});
     if (this.options.secret) {
       this.secret = (
         this.options.secret.toLowerCase().startsWith("nsec")
@@ -718,7 +717,7 @@ export class NWCClient {
         try {
           await this._checkConnected();
           await this._selectEncryptionType();
-          console.info("subscribing to relays");
+          console.debug("subscribing to relays");
           sub = this.pool.subscribe(
             this.relayUrls,
             {
@@ -765,12 +764,12 @@ export class NWCClient {
               onclose: (reasons) => {
                 // NOTE: this fires when all relays were closed once. There is no reconnect logic in nostr-tools
                 // See https://github.com/nbd-wtf/nostr-tools/issues/513
-                console.info("relay connection closed", reasons);
+                console.debug("relay connection closed", reasons);
                 endPromise?.();
               },
             },
           );
-          console.info("subscribed to relays");
+          console.debug("subscribed to relays");
 
           await new Promise<void>((resolve) => {
             endPromise = () => {
@@ -865,7 +864,7 @@ export class NWCClient {
                 return;
               }
               if (response.result) {
-                // console.info("NIP-47 result", response.result);
+                // console.debug("NIP-47 result", response.result);
                 if (resultValidator(response.result)) {
                   resolve(response.result);
                 } else {
@@ -1009,7 +1008,7 @@ export class NWCClient {
                 );
               }
               if (response.result) {
-                // console.info("NIP-47 result", response.result);
+                // console.debug("NIP-47 result", response.result);
                 if (!resultValidator(response.result)) {
                   clearTimeout(replyTimeoutCheck);
                   sub.close();

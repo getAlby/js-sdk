@@ -102,9 +102,9 @@ export class NWCWalletService {
     (async () => {
       while (subscribed) {
         try {
-          console.info("checking connection to relay");
+          console.debug("checking connection to relay");
           await this._checkConnected();
-          console.info("subscribing to relay");
+          console.debug("subscribing to relay");
           sub = this.relay.subscribe(
             [
               {
@@ -115,11 +115,11 @@ export class NWCWalletService {
             ],
             {},
           );
-          console.info("subscribed to relays");
+          console.debug("subscribed to relays");
 
           sub.onevent = async (event) => {
             try {
-              // console.info("Got event", event);
+              // console.debug("Got event", event);
               const encryptionType = (event.tags.find(
                 (t) => t[0] === "encryption",
               )?.[1] || "nip04") as Nip47EncryptionType;
@@ -271,7 +271,7 @@ export class NWCWalletService {
     encryptionType: Nip47EncryptionType,
   ) {
     let encrypted;
-    // console.info("encrypting with" + encryptionType);
+    // console.debug("encrypting with" + encryptionType);
     if (encryptionType === "nip04") {
       encrypted = await nip04.encrypt(
         keypair.walletSecret,
@@ -294,7 +294,7 @@ export class NWCWalletService {
     encryptionType: Nip47EncryptionType,
   ) {
     let decrypted;
-    // console.info("decrypting with" + encryptionType);
+    // console.debug("decrypting with" + encryptionType);
     if (encryptionType === "nip04") {
       decrypted = await nip04.decrypt(
         keypair.walletSecret,
