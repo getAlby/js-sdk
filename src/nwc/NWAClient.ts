@@ -199,6 +199,7 @@ export class NWAClient {
                   relayUrls: this.options.relayUrls,
                   secret: this.appSecretKey,
                   walletPubkey: event.pubkey,
+                  logger: this.logger,
                 });
 
                 // try to fetch the lightning address
