@@ -11,6 +11,7 @@ import {
   SimplePool,
 } from "nostr-tools";
 import { hexToBytes, bytesToHex } from "@noble/hashes/utils";
+import { Logger, noopLogger } from "../logger";
 import {
   Nip47EncryptionType,
   Nip47SingleMethod,
@@ -70,6 +71,7 @@ export type NewNWCClientOptions = {
   walletPubkey?: string;
   nostrWalletConnectUrl?: string;
   lud16?: string;
+  logger?: Logger;
 };
 
 export class NWCClient {
@@ -79,6 +81,7 @@ export class NWCClient {
   lud16: string | undefined;
   walletPubkey: string;
   options: NWCOptions;
+  logger: Logger;
   private _encryptionType: Nip47EncryptionType | undefined;
 
   static parseWalletConnectUrl(walletConnectUrl: string): NWCOptions {
@@ -122,6 +125,7 @@ export class NWCClient {
     } as NWCOptions;
 
     this.relayUrls = this.options.relayUrls;
+    this.logger = options?.logger || noopLogger;
     this.pool = new SimplePool({});
     if (this.options.secret) {
       this.secret = (
@@ -717,7 +721,7 @@ export class NWCClient {
         try {
           await this._checkConnected();
           await this._selectEncryptionType();
-          console.debug("subscribing to relays");
+          this.logger.debug("subscribing to relays");
           sub = this.pool.subscribe(
             this.relayUrls,
             {
@@ -764,12 +768,12 @@ export class NWCClient {
               onclose: (reasons) => {
                 // NOTE: this fires when all relays were closed once. There is no reconnect logic in nostr-tools
                 // See https://github.com/nbd-wtf/nostr-tools/issues/513
-                console.debug("relay connection closed", reasons);
+                this.logger.debug("relay connection closed", reasons);
                 endPromise?.();
               },
             },
           );
-          console.debug("subscribed to relays");
+          this.logger.debug("subscribed to relays");
 
           await new Promise<void>((resolve) => {
             endPromise = () => {
@@ -864,7 +868,6 @@ export class NWCClient {
                 return;
               }
               if (response.result) {
-                // console.debug("NIP-47 result", response.result);
                 if (resultValidator(response.result)) {
                   resolve(response.result);
                 } else {
@@ -927,9 +930,7 @@ export class NWCClient {
         try {
           await Promise.any(this.pool.publish(this.relayUrls, event));
           clearTimeout(publishTimeoutCheck);
-          //console.debug(`Event ${event.id} for ${invoice} published`);
         } catch (error) {
-          //console.error(`Failed to publish to ${this.relay.url}`, error);
           clearTimeout(publishTimeoutCheck);
           reject(
             new Nip47PublishError(`failed to publish: ${error}`, "INTERNAL"),
@@ -1008,7 +1009,6 @@ export class NWCClient {
                 );
               }
               if (response.result) {
-                // console.debug("NIP-47 result", response.result);
                 if (!resultValidator(response.result)) {
                   clearTimeout(replyTimeoutCheck);
                   sub.close();
@@ -1091,9 +1091,7 @@ export class NWCClient {
         try {
           await Promise.any(this.pool.publish(this.relayUrls, event));
           clearTimeout(publishTimeoutCheck);
-          //console.debug(`Event ${event.id} for ${invoice} published`);
         } catch (error) {
-          //console.error(`Failed to publish to ${this.relay.url}`, error);
           clearTimeout(publishTimeoutCheck);
           reject(
             new Nip47PublishError(`Failed to publish: ${error}`, "INTERNAL"),
