@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.build.json",
+  "compilerOptions": {
+    "types": ["jest", "node"],
+    "noEmit": true,
+    "rootDir": "."
+  },
+  "include": ["e2e/**/*.ts", "src/**/*.ts"],
+  "exclude": ["e2e/browser/**", "src/**/*.test.ts"]
+}
