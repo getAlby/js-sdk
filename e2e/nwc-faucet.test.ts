@@ -10,19 +10,15 @@ describe("NWC faucet integration", () => {
   const EXPECTED_BALANCE_SATS = 10_000;
   const EXPECTED_BALANCE_MSATS = EXPECTED_BALANCE_SATS * 1000;
 
-  test(
-    "creates wallet via faucet and balance is 10_000 sats",
-    async () => {
-      const { nwcUrl } = await createTestWallet(EXPECTED_BALANCE_SATS);
+  test("creates wallet via faucet and balance is 10_000 sats", async () => {
+    const { nwcUrl } = await createTestWallet(EXPECTED_BALANCE_SATS);
 
-      const nwc = new NWCClient({ nostrWalletConnectUrl: nwcUrl });
-      try {
-        const result = await nwc.getBalance();
-        expect(result.balance).toBe(EXPECTED_BALANCE_MSATS);
-      } finally {
-        nwc.close();
-      }
-    },
-    60_000,
-  );
+    const nwc = new NWCClient({ nostrWalletConnectUrl: nwcUrl });
+    try {
+      const result = await nwc.getBalance();
+      expect(result.balance).toBe(EXPECTED_BALANCE_MSATS);
+    } finally {
+      nwc.close();
+    }
+  }, 60_000);
 });

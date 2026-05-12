@@ -17,43 +17,41 @@ describe("NWC list_transactions after pay_invoice", () => {
     sender = await createTestWallet(BALANCE_SATS);
   }, 60_000);
 
-  test(
-    "returns an outgoing settled transaction for the paid invoice",
-    async () => {
-      const receiverClient = new NWCClient({
-        nostrWalletConnectUrl: receiver.nwcUrl,
+  test("returns an outgoing settled transaction for the paid invoice", async () => {
+    const receiverClient = new NWCClient({
+      nostrWalletConnectUrl: receiver.nwcUrl,
+    });
+    const senderClient = new NWCClient({
+      nostrWalletConnectUrl: sender.nwcUrl,
+    });
+
+    try {
+      const invoiceResult = await receiverClient.makeInvoice({
+        amount: AMOUNT_MSATS,
+        description: "E2E list_transactions after payment",
       });
-      const senderClient = new NWCClient({ nostrWalletConnectUrl: sender.nwcUrl });
+      expect(invoiceResult.invoice).toBeDefined();
 
-      try {
-        const invoiceResult = await receiverClient.makeInvoice({
-          amount: AMOUNT_MSATS,
-          description: "E2E list_transactions after payment",
-        });
-        expect(invoiceResult.invoice).toBeDefined();
+      await senderClient.payInvoice({ invoice: invoiceResult.invoice });
 
-        await senderClient.payInvoice({ invoice: invoiceResult.invoice });
+      const listResult = await senderClient.listTransactions({
+        limit: 20,
+        type: "outgoing",
+      });
 
-        const listResult = await senderClient.listTransactions({
-          limit: 20,
-          type: "outgoing",
-        });
+      expect(Array.isArray(listResult.transactions)).toBe(true);
 
-        expect(Array.isArray(listResult.transactions)).toBe(true);
+      const matchingTx = listResult.transactions.find(
+        (tx) => tx.invoice === invoiceResult.invoice,
+      );
 
-        const matchingTx = listResult.transactions.find(
-          (tx) => tx.invoice === invoiceResult.invoice,
-        );
-
-        expect(matchingTx).toBeDefined();
-        expect(matchingTx?.type).toBe("outgoing");
-        expect(matchingTx?.state).toBe("settled");
-        expect(matchingTx?.amount).toBe(AMOUNT_MSATS);
-      } finally {
-        receiverClient.close();
-        senderClient.close();
-      }
-    },
-    60_000,
-  );
+      expect(matchingTx).toBeDefined();
+      expect(matchingTx?.type).toBe("outgoing");
+      expect(matchingTx?.state).toBe("settled");
+      expect(matchingTx?.amount).toBe(AMOUNT_MSATS);
+    } finally {
+      receiverClient.close();
+      senderClient.close();
+    }
+  }, 60_000);
 });

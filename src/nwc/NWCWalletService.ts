@@ -58,12 +58,6 @@ export class NWCWalletService {
     this.relayUrl = options.relayUrl;
 
     this.relay = new Relay(this.relayUrl);
-
-    if (globalThis.WebSocket === undefined) {
-      console.error(
-        "WebSocket is undefined. Make sure to `import websocket-polyfill` for nodejs environments",
-      );
-    }
   }
 
   async publishWalletServiceInfoEvent(

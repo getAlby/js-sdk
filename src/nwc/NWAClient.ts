@@ -49,12 +49,6 @@ export class NWAClient {
       throw new Error("Missing request methods");
     }
     this.pool = new SimplePool();
-
-    if (globalThis.WebSocket === undefined) {
-      console.error(
-        "WebSocket is undefined. Make sure to `import websocket-polyfill` for nodejs environments",
-      );
-    }
   }
 
   /**

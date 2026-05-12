@@ -1,6 +1,5 @@
 import * as repl from 'node:repl';
 import { auth, Client, webln } from "./dist/index.module.js";
-import 'websocket-polyfill';
 try {
   globalThis.crypto = await import('node:crypto');
 } catch (err) {

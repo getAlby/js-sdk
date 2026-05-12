@@ -40,10 +40,7 @@ export async function createTestWallet(
         lightningAddress: decodeURIComponent(lud16Match[1]),
       };
     } catch (error) {
-      if (
-        error instanceof Error &&
-        error.message === "No lud16 in NWC URL"
-      ) {
+      if (error instanceof Error && error.message === "No lud16 in NWC URL") {
         throw error;
       }
       if (i < retries - 1) {

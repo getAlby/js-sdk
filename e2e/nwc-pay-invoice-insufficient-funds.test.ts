@@ -19,32 +19,30 @@ describe("NWC pay_invoice insufficient funds", () => {
     sender = await createTestWallet(SENDER_BALANCE_SATS);
   }, 60_000);
 
-  test(
-    "fails with wallet error when invoice amount exceeds sender balance",
-    async () => {
-      const receiverClient = new NWCClient({
-        nostrWalletConnectUrl: receiver.nwcUrl,
+  test("fails with wallet error when invoice amount exceeds sender balance", async () => {
+    const receiverClient = new NWCClient({
+      nostrWalletConnectUrl: receiver.nwcUrl,
+    });
+    const senderClient = new NWCClient({
+      nostrWalletConnectUrl: sender.nwcUrl,
+    });
+
+    try {
+      const invoiceResult = await receiverClient.makeInvoice({
+        amount: INVOICE_AMOUNT_MSATS,
+        description: "E2E insufficient funds test",
       });
-      const senderClient = new NWCClient({ nostrWalletConnectUrl: sender.nwcUrl });
 
-      try {
-        const invoiceResult = await receiverClient.makeInvoice({
-          amount: INVOICE_AMOUNT_MSATS,
-          description: "E2E insufficient funds test",
-        });
-
-        const payInvoicePromise = senderClient.payInvoice({
-          invoice: invoiceResult.invoice,
-        });
-        await expect(payInvoicePromise).rejects.toBeInstanceOf(Nip47WalletError);
-        await expect(payInvoicePromise).rejects.toMatchObject({
-          code: "INSUFFICIENT_BALANCE",
-        });
-      } finally {
-        receiverClient.close();
-        senderClient.close();
-      }
-    },
-    60_000,
-  );
+      const payInvoicePromise = senderClient.payInvoice({
+        invoice: invoiceResult.invoice,
+      });
+      await expect(payInvoicePromise).rejects.toBeInstanceOf(Nip47WalletError);
+      await expect(payInvoicePromise).rejects.toMatchObject({
+        code: "INSUFFICIENT_BALANCE",
+      });
+    } finally {
+      receiverClient.close();
+      senderClient.close();
+    }
+  }, 60_000);
 });

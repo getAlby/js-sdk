@@ -17,30 +17,30 @@ describe("NWC make_invoice and pay_invoice", () => {
     sender = await createTestWallet(BALANCE_SATS);
   }, 60_000);
 
-  test(
-    "receiver creates invoice, sender pays it",
-    async () => {
-      const receiverClient = new NWCClient({ nostrWalletConnectUrl: receiver.nwcUrl });
-      const senderClient = new NWCClient({ nostrWalletConnectUrl: sender.nwcUrl });
+  test("receiver creates invoice, sender pays it", async () => {
+    const receiverClient = new NWCClient({
+      nostrWalletConnectUrl: receiver.nwcUrl,
+    });
+    const senderClient = new NWCClient({
+      nostrWalletConnectUrl: sender.nwcUrl,
+    });
 
-      try {
-        const invoiceResult = await receiverClient.makeInvoice({
-          amount: AMOUNT_MSATS,
-          description: "E2E test invoice",
-        });
-        expect(invoiceResult.invoice).toBeDefined();
-        expect(invoiceResult.invoice).toMatch(/^ln/);
+    try {
+      const invoiceResult = await receiverClient.makeInvoice({
+        amount: AMOUNT_MSATS,
+        description: "E2E test invoice",
+      });
+      expect(invoiceResult.invoice).toBeDefined();
+      expect(invoiceResult.invoice).toMatch(/^ln/);
 
-        const payResult = await senderClient.payInvoice({
-          invoice: invoiceResult.invoice,
-        });
-        expect(payResult.preimage).toBeDefined();
-        expect(typeof payResult.preimage).toBe("string");
-      } finally {
-        receiverClient.close();
-        senderClient.close();
-      }
-    },
-    60_000,
-  );
+      const payResult = await senderClient.payInvoice({
+        invoice: invoiceResult.invoice,
+      });
+      expect(payResult.preimage).toBeDefined();
+      expect(typeof payResult.preimage).toBe("string");
+    } finally {
+      receiverClient.close();
+      senderClient.close();
+    }
+  }, 60_000);
 });

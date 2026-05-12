@@ -10,8 +10,7 @@
   "dependencies": {
     "@getalby/sdk": "portal:../",
     "dotenv": "^17.2.2",
-    "express": "^5.1.0",
-    "websocket-polyfill": "^0.0.3"
+    "express": "^5.1.0"
   },
   "devDependencies": {
     "@types/express": "^5.0.3",
@@ -19,7 +18,7 @@
     "typescript": "^5.1.6"
   },
   "engines": {
-    "node": ">=14"
+    "node": ">=22"
   },
   "author": "Alby contributors",
   "license": "MIT",

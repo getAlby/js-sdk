@@ -122,8 +122,7 @@ export class NWCClient {
     } as NWCOptions;
 
     this.relayUrls = this.options.relayUrls;
-    this.pool = new SimplePool({
-    });
+    this.pool = new SimplePool({});
     if (this.options.secret) {
       this.secret = (
         this.options.secret.toLowerCase().startsWith("nsec")
@@ -138,12 +137,6 @@ export class NWCClient {
         : this.options.walletPubkey
     ) as string;
     // this.subscribers = {};
-
-    if (globalThis.WebSocket === undefined) {
-      console.error(
-        "WebSocket is undefined. Make sure to `import websocket-polyfill` for nodejs environments",
-      );
-    }
   }
 
   get nostrWalletConnectUrl() {

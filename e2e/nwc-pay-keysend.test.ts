@@ -17,27 +17,27 @@ describe("NWC pay_keysend", () => {
     sender = await createTestWallet(BALANCE_SATS);
   }, 60_000);
 
-  test(
-    "sends keysend payment to receiver pubkey",
-    async () => {
-      const receiverClient = new NWCClient({ nostrWalletConnectUrl: receiver.nwcUrl });
-      const senderClient = new NWCClient({ nostrWalletConnectUrl: sender.nwcUrl });
+  test("sends keysend payment to receiver pubkey", async () => {
+    const receiverClient = new NWCClient({
+      nostrWalletConnectUrl: receiver.nwcUrl,
+    });
+    const senderClient = new NWCClient({
+      nostrWalletConnectUrl: sender.nwcUrl,
+    });
 
-      try {
-        const receiverInfoResult = await receiverClient.getInfo();
-        expect(receiverInfoResult.pubkey).toBeDefined();
+    try {
+      const receiverInfoResult = await receiverClient.getInfo();
+      expect(receiverInfoResult.pubkey).toBeDefined();
 
-        const keysendResult = await senderClient.payKeysend({
-          amount: AMOUNT_MSATS,
-          pubkey: receiverInfoResult.pubkey,
-        });
-        expect(keysendResult.preimage).toBeDefined();
-        expect(typeof keysendResult.preimage).toBe("string");
-      } finally {
-        receiverClient.close();
-        senderClient.close();
-      }
-    },
-    60_000,
-  );
+      const keysendResult = await senderClient.payKeysend({
+        amount: AMOUNT_MSATS,
+        pubkey: receiverInfoResult.pubkey,
+      });
+      expect(keysendResult.preimage).toBeDefined();
+      expect(typeof keysendResult.preimage).toBe("string");
+    } finally {
+      receiverClient.close();
+      senderClient.close();
+    }
+  }, 60_000);
 });
