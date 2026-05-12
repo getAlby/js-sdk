@@ -73,7 +73,7 @@ describe("getAuthorizationUrl", () => {
 
     expect(
       NWCClient.getAuthorizationUrl(
-        "https://nwc.getalby.com/apps/new",
+        "https://my.albyhub.com/apps/new",
         {
           budgetRenewal: "weekly",
           expiresAt: new Date("2023-07-21"),
@@ -88,7 +88,7 @@ describe("getAuthorizationUrl", () => {
         pubkey,
       ).toString(),
     ).toEqual(
-      `https://nwc.getalby.com/apps/new?name=TestApp&pubkey=${pubkey}&return_to=https%3A%2F%2Fexample.com&budget_renewal=weekly&expires_at=1689897600&max_amount=100&request_methods=pay_invoice+get_balance&notification_types=payment_received+payment_sent&isolated=true&metadata=%7B%22message%22%3A%22hello+world%22%7D`,
+      `https://my.albyhub.com/apps/new?name=TestApp&pubkey=${pubkey}&return_to=https%3A%2F%2Fexample.com&budget_renewal=weekly&expires_at=1689897600&max_amount=100&request_methods=pay_invoice+get_balance&notification_types=payment_received+payment_sent&isolated=true&metadata=%7B%22message%22%3A%22hello+world%22%7D`,
     );
   });
 
