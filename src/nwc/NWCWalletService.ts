@@ -196,7 +196,10 @@ export class NWCWalletService {
               const responseEventTemplate: EventTemplate = {
                 kind: 23195,
                 created_at: Math.floor(Date.now() / 1000),
-                tags: [["e", event.id]],
+                tags: [
+                  ["e", event.id],
+                  ["p", keypair.clientPubkey],
+                ],
                 content: await this.encrypt(
                   keypair,
                   JSON.stringify({
