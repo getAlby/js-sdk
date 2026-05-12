@@ -55,21 +55,47 @@ describe("parseWalletConnectUrl validation", () => {
   test("throws when no relay is provided", () => {
     expect(() =>
       NWCClient.parseWalletConnectUrl(
-        "nostr+walletconnect://abc123",
+        "nostr+walletconnect://69effe7b49a6dd5cf525bd0905917a5005ffe480b58eeb8e861418cf3ae760d9",
       ),
-    ).toThrow();
+    ).toThrow("Invalid NWC URL: no relay URLs provided");
   });
 
-  test("throws when secret is required but missing", () => {
+  test("throws when secret is invalid", () => {
+    // one character is missing from the secret
     expect(() =>
-      new NWCClient({
-        nostrWalletConnectUrl:
-          "nostr+walletconnect://abc123?relay=wss://relay.example.com",
-      }),
-    ).toThrow();
+      NWCClient.parseWalletConnectUrl(
+        "nostr+walletconnect://69effe7b49a6dd5cf525bd0905917a5005ffe480b58eeb8e861418cf3ae760d9?relay=wss://relay.getalby.com/v1&relay=wss://relay2.getalby.com/v1&secret=e839faf78693765b3833027fefa5a305c78f6965d0a5d2e47a3fcb25aa7cc45",
+      ),
+    ).toThrow("Invalid NWC URL: invalid secret");
+  });
+  test("throws when wallet pubkey is invalid", () => {
+    // one character is missing from the wallet pubkey
+    expect(() =>
+      NWCClient.parseWalletConnectUrl(
+        "nostr+walletconnect://6effe7b49a6dd5cf525bd0905917a5005ffe480b58eeb8e861418cf3ae760d9?relay=wss://relay.getalby.com/v1&relay=wss://relay2.getalby.com/v1&secret=e839faf78693765b3833027fefa5a305c78f6965d0a5d2e47a3fcb25aa7cc45b&lud16=hello@getalby.com",
+      ),
+    ).toThrow("Invalid NWC URL: invalid wallet pubkey");
+  });
+
+  test("throws when secret is required but missing (parse)", () => {
+    expect(() =>
+      NWCClient.parseWalletConnectUrl(
+        "nostr+walletconnect://69effe7b49a6dd5cf525bd0905917a5005ffe480b58eeb8e861418cf3ae760d9?relay=wss://relay.example.com",
+        true,
+      ),
+    ).toThrow("Invalid NWC URL: missing secret parameter");
+  });
+  test("throws when secret is required but missing (in constructor)", () => {
+    expect(
+      () =>
+        new NWCClient({
+          nostrWalletConnectUrl:
+            "nostr+walletconnect://69effe7b49a6dd5cf525bd0905917a5005ffe480b58eeb8e861418cf3ae760d9?relay=wss://relay.example.com",
+          requireSecret: true,
+        }),
+    ).toThrow("Invalid NWC URL: missing secret parameter");
   });
 });
-
 
 describe("NWCClient", () => {
   test("standard protocol", () => {
