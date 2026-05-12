@@ -8,6 +8,7 @@ const plugins = [
   resolve(),
   commonjs(),
   typescript({
+    tsconfig: "./tsconfig.build.json",
     compilerOptions: {
       declaration: false,
       outDir: undefined,
@@ -44,7 +45,7 @@ const subBundles = entries.flatMap(({ name, input }) => [
   },
   {
     input,
-    plugins: [dts()],
+    plugins: [dts({ tsconfig: "./tsconfig.build.json" })],
     output: {
       file: `dist/types/${name}.d.ts`,
       format: "es",
