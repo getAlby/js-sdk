@@ -107,6 +107,12 @@ export class ReconnectingPool {
     let closed = false;
     const activeSubs = new Map<string, Subscription>();
     const pendingWaits = new Set<() => void>();
+    const knownIds = new Set<string>();
+    const alreadyHaveEvent = (id: string) => {
+      if (knownIds.has(id)) return true;
+      knownIds.add(id);
+      return false;
+    };
 
     const waitForReconnect = (attempt: number): Promise<void> => {
       if (closed) return Promise.resolve();
@@ -155,6 +161,7 @@ export class ReconnectingPool {
             onevent: params.onevent,
             onclose: resolve,
             abort: params.abort,
+            alreadyHaveEvent,
           });
           activeSubs.set(url, innerSub);
         });

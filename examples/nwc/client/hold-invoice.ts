@@ -14,8 +14,6 @@ const amount =
   parseInt((await rl.question("Amount in sats (default 1 sat): ")) || "1") *
   1000;
 
-rl.close();
-
 const client = new NWCClient({
   nostrWalletConnectUrl: nwcUrl,
 });
@@ -41,8 +39,6 @@ const onNotification = async (notification: Nip47Notification) => {
     "HOLD invoice accepted! It can be settled or canceled before block " +
       notification.notification.settle_deadline,
   );
-
-  const rl = readline.createInterface({ input, output });
 
   const action = await rl.question("Type settle or cancel: ");
 
