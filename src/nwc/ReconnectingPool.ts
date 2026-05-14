@@ -34,6 +34,10 @@ type SubscribeManyParams = {
 const INITIAL_RECONNECT_DELAY_MS = 1000;
 const MAX_RECONNECT_DELAY_MS = 5 * 60 * 1000;
 
+// Bounds the cross-relay/reconnect dedup window. Large enough to cover bursts
+// across reconnects, small enough that long-lived subscriptions don't leak.
+const MAX_KNOWN_IDS = 1000;
+
 export class ReconnectingPool {
   protected relays: Map<string, Relay> = new Map();
 
@@ -111,6 +115,10 @@ export class ReconnectingPool {
     const alreadyHaveEvent = (id: string) => {
       if (knownIds.has(id)) return true;
       knownIds.add(id);
+      if (knownIds.size > MAX_KNOWN_IDS) {
+        const oldest = knownIds.values().next().value;
+        if (oldest !== undefined) knownIds.delete(oldest);
+      }
       return false;
     };
 
