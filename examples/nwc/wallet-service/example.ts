@@ -1,5 +1,7 @@
 import { generateSecretKey, getPublicKey } from "nostr-tools";
 import { bytesToHex, hexToBytes } from "@noble/hashes/utils";
+import * as readline from "node:readline/promises";
+import { stdin as input, stdout as output } from "node:process";
 
 const walletServiceSecretKey = bytesToHex(generateSecretKey());
 const walletServicePubkey = getPublicKey(hexToBytes(walletServiceSecretKey));
@@ -7,16 +9,25 @@ const walletServicePubkey = getPublicKey(hexToBytes(walletServiceSecretKey));
 const clientSecretKey = bytesToHex(generateSecretKey());
 const clientPubkey = getPublicKey(hexToBytes(clientSecretKey));
 
-const relayUrl = "wss://relay.getalby.com/v1";
+const DEFAULT_RELAY_URLs = "wss://relay.getalby.com/v1";
 
-const nwcUrl = `nostr+walletconnect://${walletServicePubkey}?relay=${relayUrl}&secret=${clientSecretKey}`;
+const rl = readline.createInterface({ input, output });
+
+const relayUrls = (
+  (await rl.question(
+    `Relay URLs, comma separated (${DEFAULT_RELAY_URLs}): `,
+  )) || DEFAULT_RELAY_URLs
+).split(",");
+rl.close();
+
+const nwcUrl = `nostr+walletconnect://${walletServicePubkey}?relay=${relayUrls.join("&relay=")}&secret=${clientSecretKey}`;
 
 console.info("enter this NWC URL in a client: ", nwcUrl);
 
 import { NWCWalletService, NWCWalletServiceKeyPair } from "@getalby/sdk/nwc";
 
 const walletService = new NWCWalletService({
-  relayUrl,
+  relayUrls,
 });
 
 await walletService.publishWalletServiceInfoEvent(

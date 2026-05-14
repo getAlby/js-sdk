@@ -5,7 +5,6 @@ import {
   getPublicKey,
   Event,
   EventTemplate,
-  SimplePool,
 } from "nostr-tools";
 import { hexToBytes } from "@noble/hashes/utils.js";
 
@@ -28,6 +27,7 @@ import {
   NWCWalletServiceResponse,
   NWCWalletServiceResponsePromise,
 } from "./NWCWalletServiceRequestHandler";
+import { ReconnectingPool } from "./ReconnectingPool";
 
 export type NewNWCWalletServiceOptions = {
   relayUrls?: string[];
@@ -52,7 +52,7 @@ export class NWCWalletServiceKeyPair {
 }
 
 export class NWCWalletService {
-  pool: SimplePool;
+  pool: ReconnectingPool;
   relayUrls: string[];
   logger: Logger;
 
@@ -62,7 +62,7 @@ export class NWCWalletService {
     }
 
     this.logger = options.logger || noopLogger;
-    this.pool = new SimplePool({ enableReconnect: true });
+    this.pool = new ReconnectingPool();
     this.relayUrls = options.relayUrls;
   }
 
@@ -213,8 +213,11 @@ export class NWCWalletService {
             return;
           }
         },
-        onclose: (reasons) => {
-          this.logger.debug("Subscription closed:", reasons);
+        onconnect: (url) => {
+          this.logger.debug("relay connected", url);
+        },
+        ondisconnect: (url, reason) => {
+          this.logger.debug("relay disconnected", url, reason);
         },
       },
     );
