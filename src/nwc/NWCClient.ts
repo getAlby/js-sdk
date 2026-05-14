@@ -415,54 +415,63 @@ export class NWCClient {
     notifications: Nip47NotificationType[];
   }> {
     await this._checkConnected();
-    const events = await new Promise<Event[]>((resolve, reject) => {
-      const events: Event[] = [];
-      const sub = this.pool.subscribe(
-        this.relayUrls,
-        {
-          kinds: [13194],
-          limit: 1,
-          authors: [this.walletPubkey],
-        },
-        {
-          eoseTimeout: 10000,
-          onevent: (event) => {
-            events.push(event);
+    const maxAttempts = 4;
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      const events = await new Promise<Event[]>((resolve) => {
+        const collected: Event[] = [];
+        const sub = this.pool.subscribe(
+          this.relayUrls,
+          {
+            kinds: [13194],
+            limit: 1,
+            authors: [this.walletPubkey],
           },
-          oneose: () => {
-            sub.close();
-            resolve(events);
+          {
+            eoseTimeout: 10000,
+            onevent: (event) => {
+              collected.push(event);
+            },
+            oneose: () => {
+              sub.close();
+              resolve(collected);
+            },
           },
-        },
+        );
+      });
+
+      if (!events.length) {
+        if (attempt < maxAttempts - 1) {
+          await new Promise((r) => setTimeout(r, 750 * (attempt + 1)));
+        }
+        continue;
+      }
+
+      const content = events[0].content;
+      const notificationsTag = events[0].tags.find(
+        (t) => t[0] === "notifications",
       );
-    });
+      // TODO: Remove version tag after 01-06-2025
+      const versionsTag = events[0].tags.find((t) => t[0] === "v");
+      const encryptionTag = events[0].tags.find((t) => t[0] === "encryption");
 
-    if (!events.length) {
-      throw new Error("no info event (kind 13194) returned from relay");
+      let encryptions: string[] = ["nip04" satisfies Nip47EncryptionType];
+      // TODO: Remove version tag after 01-06-2025
+      if (versionsTag && versionsTag[1].includes("1.0")) {
+        encryptions.push("nip44_v2" satisfies Nip47EncryptionType);
+      }
+      if (encryptionTag) {
+        encryptions = encryptionTag[1].split(" ") as Nip47EncryptionType[];
+      }
+      return {
+        encryptions,
+        // delimiter is " " per spec, but Alby NWC originally returned ","
+        capabilities: content.split(/[ |,]/g) as Nip47Method[],
+        notifications: (notificationsTag?.[1]?.split(" ") ||
+          []) as Nip47NotificationType[],
+      };
     }
-    const content = events[0].content;
-    const notificationsTag = events[0].tags.find(
-      (t) => t[0] === "notifications",
-    );
-    // TODO: Remove version tag after 01-06-2025
-    const versionsTag = events[0].tags.find((t) => t[0] === "v");
-    const encryptionTag = events[0].tags.find((t) => t[0] === "encryption");
 
-    let encryptions: string[] = ["nip04" satisfies Nip47EncryptionType];
-    // TODO: Remove version tag after 01-06-2025
-    if (versionsTag && versionsTag[1].includes("1.0")) {
-      encryptions.push("nip44_v2" satisfies Nip47EncryptionType);
-    }
-    if (encryptionTag) {
-      encryptions = encryptionTag[1].split(" ") as Nip47EncryptionType[];
-    }
-    return {
-      encryptions,
-      // delimiter is " " per spec, but Alby NWC originally returned ","
-      capabilities: content.split(/[ |,]/g) as Nip47Method[],
-      notifications: (notificationsTag?.[1]?.split(" ") ||
-        []) as Nip47NotificationType[],
-    };
+    throw new Error("no info event (kind 13194) returned from relay");
   }
 
   async getInfo(): Promise<Nip47GetInfoResponse> {
@@ -745,7 +754,13 @@ export class NWCClient {
     let subscribed = true;
     let endPromise: (() => void) | undefined;
     let sub: SubCloser | undefined;
+    let pendingInitial: { resolve: () => void } | undefined;
+    const initialSubscriptionReady = new Promise<void>((resolve) => {
+      pendingInitial = { resolve };
+    });
     (async () => {
+      // `subscribed` is cleared by the unsubscribe callback returned to callers.
+      // eslint-disable-next-line no-unmodified-loop-condition
       while (subscribed) {
         try {
           await this._checkConnected();
@@ -803,6 +818,10 @@ export class NWCClient {
             },
           );
           this.logger.debug("subscribed to relays");
+          if (pendingInitial) {
+            pendingInitial.resolve();
+            pendingInitial = undefined;
+          }
 
           await new Promise<void>((resolve) => {
             endPromise = () => {
@@ -823,6 +842,8 @@ export class NWCClient {
         }
       }
     })();
+
+    await initialSubscriptionReady;
 
     return () => {
       subscribed = false;
