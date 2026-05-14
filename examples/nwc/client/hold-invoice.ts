@@ -1,8 +1,8 @@
-import { generatePreimageAndPaymentHash } from "../../../src/utils";
 import * as readline from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
 
 import { Nip47Notification, NWCClient } from "@getalby/sdk/nwc";
+import { generatePreimageAndPaymentHash } from "@getalby/sdk/utils";
 
 const rl = readline.createInterface({ input, output });
 

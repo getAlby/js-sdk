@@ -43,6 +43,11 @@
       "import": "./dist/esm/webln.js",
       "require": "./dist/cjs/webln.cjs",
       "types": "./dist/types/webln.d.ts"
+    },
+    "./utils": {
+      "import": "./dist/esm/utils.js",
+      "require": "./dist/cjs/utils.cjs",
+      "types": "./dist/types/utils.d.ts"
     }
   },
   "scripts": {

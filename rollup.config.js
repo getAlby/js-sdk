@@ -22,6 +22,7 @@ const entries = [
   { name: "nwc", input: "src/nwc/index.ts" },
   { name: "oauth", input: "src/oauth/index.ts" },
   { name: "webln", input: "src/webln/index.ts" },
+  { name: "utils", input: "src/utils.ts" },
 ];
 
 const subBundles = entries.flatMap(({ name, input }) => [
