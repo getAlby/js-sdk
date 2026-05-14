@@ -9,6 +9,7 @@ import {
 } from "nostr-tools";
 import { hexToBytes } from "@noble/hashes/utils";
 
+import { Logger, noopLogger } from "../logger";
 import {
   Nip47MakeInvoiceRequest,
   Nip47Method,
@@ -29,8 +30,8 @@ import {
 } from "./NWCWalletServiceRequestHandler";
 
 export type NewNWCWalletServiceOptions = {
-  relayUrl?: string;
   relayUrls?: string[];
+  logger?: Logger;
 };
 
 export class NWCWalletServiceKeyPair {
@@ -53,23 +54,16 @@ export class NWCWalletServiceKeyPair {
 export class NWCWalletService {
   pool: SimplePool;
   relayUrls: string[];
+  logger: Logger;
 
   constructor(options: NewNWCWalletServiceOptions) {
-    if (options.relayUrls && options.relayUrls.length > 0) {
-      this.relayUrls = options.relayUrls;
-    } else if (options.relayUrl) {
-      this.relayUrls = [options.relayUrl];
-    } else {
-      throw new Error("Missing relayUrl or relayUrls");
+    if (!options.relayUrls?.length) {
+      throw new Error("Missing relayUrls");
     }
 
+    this.logger = options.logger || noopLogger;
     this.pool = new SimplePool({ enableReconnect: true });
-
-    if (globalThis.WebSocket === undefined) {
-      console.error(
-        "WebSocket is undefined. Make sure to `import websocket-polyfill` for nodejs environments",
-      );
-    }
+    this.relayUrls = options.relayUrls;
   }
 
   async publishWalletServiceInfoEvent(
@@ -101,10 +95,10 @@ export class NWCWalletService {
     keypair: NWCWalletServiceKeyPair,
     handler: NWCWalletServiceRequestHandler,
   ): Promise<() => void> {
-    console.info("checking connection to relay");
+    this.logger.debug("checking connection to relays");
     await this._checkConnected();
 
-    console.info("subscribing to relay");
+    this.logger.debug("subscribing to relays");
     const sub = this.pool.subscribe(
       this.relayUrls,
 
@@ -173,7 +167,6 @@ export class NWCWalletService {
                   request.params as Nip47SignMessageRequest,
                 );
                 break;
-              // TODO: handle multi_* methods
             }
 
             let response: NWCWalletServiceResponse<unknown> | undefined =
@@ -193,7 +186,10 @@ export class NWCWalletService {
             const responseEventTemplate: EventTemplate = {
               kind: 23195,
               created_at: Math.floor(Date.now() / 1000),
-              tags: [["e", event.id]],
+              tags: [
+                ["e", event.id],
+                ["p", keypair.clientPubkey],
+              ],
               content: await this.encrypt(
                 keypair,
                 JSON.stringify({
@@ -248,7 +244,6 @@ export class NWCWalletService {
     encryptionType: Nip47EncryptionType,
   ) {
     let encrypted;
-    // console.info("encrypting with" + encryptionType);
     if (encryptionType === "nip04") {
       encrypted = await nip04.encrypt(
         keypair.walletSecret,
@@ -271,7 +266,6 @@ export class NWCWalletService {
     encryptionType: Nip47EncryptionType,
   ) {
     let decrypted;
-    // console.info("decrypting with" + encryptionType);
     if (encryptionType === "nip04") {
       decrypted = await nip04.decrypt(
         keypair.walletSecret,

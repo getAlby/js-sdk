@@ -6,7 +6,13 @@ Build zero-custody bitcoin payments into apps with a few lines of code.
 
 This JavaScript SDK is for interacting with a bitcoin lightning wallet via Nostr Wallet Connect or the Alby Wallet API.
 
-## Installing
+Before you start coding, look at example scenarios in our **[Developer Sandbox](https://sandbox.albylabs.com/)**
+
+## 🤖 🚀 ⚡ For Developers using Agents / LLMs / Vibe Coding
+
+Skip the rest of this README and use the [Alby Bitcoin Builder Skill](https://github.com/getAlby/builder-skill) to build a bitcoin app or the [Alby Bitcoin Payment Skill](https://github.com/getAlby/payments-skill) to give your agent payment capabilities. It will handle the rest!
+
+## Manual Installation
 
 ```bash
 npm install @getalby/sdk
@@ -73,18 +79,7 @@ The [Alby OAuth API](https://guides.getalby.com/alby-wallet-api/reference/gettin
 
 ### NodeJS
 
-#### Fetch
-
-**This library relies on a global fetch() function which will work in browsers and node v18.x or newer.** (In older versions you have to use a polyfill.)
-
-#### Websocket polyfill
-
-To use this on Node.js you first must install `websocket-polyfill@0.0.3` and import it:
-
-```js
-import "websocket-polyfill";
-// or: require('websocket-polyfill');
-```
+Node.js 22 or higher is required (for native `fetch` and `WebSocket` support). On older versions you can install and import `websocket-polyfill@0.0.3` before using the SDK (not recommended).
 
 ## WebLN Documentation
 

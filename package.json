@@ -43,30 +43,41 @@
       "import": "./dist/esm/webln.js",
       "require": "./dist/cjs/webln.cjs",
       "types": "./dist/types/webln.d.ts"
+    },
+    "./utils": {
+      "import": "./dist/esm/utils.js",
+      "require": "./dist/cjs/utils.cjs",
+      "types": "./dist/types/utils.d.ts"
     }
   },
   "scripts": {
     "prebuild": "yarn run clean",
-    "lint": "yarn lint:js && yarn tsc:compile && yarn format:fix",
+    "lint": "yarn lint:js && yarn typecheck && yarn format:fix",
     "lint:js": "eslint src --ext .js,.ts --max-warnings 0",
     "lint:js:fix": "eslint src --ext .js,.ts --fix",
-    "tsc:compile": "tsc --noEmit",
-    "format": "prettier --check '**/*.(md|json)' 'src/**/*.(js|ts)' 'examples/**/*.(js|jsx)'",
-    "format:fix": "prettier --loglevel silent --write '**/*.(md|json)' 'src/**/*.(js|ts)' 'examples/**/*.(js|jsx|ts)'",
+    "typecheck": "tsc --noEmit -p tsconfig.build.json && tsc --noEmit -p tsconfig.test.json && tsc --noEmit -p tsconfig.e2e.json",
+    "format": "prettier --check '**/*.(md|json)' 'src/**/*.(js|ts)' 'examples/**/*.(js|jsx)' 'e2e/**/*.(js|ts)' 'playwright.config.ts'",
+    "format:fix": "prettier --loglevel silent --write '**/*.(md|json)' 'src/**/*.(js|ts)' 'examples/**/*.(js|jsx|ts)' 'e2e/**/*.(js|ts)' 'playwright.config.ts'",
     "prepack": "yarn run build",
     "test": "jest",
+    "test:e2e": "jest --config=jest.e2e.config.ts",
+    "test:e2e:browser": "playwright test --project=chromium",
+    "test:e2e:browser:install": "playwright install",
+    "test:e2e:browser:ui": "playwright test --ui",
+    "test:e2e:browser:headed": "playwright test --headed",
     "clean": "rm -rf dist",
     "build": "rollup -c",
     "dev": "microbundle watch",
     "prepare": "husky"
   },
   "dependencies": {
-    "@getalby/lightning-tools": "^6.0.0",
-    "nostr-tools": "^2.19.4"
+    "@getalby/lightning-tools": "^8.1.1",
+    "nostr-tools": "^2.23.3"
   },
   "devDependencies": {
     "@commitlint/cli": "^20.1.0",
     "@commitlint/config-conventional": "^20.0.0",
+    "@playwright/test": "^1.58.2",
     "@rollup/plugin-commonjs": "^28.0.6",
     "@rollup/plugin-node-resolve": "^16.0.1",
     "@rollup/plugin-terser": "^0.4.4",
@@ -83,17 +94,17 @@
     "jest": "^30.0.5",
     "lint-staged": "^16.1.4",
     "prettier": "^3.6.2",
+    "serve": "^14.2.4",
     "qrcode-terminal": "^0.12.0",
     "rollup": "^4.46.2",
     "rollup-plugin-dts": "^6.2.1",
     "ts-jest": "^29.4.1",
     "ts-node": "^10.9.1",
     "tslib": "^2.8.1",
-    "typescript": "^5.1.6",
-    "websocket-polyfill": "^0.0.3"
+    "typescript": "^5.1.6"
   },
   "engines": {
-    "node": ">=14"
+    "node": ">=22"
   },
   "author": "Alby contributors",
   "license": "MIT"

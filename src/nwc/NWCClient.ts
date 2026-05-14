@@ -11,6 +11,7 @@ import {
   SimplePool,
 } from "nostr-tools";
 import { hexToBytes, bytesToHex } from "@noble/hashes/utils";
+import { Logger, noopLogger } from "../logger";
 import {
   Nip47EncryptionType,
   Nip47SingleMethod,
@@ -56,6 +57,8 @@ import {
   Nip47NetworkError,
 } from "./types";
 
+const NWC_HEX64 = /^[0-9a-f]{64}$/;
+
 export interface NWCOptions {
   relayUrls: string[];
   walletPubkey: string;
@@ -69,6 +72,8 @@ export type NewNWCClientOptions = {
   walletPubkey?: string;
   nostrWalletConnectUrl?: string;
   lud16?: string;
+  logger?: Logger;
+  requireSecret?: boolean;
 };
 
 export class NWCClient {
@@ -78,9 +83,13 @@ export class NWCClient {
   lud16: string | undefined;
   walletPubkey: string;
   options: NWCOptions;
+  logger: Logger;
   private _encryptionType: Nip47EncryptionType | undefined;
 
-  static parseWalletConnectUrl(walletConnectUrl: string): NWCOptions {
+  static parseWalletConnectUrl(
+    walletConnectUrl: string,
+    requireSecret = false,
+  ): NWCOptions {
     // makes it possible to parse with URL in the different environments (browser/node/...)
     // parses both new and legacy protocols, with or without "//"
     walletConnectUrl = walletConnectUrl
@@ -90,9 +99,6 @@ export class NWCClient {
       .replace("nostr+walletconnect:", "http://");
     const url = new URL(walletConnectUrl);
     const relayParams = url.searchParams.getAll("relay");
-    if (!relayParams) {
-      throw new Error("No relay URL found in connection string");
-    }
 
     const options: NWCOptions = {
       walletPubkey: url.host,
@@ -106,13 +112,45 @@ export class NWCClient {
     if (lud16) {
       options.lud16 = lud16;
     }
+
+    if (!options.walletPubkey) {
+      throw new Error("Invalid NWC URL: missing wallet pubkey");
+    }
+
+    if (!NWC_HEX64.test(options.walletPubkey)) {
+      throw new Error("Invalid NWC URL: invalid wallet pubkey");
+    }
+
+    if (!options.relayUrls?.length) {
+      throw new Error("Invalid NWC URL: no relay URLs provided");
+    }
+
+    for (const relay of options.relayUrls) {
+      try {
+        new URL(relay);
+      } catch {
+        throw new Error(`Invalid relay URL: ${relay}`);
+      }
+    }
+
+    if (requireSecret && !options.secret) {
+      throw new Error("Invalid NWC URL: missing secret parameter");
+    }
+    if (options.secret && !NWC_HEX64.test(options.secret)) {
+      throw new Error("Invalid NWC URL: invalid secret");
+    }
+
     return options;
   }
 
   constructor(options?: NewNWCClientOptions) {
     if (options && options.nostrWalletConnectUrl) {
+      const parsed = NWCClient.parseWalletConnectUrl(
+        options.nostrWalletConnectUrl,
+        options.requireSecret,
+      );
       options = {
-        ...NWCClient.parseWalletConnectUrl(options.nostrWalletConnectUrl),
+        ...parsed,
         ...options,
       };
     }
@@ -121,6 +159,7 @@ export class NWCClient {
     } as NWCOptions;
 
     this.relayUrls = this.options.relayUrls;
+    this.logger = options?.logger || noopLogger;
     this.pool = new SimplePool({ enableReconnect: true });
     if (this.options.secret) {
       this.secret = (
@@ -136,12 +175,6 @@ export class NWCClient {
         : this.options.walletPubkey
     ) as string;
     // this.subscribers = {};
-
-    if (globalThis.WebSocket === undefined) {
-      console.error(
-        "WebSocket is undefined. Make sure to `import websocket-polyfill` for nodejs environments",
-      );
-    }
   }
 
   get nostrWalletConnectUrl() {
@@ -708,10 +741,11 @@ export class NWCClient {
     onNotification: (notification: Nip47Notification) => void,
     notificationTypes?: Nip47NotificationType[],
   ): Promise<() => void> {
+    this.logger.debug("checking connection to relays");
     await this._checkConnected();
     await this._selectEncryptionType();
 
-    console.info("subscribing to relays");
+    this.logger.debug("subscribing to relays");
 
     const sub = this.pool.subscribe(
       this.relayUrls,
@@ -757,7 +791,7 @@ export class NWCClient {
         },
       },
     );
-    console.info("subscribed to relays");
+    this.logger.debug("subscribed to relays");
 
     return () => {
       sub?.close();
@@ -830,7 +864,6 @@ export class NWCClient {
                 return;
               }
               if (response.result) {
-                // console.info("NIP-47 result", response.result);
                 if (resultValidator(response.result)) {
                   resolve(response.result);
                 } else {
@@ -893,9 +926,7 @@ export class NWCClient {
         try {
           await Promise.any(this.pool.publish(this.relayUrls, event));
           clearTimeout(publishTimeoutCheck);
-          //console.debug(`Event ${event.id} for ${invoice} published`);
         } catch (error) {
-          //console.error(`Failed to publish to ${this.relay.url}`, error);
           clearTimeout(publishTimeoutCheck);
           reject(
             new Nip47PublishError(`failed to publish: ${error}`, "INTERNAL"),
@@ -974,7 +1005,6 @@ export class NWCClient {
                 );
               }
               if (response.result) {
-                // console.info("NIP-47 result", response.result);
                 if (!resultValidator(response.result)) {
                   clearTimeout(replyTimeoutCheck);
                   sub.close();
@@ -1057,9 +1087,7 @@ export class NWCClient {
         try {
           await Promise.any(this.pool.publish(this.relayUrls, event));
           clearTimeout(publishTimeoutCheck);
-          //console.debug(`Event ${event.id} for ${invoice} published`);
         } catch (error) {
-          //console.error(`Failed to publish to ${this.relay.url}`, error);
           clearTimeout(publishTimeoutCheck);
           reject(
             new Nip47PublishError(`Failed to publish: ${error}`, "INTERNAL"),

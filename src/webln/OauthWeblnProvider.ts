@@ -1,4 +1,5 @@
 import { Client } from "../oauth/client";
+import { Logger, noopLogger } from "../logger";
 import { OAuthClient, KeysendRequestParams } from "../oauth/types";
 
 export interface RequestInvoiceArgs {
@@ -15,13 +16,15 @@ export class OauthWeblnProvider {
   oauth: boolean;
   subscribers: Record<string, (payload: unknown) => void>;
   isExecuting: boolean;
+  logger: Logger;
 
-  constructor(options: { auth: OAuthClient }) {
+  constructor(options: { auth: OAuthClient; logger?: Logger }) {
     this.auth = options.auth;
     this.client = new Client(options.auth);
     this.oauth = true;
     this.subscribers = {};
     this.isExecuting = false;
+    this.logger = options.logger || noopLogger;
   }
 
   on(name: string, callback: () => void) {
@@ -149,7 +152,7 @@ export class OauthWeblnProvider {
           !processingCode
         ) {
           processingCode = true; // make sure we request the access token only once
-          console.info("Processing OAuth code response");
+          this.logger.debug("Processing OAuth code response");
           const code = data.payload.code;
           try {
             await this.auth.requestAccessToken(code);

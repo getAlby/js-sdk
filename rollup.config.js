@@ -8,6 +8,7 @@ const plugins = [
   resolve(),
   commonjs(),
   typescript({
+    tsconfig: "./tsconfig.build.json",
     compilerOptions: {
       declaration: false,
       outDir: undefined,
@@ -21,6 +22,7 @@ const entries = [
   { name: "nwc", input: "src/nwc/index.ts" },
   { name: "oauth", input: "src/oauth/index.ts" },
   { name: "webln", input: "src/webln/index.ts" },
+  { name: "utils", input: "src/utils.ts" },
 ];
 
 const subBundles = entries.flatMap(({ name, input }) => [
@@ -44,7 +46,7 @@ const subBundles = entries.flatMap(({ name, input }) => [
   },
   {
     input,
-    plugins: [dts()],
+    plugins: [dts({ tsconfig: "./tsconfig.build.json" })],
     output: {
       file: `dist/types/${name}.d.ts`,
       format: "es",

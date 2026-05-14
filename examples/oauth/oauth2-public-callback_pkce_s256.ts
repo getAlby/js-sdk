@@ -1,4 +1,4 @@
-import {  Client, OAuth2User  } from "@getalby/sdk/oauth";
+import { Client, OAuth2User } from "@getalby/sdk/oauth";
 import express from "express";
 
 if (!process.env.CLIENT_ID || !process.env.CLIENT_SECRET) {
@@ -11,7 +11,7 @@ const authClient = new OAuth2User({
   client_id: process.env.CLIENT_ID,
   client_secret: process.env.CLIENT_SECRET,
   callback: "http://localhost:8080/callback",
-  user_agent:"AlbySDK-Example/0.1 (oauth_pub_callback-demo)",
+  user_agent: "AlbySDK-Example/0.1 (oauth_pub_callback-demo)",
   scopes: [
     "invoices:read",
     "account:read",
@@ -78,10 +78,10 @@ app.get("/bolt11/:invoice", async function (req, res) {
 });
 
 app.get("/keysend/:destination", async function (req, res) {
- if (typeof req.query.memo !== "string") {
-  res.status(400).send("Please provide 'memo' query param");
-  return;
-}
+  if (typeof req.query.memo !== "string") {
+    res.status(400).send("Please provide 'memo' query param");
+    return;
+  }
   const result = await client.keysend({
     destination: req.params.destination,
     amount: 10,

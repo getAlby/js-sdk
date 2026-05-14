@@ -1,5 +1,6 @@
 import { bytesToHex, hexToBytes } from "@noble/hashes/utils";
 import { generateSecretKey, getPublicKey, SimplePool } from "nostr-tools";
+import { Logger, noopLogger } from "../logger";
 import {
   BudgetRenewalPeriod,
   Nip47Method,
@@ -26,12 +27,14 @@ export type NWAOptions = {
 
 export type NewNWAClientOptions = Omit<NWAOptions, "appPubkey"> & {
   appSecretKey?: string;
+  logger?: Logger;
 };
 
 export class NWAClient {
   options: NWAOptions;
   appSecretKey: string;
   pool: SimplePool;
+  logger: Logger;
 
   constructor(options: NewNWAClientOptions) {
     this.appSecretKey = options.appSecretKey || bytesToHex(generateSecretKey());
@@ -49,12 +52,7 @@ export class NWAClient {
     this.pool = new SimplePool({
       enableReconnect: true,
     });
-
-    if (globalThis.WebSocket === undefined) {
-      console.error(
-        "WebSocket is undefined. Make sure to `import websocket-polyfill` for nodejs environments",
-      );
-    }
+    this.logger = options.logger || noopLogger;
   }
 
   /**
@@ -175,8 +173,9 @@ export class NWAClient {
   }): Promise<{
     unsub: () => void;
   }> {
+    this.logger.debug("checking connection to relays");
     await this._checkConnected();
-    console.info("subscribing to info event");
+    this.logger.debug("subscribing to info event");
 
     const sub = this.pool.subscribe(
       this.options.relayUrls,
@@ -206,7 +205,7 @@ export class NWAClient {
           sub?.close();
         },
         onclose: (reasons) => {
-          console.info("subscription closed", reasons);
+          this.logger.debug("subscription closed", reasons);
         },
       },
     );
