@@ -5,4 +5,7 @@ export default {
   testMatch: ['<rootDir>/e2e/**/*.test.ts'],
   testPathIgnorePatterns: ['/node_modules/', '/e2e/browser'],
   maxWorkers: 1, // Run e2e tests serially to avoid faucet rate limiting
+  transform: {
+    '^.+\\.tsx?$': ['ts-jest', { tsconfig: 'tsconfig.e2e.json' }],
+  },
 };

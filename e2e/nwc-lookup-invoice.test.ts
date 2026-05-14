@@ -17,31 +17,31 @@ describe("NWC lookup_invoice", () => {
     sender = await createTestWallet(BALANCE_SATS);
   }, 60_000);
 
-  test(
-    "finds paid invoice by invoice string",
-    async () => {
-      const receiverClient = new NWCClient({ nostrWalletConnectUrl: receiver.nwcUrl });
-      const senderClient = new NWCClient({ nostrWalletConnectUrl: sender.nwcUrl });
+  test("finds paid invoice by invoice string", async () => {
+    const receiverClient = new NWCClient({
+      nostrWalletConnectUrl: receiver.nwcUrl,
+    });
+    const senderClient = new NWCClient({
+      nostrWalletConnectUrl: sender.nwcUrl,
+    });
 
-      try {
-        const invoiceResult = await receiverClient.makeInvoice({
-          amount: AMOUNT_MSATS,
-          description: "E2E lookup test",
-        });
-        expect(invoiceResult.invoice).toBeDefined();
+    try {
+      const invoiceResult = await receiverClient.makeInvoice({
+        amount: AMOUNT_MSATS,
+        description: "E2E lookup test",
+      });
+      expect(invoiceResult.invoice).toBeDefined();
 
-        await senderClient.payInvoice({ invoice: invoiceResult.invoice });
+      await senderClient.payInvoice({ invoice: invoiceResult.invoice });
 
-        const lookupResult = await receiverClient.lookupInvoice({
-          invoice: invoiceResult.invoice,
-        });
-        expect(lookupResult.payment_hash).toBeDefined();
-        expect(lookupResult.invoice).toBe(invoiceResult.invoice);
-      } finally {
-        receiverClient.close();
-        senderClient.close();
-      }
-    },
-    60_000,
-  );
+      const lookupResult = await receiverClient.lookupInvoice({
+        invoice: invoiceResult.invoice,
+      });
+      expect(lookupResult.payment_hash).toBeDefined();
+      expect(lookupResult.invoice).toBe(invoiceResult.invoice);
+    } finally {
+      receiverClient.close();
+      senderClient.close();
+    }
+  }, 60_000);
 });

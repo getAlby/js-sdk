@@ -1,5 +1,4 @@
 import { AlbyResponseError } from "./AlbyResponseError";
-import "websocket-polyfill";
 
 describe("AlbyResponseError", () => {
   test("Error message is generated", () => {

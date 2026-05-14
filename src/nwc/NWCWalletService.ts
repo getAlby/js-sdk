@@ -62,12 +62,6 @@ export class NWCWalletService {
     this.logger = options.logger || noopLogger;
 
     this.relay = new Relay(this.relayUrl);
-
-    if (globalThis.WebSocket === undefined) {
-      console.error(
-        "WebSocket is undefined. Make sure to `import websocket-polyfill` for nodejs environments",
-      );
-    }
   }
 
   async publishWalletServiceInfoEvent(
@@ -199,7 +193,10 @@ export class NWCWalletService {
               const responseEventTemplate: EventTemplate = {
                 kind: 23195,
                 created_at: Math.floor(Date.now() / 1000),
-                tags: [["e", event.id]],
+                tags: [
+                  ["e", event.id],
+                  ["p", keypair.clientPubkey],
+                ],
                 content: await this.encrypt(
                   keypair,
                   JSON.stringify({

@@ -53,12 +53,6 @@ export class NWAClient {
     }
     this.pool = new SimplePool();
     this.logger = options.logger || noopLogger;
-
-    if (globalThis.WebSocket === undefined) {
-      console.error(
-        "WebSocket is undefined. Make sure to `import websocket-polyfill` for nodejs environments",
-      );
-    }
   }
 
   /**

@@ -1,21 +1,8 @@
 {
-  "compilerOptions": {
-    "module": "ESNext",
-    "moduleResolution": "node",
-    "lib": ["ES2021", "DOM"],
-    "target": "es2020",
-    "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "declaration": true,
-    "emitDeclarationOnly": true,
-    "outDir": "dist/types",
-    "rootDir": "./src",
-    "noImplicitAny": false
-  },
-  "ts-node": {
-    "esm": true
-  },
-  "include": ["src/**/*"],
-  "exclude": ["examples/*", "scripts/*"]
+  "files": [],
+  "references": [
+    { "path": "./tsconfig.build.json" },
+    { "path": "./tsconfig.test.json" },
+    { "path": "./tsconfig.e2e.json" }
+  ]
 }
