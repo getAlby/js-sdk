@@ -787,7 +787,7 @@ export class NWCClient {
         onclose: (reasons) => {
           // Since we have auto-reconnect, this usually only fires on fatal errors,
           // all relays were closed once or explicit closure, not temp disconnects.
-          console.warn("subscription closed", reasons);
+          this.logger.debug("subscription closed", reasons);
         },
       },
     );

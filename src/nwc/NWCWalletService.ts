@@ -215,7 +215,7 @@ export class NWCWalletService {
           }
         },
         onclose: (reasons) => {
-          console.warn("Subscription closed:", reasons);
+          this.logger.debug("Subscription closed:", reasons);
         },
       },
     );
