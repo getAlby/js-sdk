@@ -1,5 +1,6 @@
 import { bytesToHex, hexToBytes } from "@noble/hashes/utils";
 import { generateSecretKey, getPublicKey, SimplePool } from "nostr-tools";
+import { Logger, noopLogger } from "../logger";
 import {
   BudgetRenewalPeriod,
   Nip47Method,
@@ -27,6 +28,7 @@ export type NWAOptions = {
 
 export type NewNWAClientOptions = Omit<NWAOptions, "appPubkey"> & {
   appSecretKey?: string;
+  logger?: Logger;
 };
 
 // TODO: add support for multiple relay URLs
@@ -34,6 +36,7 @@ export class NWAClient {
   options: NWAOptions;
   appSecretKey: string;
   pool: SimplePool;
+  logger: Logger;
 
   constructor(options: NewNWAClientOptions) {
     this.appSecretKey = options.appSecretKey || bytesToHex(generateSecretKey());
@@ -49,6 +52,7 @@ export class NWAClient {
       throw new Error("Missing request methods");
     }
     this.pool = new SimplePool();
+    this.logger = options.logger || noopLogger;
   }
 
   /**
@@ -189,6 +193,7 @@ export class NWAClient {
                   relayUrls: this.options.relayUrls,
                   secret: this.appSecretKey,
                   walletPubkey: event.pubkey,
+                  logger: this.logger,
                 });
 
                 // try to fetch the lightning address
@@ -209,12 +214,12 @@ export class NWAClient {
               onclose: (reasons) => {
                 // NOTE: this fires when all relays were closed once. There is no reconnect logic in nostr-tools
                 // See https://github.com/nbd-wtf/nostr-tools/issues/513
-                console.info("relay connection closed", reasons);
+                this.logger.debug("relay connection closed", reasons);
                 endPromise?.();
               },
             },
           );
-          console.info("subscribed to relays");
+          this.logger.debug("subscribed to relays");
 
           await new Promise<void>((resolve) => {
             endPromise = () => {

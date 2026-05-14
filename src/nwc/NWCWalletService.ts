@@ -10,6 +10,7 @@ import {
 import { hexToBytes } from "@noble/hashes/utils";
 import { Subscription } from "nostr-tools/lib/types/abstract-relay";
 
+import { Logger, noopLogger } from "../logger";
 import {
   Nip47MakeInvoiceRequest,
   Nip47Method,
@@ -31,6 +32,7 @@ import {
 
 export type NewNWCWalletServiceOptions = {
   relayUrl: string;
+  logger?: Logger;
 };
 
 export class NWCWalletServiceKeyPair {
@@ -53,9 +55,11 @@ export class NWCWalletServiceKeyPair {
 export class NWCWalletService {
   relay: Relay;
   relayUrl: string;
+  logger: Logger;
 
   constructor(options: NewNWCWalletServiceOptions) {
     this.relayUrl = options.relayUrl;
+    this.logger = options.logger || noopLogger;
 
     this.relay = new Relay(this.relayUrl);
   }
@@ -96,9 +100,9 @@ export class NWCWalletService {
     (async () => {
       while (subscribed) {
         try {
-          console.info("checking connection to relay");
+          this.logger.debug("checking connection to relay");
           await this._checkConnected();
-          console.info("subscribing to relay");
+          this.logger.debug("subscribing to relay");
           sub = this.relay.subscribe(
             [
               {
@@ -109,11 +113,10 @@ export class NWCWalletService {
             ],
             {},
           );
-          console.info("subscribed to relays");
+          this.logger.debug("subscribed to relays");
 
           sub.onevent = async (event) => {
             try {
-              // console.info("Got event", event);
               const encryptionType = (event.tags.find(
                 (t) => t[0] === "encryption",
               )?.[1] || "nip04") as Nip47EncryptionType;
@@ -268,7 +271,6 @@ export class NWCWalletService {
     encryptionType: Nip47EncryptionType,
   ) {
     let encrypted;
-    // console.info("encrypting with" + encryptionType);
     if (encryptionType === "nip04") {
       encrypted = await nip04.encrypt(
         keypair.walletSecret,
@@ -291,7 +293,6 @@ export class NWCWalletService {
     encryptionType: Nip47EncryptionType,
   ) {
     let decrypted;
-    // console.info("decrypting with" + encryptionType);
     if (encryptionType === "nip04") {
       decrypted = await nip04.decrypt(
         keypair.walletSecret,

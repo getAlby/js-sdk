@@ -1,3 +1,4 @@
+export * from "./logger";
 export * from "./oauth";
 export * from "./webln";
 export * from "./nwc";
