@@ -8,7 +8,6 @@ import {
   getPublicKey,
   Event,
   EventTemplate,
-  SimplePool,
 } from "nostr-tools";
 import { hexToBytes, bytesToHex } from "@noble/hashes/utils.js";
 import { Logger, noopLogger } from "../logger";
@@ -56,6 +55,7 @@ import {
   Nip47CancelHoldInvoiceResponse,
   Nip47NetworkError,
 } from "./types";
+import { ReconnectingPool } from "./ReconnectingPool";
 
 const NWC_HEX64 = /^[0-9a-f]{64}$/;
 
@@ -77,7 +77,7 @@ export type NewNWCClientOptions = {
 };
 
 export class NWCClient {
-  pool: SimplePool;
+  pool: ReconnectingPool;
   relayUrls: string[];
   secret: string | undefined;
   lud16: string | undefined;
@@ -160,7 +160,7 @@ export class NWCClient {
 
     this.relayUrls = this.options.relayUrls;
     this.logger = options?.logger || noopLogger;
-    this.pool = new SimplePool({ enableReconnect: true });
+    this.pool = new ReconnectingPool();
     if (this.options.secret) {
       this.secret = (
         this.options.secret.toLowerCase().startsWith("nsec")
@@ -414,8 +414,15 @@ export class NWCClient {
     notifications: Nip47NotificationType[];
   }> {
     await this._checkConnected();
-    const events = await new Promise<Event[]>((resolve, reject) => {
-      const events: Event[] = [];
+    const event = await new Promise<Event>((resolve, reject) => {
+      let settled = false;
+      const timeoutId = setTimeout(() => {
+        if (settled) return;
+        settled = true;
+        sub.close();
+        reject(new Error("no info event (kind 13194) returned from relay"));
+      }, 10000);
+
       const sub = this.pool.subscribe(
         this.relayUrls,
         {
@@ -424,28 +431,22 @@ export class NWCClient {
           authors: [this.walletPubkey],
         },
         {
-          eoseTimeout: 10000,
           onevent: (event) => {
-            events.push(event);
-          },
-          oneose: () => {
+            if (settled) return;
+            settled = true;
+            clearTimeout(timeoutId);
             sub.close();
-            resolve(events);
+            resolve(event);
           },
         },
       );
     });
 
-    if (!events.length) {
-      throw new Error("no info event (kind 13194) returned from relay");
-    }
-    const content = events[0].content;
-    const notificationsTag = events[0].tags.find(
-      (t) => t[0] === "notifications",
-    );
+    const content = event.content;
+    const notificationsTag = event.tags.find((t) => t[0] === "notifications");
     // TODO: Remove version tag after 01-06-2025
-    const versionsTag = events[0].tags.find((t) => t[0] === "v");
-    const encryptionTag = events[0].tags.find((t) => t[0] === "encryption");
+    const versionsTag = event.tags.find((t) => t[0] === "v");
+    const encryptionTag = event.tags.find((t) => t[0] === "encryption");
 
     let encryptions: string[] = ["nip04" satisfies Nip47EncryptionType];
     // TODO: Remove version tag after 01-06-2025
@@ -784,10 +785,11 @@ export class NWCClient {
             console.error("No notification in response", notification);
           }
         },
-        onclose: (reasons) => {
-          // Since we have auto-reconnect, this usually only fires on fatal errors,
-          // all relays were closed once or explicit closure, not temp disconnects.
-          this.logger.debug("subscription closed", reasons);
+        onconnect: (url) => {
+          this.logger.debug("relay connected", url);
+        },
+        ondisconnect: (url, reason) => {
+          this.logger.debug("relay disconnected", url, reason);
         },
       },
     );
@@ -936,9 +938,10 @@ export class NWCClient {
     });
   }
 
-  // TODO: this method currently fails if any payment fails.
-  // this could be improved in the future.
-  // TODO: reduce duplication between executeNip47Request and executeMultiNip47Request
+  /**
+   * @deprecated
+   * multi- methods were removed from NIP-47.
+   */
   private async executeMultiNip47Request<T>(
     nip47Method: Nip47MultiMethod,
     params: unknown,

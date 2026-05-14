@@ -84,7 +84,8 @@ export class NWCWalletService {
       };
 
       const event = await this.signEvent(eventTemplate, walletSecret);
-      await Promise.allSettled(this.pool.publish(this.relayUrls, event));
+      // NOTE: ideally we queue failed publishes and try again later
+      await Promise.any(this.pool.publish(this.relayUrls, event));
     } catch (error) {
       console.error("failed to publish wallet service info event", error);
       throw error;
@@ -205,12 +206,10 @@ export class NWCWalletService {
               keypair.walletSecret,
             );
 
-            // Tries to publish, but ignores failures if relay is dead
-            Promise.allSettled(
-              this.pool.publish(this.relayUrls, responseEvent),
-            );
+            // Try to publish to at least one relay
+            Promise.any(this.pool.publish(this.relayUrls, responseEvent));
           } catch (e) {
-            console.error("Failed to parse decrypted event content", e);
+            console.error("Failed to handle event", e);
             return;
           }
         },
