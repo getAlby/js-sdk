@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>SDK Smoke Test</title>
+  </head>
+  <body>
+    <div id="status">loading...</div>
+    <script type="module">
+      try {
+        const { SATS, resolveAmount } = await import("/dist/esm/lnclient.js");
+        const amount = SATS(10);
+        const resolved = await resolveAmount(amount);
+        if (resolved.satoshi === 10 && resolved.millisat === 10_000) {
+          window.__sdkReady = true;
+          document.getElementById("status").textContent = "ok";
+        } else {
+          document.getElementById("status").textContent = "fail";
+        }
+      } catch (e) {
+        console.error(e);
+        document.getElementById("status").textContent = "error";
+      }
+    </script>
+  </body>
+</html>

@@ -1,6 +1,6 @@
 import crypto from "crypto";
 // from https://stackoverflow.com/a/50868276
-const toHexString = (bytes: Uint8Array) =>
+const toHexString = (bytes: Uint8Array<ArrayBuffer>) =>
   bytes.reduce((str, byte) => str + byte.toString(16).padStart(2, "0"), "");
 
 async function generatePreimageAndPaymentHash(): Promise<{
@@ -16,8 +16,4 @@ async function generatePreimageAndPaymentHash(): Promise<{
   return { preimage, paymentHash };
 }
 
-
-export {
-  toHexString,
-  generatePreimageAndPaymentHash,
-};
+export { toHexString, generatePreimageAndPaymentHash };

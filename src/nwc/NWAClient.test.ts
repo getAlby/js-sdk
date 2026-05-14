@@ -1,4 +1,3 @@
-import "websocket-polyfill";
 import { NWAClient } from "./NWAClient";
 import { bytesToHex, hexToBytes } from "@noble/hashes/utils";
 import { generateSecretKey, getPublicKey } from "nostr-tools";

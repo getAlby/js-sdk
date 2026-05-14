@@ -57,6 +57,8 @@ import {
 } from "./types";
 import { SubCloser } from "nostr-tools/lib/types/abstract-pool";
 
+const NWC_HEX64 = /^[0-9a-f]{64}$/;
+
 export interface NWCOptions {
   relayUrls: string[];
   walletPubkey: string;
@@ -70,6 +72,7 @@ export type NewNWCClientOptions = {
   walletPubkey?: string;
   nostrWalletConnectUrl?: string;
   lud16?: string;
+  requireSecret?: boolean;
 };
 
 export class NWCClient {
@@ -81,38 +84,10 @@ export class NWCClient {
   options: NWCOptions;
   private _encryptionType: Nip47EncryptionType | undefined;
 
-
-
-
-  static validateWalletConnectUrl(
-    options: NWCOptions,
+  static parseWalletConnectUrl(
+    walletConnectUrl: string,
     requireSecret = false,
-  ) {
-    if (!options.walletPubkey) {
-      throw new Error("Invalid WalletConnect URL: missing wallet pubkey");
-    }
-
-    if (!options.relayUrls || options.relayUrls.length === 0) {
-      throw new Error("Invalid WalletConnect URL: no relay URLs provided");
-    }
-
-    for (const relay of options.relayUrls) {
-      try {
-        new URL(relay);
-      } catch {
-        throw new Error(`Invalid relay URL: ${relay}`);
-      }
-    }
-
-    if (requireSecret && !options.secret) {
-      throw new Error(
-        "Invalid WalletConnect URL: missing secret parameter",
-      );
-    }
-  }
-
-
-  static parseWalletConnectUrl(walletConnectUrl: string): NWCOptions {
+  ): NWCOptions {
     // makes it possible to parse with URL in the different environments (browser/node/...)
     // parses both new and legacy protocols, with or without "//"
     walletConnectUrl = walletConnectUrl
@@ -122,9 +97,6 @@ export class NWCClient {
       .replace("nostr+walletconnect:", "http://");
     const url = new URL(walletConnectUrl);
     const relayParams = url.searchParams.getAll("relay");
-    if (!relayParams) {
-      throw new Error("No relay URL found in connection string");
-    }
 
     const options: NWCOptions = {
       walletPubkey: url.host,
@@ -138,7 +110,34 @@ export class NWCClient {
     if (lud16) {
       options.lud16 = lud16;
     }
-    NWCClient.validateWalletConnectUrl(options);
+
+    if (!options.walletPubkey) {
+      throw new Error("Invalid NWC URL: missing wallet pubkey");
+    }
+
+    if (!NWC_HEX64.test(options.walletPubkey)) {
+      throw new Error("Invalid NWC URL: invalid wallet pubkey");
+    }
+
+    if (!options.relayUrls?.length) {
+      throw new Error("Invalid NWC URL: no relay URLs provided");
+    }
+
+    for (const relay of options.relayUrls) {
+      try {
+        new URL(relay);
+      } catch {
+        throw new Error(`Invalid relay URL: ${relay}`);
+      }
+    }
+
+    if (requireSecret && !options.secret) {
+      throw new Error("Invalid NWC URL: missing secret parameter");
+    }
+    if (options.secret && !NWC_HEX64.test(options.secret)) {
+      throw new Error("Invalid NWC URL: invalid secret");
+    }
+
     return options;
   }
 
@@ -146,8 +145,8 @@ export class NWCClient {
     if (options && options.nostrWalletConnectUrl) {
       const parsed = NWCClient.parseWalletConnectUrl(
         options.nostrWalletConnectUrl,
+        options.requireSecret,
       );
-      NWCClient.validateWalletConnectUrl(parsed, true);
       options = {
         ...parsed,
         ...options,
@@ -158,8 +157,7 @@ export class NWCClient {
     } as NWCOptions;
 
     this.relayUrls = this.options.relayUrls;
-    this.pool = new SimplePool({
-    });
+    this.pool = new SimplePool({});
     if (this.options.secret) {
       this.secret = (
         this.options.secret.toLowerCase().startsWith("nsec")
@@ -174,12 +172,6 @@ export class NWCClient {
         : this.options.walletPubkey
     ) as string;
     // this.subscribers = {};
-
-    if (globalThis.WebSocket === undefined) {
-      console.error(
-        "WebSocket is undefined. Make sure to `import websocket-polyfill` for nodejs environments",
-      );
-    }
   }
 
   get nostrWalletConnectUrl() {
