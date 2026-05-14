@@ -10,7 +10,7 @@ import {
   EventTemplate,
   SimplePool,
 } from "nostr-tools";
-import { hexToBytes, bytesToHex } from "@noble/hashes/utils";
+import { hexToBytes, bytesToHex } from "@noble/hashes/utils.js";
 import { Logger, noopLogger } from "../logger";
 import {
   Nip47EncryptionType,

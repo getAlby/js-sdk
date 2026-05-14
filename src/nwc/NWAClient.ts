@@ -1,4 +1,4 @@
-import { bytesToHex, hexToBytes } from "@noble/hashes/utils";
+import { bytesToHex, hexToBytes } from "@noble/hashes/utils.js";
 import { generateSecretKey, getPublicKey, SimplePool } from "nostr-tools";
 import { Logger, noopLogger } from "../logger";
 import {

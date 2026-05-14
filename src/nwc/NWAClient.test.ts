@@ -1,5 +1,5 @@
 import { NWAClient } from "./NWAClient";
-import { bytesToHex, hexToBytes } from "@noble/hashes/utils";
+import { bytesToHex, hexToBytes } from "@noble/hashes/utils.js";
 import { generateSecretKey, getPublicKey } from "nostr-tools";
 import { Nip47Method, Nip47NotificationType } from "./types";
 

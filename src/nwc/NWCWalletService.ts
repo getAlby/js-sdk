@@ -7,7 +7,7 @@ import {
   EventTemplate,
   SimplePool,
 } from "nostr-tools";
-import { hexToBytes } from "@noble/hashes/utils";
+import { hexToBytes } from "@noble/hashes/utils.js";
 
 import { Logger, noopLogger } from "../logger";
 import {
