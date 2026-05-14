@@ -1,5 +1,5 @@
 import { bytesToHex, hexToBytes } from "@noble/hashes/utils.js";
-import { generateSecretKey, getPublicKey, SimplePool } from "nostr-tools";
+import { generateSecretKey, getPublicKey } from "nostr-tools";
 import { Logger, noopLogger } from "../logger";
 import {
   BudgetRenewalPeriod,
@@ -8,6 +8,7 @@ import {
   Nip47NotificationType,
 } from "./types";
 import { NWCClient } from "./NWCClient";
+import { ReconnectingPool } from "./ReconnectingPool";
 
 export type NWAOptions = {
   relayUrls: string[];
@@ -33,7 +34,7 @@ export type NewNWAClientOptions = Omit<NWAOptions, "appPubkey"> & {
 export class NWAClient {
   options: NWAOptions;
   appSecretKey: string;
-  pool: SimplePool;
+  pool: ReconnectingPool;
   logger: Logger;
 
   constructor(options: NewNWAClientOptions) {
@@ -49,9 +50,7 @@ export class NWAClient {
     if (!this.options.requestMethods) {
       throw new Error("Missing request methods");
     }
-    this.pool = new SimplePool({
-      enableReconnect: true,
-    });
+    this.pool = new ReconnectingPool();
     this.logger = options.logger || noopLogger;
   }
 
@@ -204,8 +203,11 @@ export class NWAClient {
 
           sub?.close();
         },
-        onclose: (reasons) => {
-          this.logger.debug("subscription closed", reasons);
+        onconnect: (url) => {
+          this.logger.debug("relay connected", url);
+        },
+        ondisconnect: (url, reason) => {
+          this.logger.debug("relay disconnected", url, reason);
         },
       },
     );
@@ -215,6 +217,10 @@ export class NWAClient {
         sub?.close();
       },
     };
+  }
+
+  close() {
+    return this.pool.close(this.options.relayUrls);
   }
 
   private async _checkConnected() {

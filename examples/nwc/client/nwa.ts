@@ -30,7 +30,7 @@ console.info(nwaClient.connectionUri);
 
 console.info("\nWaiting for connection...");
 
-await nwaClient.subscribe({
+const { unsub } = await nwaClient.subscribe({
   onSuccess: async (nwcClient) => {
     console.info("NWA successful", nwcClient.options);
     const response = await nwcClient.getInfo();
@@ -38,5 +38,7 @@ await nwaClient.subscribe({
     console.info(response);
 
     nwcClient.close();
+    unsub();
+    nwaClient.close();
   },
 });
