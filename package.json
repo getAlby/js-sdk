@@ -91,7 +91,7 @@
     "eslint-config-prettier": "^10.1.8",
     "husky": "^9.1.7",
     "jest": "^30.0.5",
-    "lint-staged": "^16.1.4",
+    "lint-staged": "^17.0.4",
     "prettier": "^3.6.2",
     "rollup": "^4.46.2",
     "rollup-plugin-dts": "^6.2.1",
