@@ -8,12 +8,12 @@
     "start": "tsx ./lnclient/pay_ln_address.ts"
   },
   "dependencies": {
-    "@getalby/sdk": "portal:../",
-    "dotenv": "^17.2.2",
-    "express": "^5.1.0"
+    "@getalby/sdk": "portal:../"
   },
   "devDependencies": {
     "@types/express": "^5.0.3",
+    "dotenv": "^17.2.2",
+    "express": "^5.1.0",
     "tsx": "^4.19.4",
     "typescript": "^5.1.6"
   },
