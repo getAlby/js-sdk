@@ -30,7 +30,7 @@ or for use without any build tools:
 <script type="module">
   import {
     LN /* or NWCClient, or NostrWebLNProvider */,
-  } from "https://esm.sh/@getalby/sdk@7.0.0"; // jsdelivr.net, skypack.dev also work
+  } from "https://esm.sh/@getalby/sdk@8.0.1"; // jsdelivr.net, skypack.dev also work
 
   // ... then use the SDK as normal (see below)
 </script>
