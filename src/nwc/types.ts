@@ -100,6 +100,9 @@ export type Nip47GetBalanceResponse = {
   balance: number; // msats
 };
 
+// TODO: rename to Nip47PayInvoiceResponse (with a Nip47PayKeysendResponse alias)
+// and deprecate this name - "pay" now refers to the NWC-321 pay method
+// (see Nip47Bip321PayResponse)
 export type Nip47PayResponse = {
   preimage: string;
   fees_paid: number;
