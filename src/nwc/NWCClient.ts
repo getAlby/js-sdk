@@ -53,6 +53,10 @@ import {
   Nip47SettleHoldInvoiceResponse,
   Nip47CancelHoldInvoiceRequest,
   Nip47CancelHoldInvoiceResponse,
+  Nip47Bip321PayRequest,
+  Nip47Bip321PayResponse,
+  Nip47Bip321ReceiveRequest,
+  Nip47Bip321ReceiveResponse,
   Nip47NetworkError,
 } from "./types";
 import { ReconnectingPool } from "./ReconnectingPool";
@@ -535,6 +539,50 @@ export class NWCClient {
       return result;
     } catch (error) {
       console.error("Failed to request pay_keysend", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Pays one Lightning payment instruction from a BIP-321 URI (NWC-321).
+   *
+   * The wallet service selects and pays a single supported instruction
+   * (e.g. a BOLT-11 invoice or BOLT-12 offer) from the URI.
+   *
+   * @see https://github.com/nostr-wallet-connect/nwc/blob/main/321.md
+   */
+  async pay(request: Nip47Bip321PayRequest): Promise<Nip47Bip321PayResponse> {
+    try {
+      const result = await this.executeNip47Request<Nip47Bip321PayResponse>(
+        "pay",
+        request,
+        (result) => !!result.state,
+      );
+      return result;
+    } catch (error) {
+      console.error("Failed to request pay", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Creates a BIP-321 URI containing one or more wallet-selected Lightning
+   * receive instructions that can be given to a payer (NWC-321).
+   *
+   * @see https://github.com/nostr-wallet-connect/nwc/blob/main/321.md
+   */
+  async receive(
+    request: Nip47Bip321ReceiveRequest,
+  ): Promise<Nip47Bip321ReceiveResponse> {
+    try {
+      const result = await this.executeNip47Request<Nip47Bip321ReceiveResponse>(
+        "receive",
+        request,
+        (result) => !!result.bip321,
+      );
+      return result;
+    } catch (error) {
+      console.error("Failed to request receive", error);
       throw error;
     }
   }

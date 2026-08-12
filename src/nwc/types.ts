@@ -58,7 +58,9 @@ export type Nip47SingleMethod =
   | "create_connection"
   | "make_hold_invoice"
   | "settle_hold_invoice"
-  | "cancel_hold_invoice";
+  | "cancel_hold_invoice"
+  | "pay"
+  | "receive";
 
 export type Nip47MultiMethod = "multi_pay_invoice" | "multi_pay_keysend";
 
@@ -210,6 +212,55 @@ export type Nip47PayKeysendRequest = {
   pubkey: string;
   preimage?: string;
   tlv_records?: { type: number; value: string }[];
+};
+
+/**
+ * Request to pay a Lightning payment instruction from a BIP-321 URI (NWC-321).
+ * @see https://github.com/nostr-wallet-connect/nwc/blob/main/321.md
+ */
+export type Nip47Bip321PayRequest = {
+  payment: string; // BIP-321 URI e.g. "bitcoin:?lightning=lnbc..."
+  amount?: number; // msats, required if the selected payment instruction has no amount
+  payer_note?: string;
+  metadata?: Nip47TransactionMetadata;
+};
+
+/**
+ * Response of the NWC-321 `pay` method.
+ * @see https://github.com/nostr-wallet-connect/nwc/blob/main/321.md
+ */
+export type Nip47Bip321PayResponse = {
+  transaction_id: string; // wallet-scoped transaction identifier
+  state: "pending" | "settled" | "failed";
+  instruction_type: "bolt11" | "bolt12";
+  amount: number; // paid amount in msats
+  fees_paid: number; // paid fees in msats
+  payment_hash?: string;
+  preimage?: string;
+  payer_proof?: string; // BOLT-12 payer proof
+  txid?: string; // on-chain transaction identifier
+  failure_reason?: string; // present if state is "failed"
+  created_at: number;
+  settled_at?: number;
+};
+
+/**
+ * Request to create a BIP-321 URI for receiving a payment (NWC-321).
+ * @see https://github.com/nostr-wallet-connect/nwc/blob/main/321.md
+ */
+export type Nip47Bip321ReceiveRequest = {
+  amount?: number | null; // msats; omit or use null for a variable amount
+  description?: string;
+  metadata?: Nip47TransactionMetadata;
+};
+
+/**
+ * Response of the NWC-321 `receive` method.
+ * @see https://github.com/nostr-wallet-connect/nwc/blob/main/321.md
+ */
+export type Nip47Bip321ReceiveResponse = {
+  bip321: string; // BIP-321 URI e.g. "bitcoin:?lightning=lnbc..."
+  transaction_id?: string; // wallet-scoped transaction identifier
 };
 
 export type Nip47MakeInvoiceRequest = {
