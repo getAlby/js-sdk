@@ -1,6 +1,10 @@
-import { generateSecretKey, getPublicKey, Event } from "nostr-tools";
+import { generateSecretKey, getPublicKey, Event, Filter } from "nostr-tools";
 import { bytesToHex } from "@noble/hashes/utils.js";
-import { NWCWalletService, NWCWalletServiceKeyPair } from "./NWCWalletService";
+import {
+  NWCWalletService,
+  NWCWalletServiceKeyPair,
+  NWCWalletServiceSubscribeFilter,
+} from "./NWCWalletService";
 import { NWCWalletServiceRequestHandler } from "./NWCWalletServiceRequestHandler";
 import { Nip47GetInfoResponse } from "./types";
 
@@ -10,6 +14,7 @@ type SubscribeParams = {
 
 async function setupSubscribedWalletService(
   handler: NWCWalletServiceRequestHandler,
+  filter?: NWCWalletServiceSubscribeFilter,
 ) {
   const walletSecret = bytesToHex(generateSecretKey());
   const clientSecret = generateSecretKey();
@@ -24,7 +29,9 @@ async function setupSubscribedWalletService(
   });
 
   let subscribeParams: SubscribeParams | undefined;
-  service.pool.subscribe = (_relayUrls, _filter, params) => {
+  let subscribeFilter: Filter | undefined;
+  service.pool.subscribe = (_relayUrls, poolFilter, params) => {
+    subscribeFilter = poolFilter;
     subscribeParams = params as SubscribeParams;
     return { close: () => {} } as ReturnType<typeof service.pool.subscribe>;
   };
@@ -33,8 +40,8 @@ async function setupSubscribedWalletService(
     service as unknown as { _checkConnected: () => Promise<void> }
   )._checkConnected = () => Promise.resolve();
 
-  const unsubscribe = await service.subscribe(keypair, handler);
-  if (!subscribeParams) {
+  const unsubscribe = await service.subscribe(keypair, handler, filter);
+  if (!subscribeParams || !subscribeFilter) {
     throw new Error("subscribe was not called on the pool");
   }
 
@@ -56,7 +63,14 @@ async function setupSubscribedWalletService(
     bytesToHex(clientSecret),
   );
 
-  return { service, subscribeParams, requestEvent, unsubscribe };
+  return {
+    service,
+    subscribeParams,
+    subscribeFilter,
+    requestEvent,
+    unsubscribe,
+    keypair,
+  };
 }
 
 const getInfoResponse = {
@@ -204,4 +218,46 @@ describe("response publishing", () => {
     await new Promise((resolve) => setTimeout(resolve, 1200));
     expect(publishCalls).toBe(1);
   }, 10_000);
+});
+
+describe("subscribe filter", () => {
+  test("omits since and until when no filter is provided", async () => {
+    const { subscribeFilter, keypair } = await setupSubscribedWalletService({});
+
+    expect(subscribeFilter).toEqual({
+      kinds: [23194],
+      authors: [keypair.clientPubkey],
+      "#p": [keypair.walletPubkey],
+    });
+    expect(subscribeFilter).not.toHaveProperty("since");
+    expect(subscribeFilter).not.toHaveProperty("until");
+  });
+
+  test("includes since and until when provided", async () => {
+    const since = 1_700_000_000;
+    const until = 1_800_000_000;
+    const { subscribeFilter, keypair } = await setupSubscribedWalletService(
+      {},
+      { since, until },
+    );
+
+    expect(subscribeFilter).toEqual({
+      kinds: [23194],
+      authors: [keypair.clientPubkey],
+      "#p": [keypair.walletPubkey],
+      since,
+      until,
+    });
+  });
+
+  test("includes only the bounds that are set", async () => {
+    const since = 1_700_000_000;
+    const { subscribeFilter } = await setupSubscribedWalletService(
+      {},
+      { since },
+    );
+
+    expect(subscribeFilter.since).toBe(since);
+    expect(subscribeFilter).not.toHaveProperty("until");
+  });
 });
