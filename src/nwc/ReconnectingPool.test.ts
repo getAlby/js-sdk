@@ -110,8 +110,8 @@ describe("ReconnectingPool.close", () => {
     pool.close([RELAY_URL]);
 
     await expect(pool.ensureRelay(RELAY_URL)).rejects.toThrow("pool is closed");
-    await expect(
-      Promise.any(pool.publish([RELAY_URL], {} as never)),
-    ).resolves.toContain("pool is closed");
+    await expect(pool.publish([RELAY_URL], {} as never)[0]).rejects.toThrow(
+      "pool is closed",
+    );
   });
 });

@@ -41,7 +41,11 @@ const MAX_KNOWN_IDS = 1000;
 export class ReconnectingPool {
   protected relays: Map<string, Relay> = new Map();
   // set by close()/destroy(); a closed pool is not usable anymore
-  private closed = false;
+  private _closed = false;
+
+  get closed() {
+    return this._closed;
+  }
 
   public enablePing: boolean | undefined;
   public maxWaitForConnection: number;
@@ -58,7 +62,7 @@ export class ReconnectingPool {
       abort?: AbortSignal;
     },
   ): Promise<Relay> {
-    if (this.closed) {
+    if (this._closed) {
       throw new Error("pool is closed");
     }
     url = normalizeURL(url);
@@ -90,7 +94,7 @@ export class ReconnectingPool {
 
     // the pool may have been closed while the connection was in flight; a
     // relay handed out now would have no owner to close it later
-    if (this.closed) {
+    if (this._closed) {
       relay.close();
       this.relays.delete(url);
       throw new Error("pool is closed");
@@ -102,7 +106,7 @@ export class ReconnectingPool {
   close(relays: string[]) {
     // subscription reconnect loops observe this flag and stop instead of
     // re-opening the relays closed below
-    this.closed = true;
+    this._closed = true;
     relays.map(normalizeURL).forEach((url) => {
       this.relays.get(url)?.close();
       this.relays.delete(url);
@@ -139,7 +143,7 @@ export class ReconnectingPool {
     };
 
     const waitForReconnect = (attempt: number): Promise<void> => {
-      if (closed || this.closed) return Promise.resolve();
+      if (closed || this._closed) return Promise.resolve();
       const delay = Math.min(
         INITIAL_RECONNECT_DELAY_MS * 2 ** attempt,
         MAX_RECONNECT_DELAY_MS,
@@ -160,7 +164,7 @@ export class ReconnectingPool {
 
     const runRelay = async (url: string) => {
       let attempt = 0;
-      while (!closed && !this.closed) {
+      while (!closed && !this._closed) {
         let relay: Relay;
         try {
           relay = await this.ensureRelay(url, {
@@ -168,14 +172,14 @@ export class ReconnectingPool {
             abort: params.abort,
           });
         } catch (err) {
-          if (closed || this.closed) return;
+          if (closed || this._closed) return;
           const reason = (err as { message?: string })?.message || String(err);
           params.ondisconnect?.(url, reason);
           await waitForReconnect(attempt++);
           continue;
         }
 
-        if (closed || this.closed) return;
+        if (closed || this._closed) return;
         params.onconnect?.(url);
         attempt = 0;
 
@@ -191,7 +195,7 @@ export class ReconnectingPool {
         });
 
         activeSubs.delete(url);
-        if (closed || this.closed) return;
+        if (closed || this._closed) return;
         params.ondisconnect?.(url, closeReason);
         await waitForReconnect(attempt++);
       }
@@ -232,7 +236,9 @@ export class ReconnectingPool {
           abort: params?.abort,
         });
       } catch (err) {
-        return String("connection failure: " + String(err));
+        // reject rather than resolve with an error message, so callers
+        // using Promise.any can detect that no relay accepted the event
+        throw new Error("connection failure: " + String(err));
       }
 
       return r.publish(event);
@@ -247,7 +253,7 @@ export class ReconnectingPool {
   }
 
   destroy(): void {
-    this.closed = true;
+    this._closed = true;
     this.relays.forEach((conn) => conn.close());
     this.relays = new Map();
   }

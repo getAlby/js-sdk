@@ -28,7 +28,25 @@ export type NWCWalletServiceResponsePromise<T> = Promise<{
   error: NWCWalletServiceRequestHandlerError;
 }>;
 
+export type NWCWalletServiceRecordEventResult = "ALREADY_PROCESSED" | undefined;
+
 export interface NWCWalletServiceRequestHandler {
+  /**
+   * Called with the request event id after the event is decrypted and parsed,
+   * but before it is handled. Return "ALREADY_PROCESSED" to skip handling,
+   * e.g. if a relay re-delivers an event that was already processed.
+   * Calls are serialized by the wallet service, so duplicates delivered in
+   * quick succession will still be seen one at a time.
+   *
+   * Note this provides event-level deduplication, not payment idempotency:
+   * two events with different ids can still request payment of the same
+   * invoice, which must be handled at the wallet / application level.
+   */
+  recordEvent?(
+    eventId: string,
+  ):
+    | NWCWalletServiceRecordEventResult
+    | Promise<NWCWalletServiceRecordEventResult>;
   getInfo?(): NWCWalletServiceResponsePromise<Nip47GetInfoResponse>;
   makeInvoice?(
     request: Nip47MakeInvoiceRequest,
