@@ -34,6 +34,10 @@ export type NewNWCWalletServiceOptions = {
   logger?: Logger;
 };
 
+// First retry waits 1s; each subsequent attempt doubles (1s, 2s, 4s, 8s, 16s).
+const INITIAL_PUBLISH_RETRY_DELAY_MS = 1000;
+const MAX_PUBLISH_ATTEMPTS = 6;
+
 export class NWCWalletServiceKeyPair {
   walletSecret: string;
   walletPubkey: string;
@@ -100,6 +104,13 @@ export class NWCWalletService {
     await this._checkConnected();
 
     this.logger.debug("subscribing to relays");
+
+    // serializes handler.recordEvent calls so duplicate events delivered in
+    // quick succession cannot pass the check concurrently
+    let recordEventQueue: Promise<unknown> = Promise.resolve();
+
+    let unsubscribed = false;
+
     const sub = this.pool.subscribe(
       this.relayUrls,
 
@@ -126,6 +137,18 @@ export class NWCWalletService {
               method: Nip47Method;
               params: unknown;
             };
+
+            if (handler.recordEvent) {
+              const recordEventPromise = recordEventQueue.then(() =>
+                handler.recordEvent?.(event.id),
+              );
+              // keep the queue alive even if recordEvent throws
+              recordEventQueue = recordEventPromise.catch(() => {});
+              if ((await recordEventPromise) === "ALREADY_PROCESSED") {
+                this.logger.debug("skipped already processed event", event.id);
+                return;
+              }
+            }
 
             let responsePromise:
               | NWCWalletServiceResponsePromise<unknown>
@@ -206,8 +229,9 @@ export class NWCWalletService {
               keypair.walletSecret,
             );
 
-            // Try to publish to at least one relay
-            Promise.any(this.pool.publish(this.relayUrls, responseEvent));
+            // Try to publish to at least one relay, retrying with
+            // exponential backoff until the subscription is closed
+            this._publishWithRetry(responseEvent, () => unsubscribed);
           } catch (e) {
             console.error("Failed to handle event", e);
             return;
@@ -223,8 +247,32 @@ export class NWCWalletService {
     );
 
     return () => {
+      unsubscribed = true;
       sub?.close();
     };
+  }
+
+  private async _publishWithRetry(event: Event, isStopped: () => boolean) {
+    for (let attempt = 0; attempt < MAX_PUBLISH_ATTEMPTS; attempt++) {
+      if (attempt > 0) {
+        const delay = INITIAL_PUBLISH_RETRY_DELAY_MS * 2 ** (attempt - 1);
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      }
+      if (isStopped()) {
+        return;
+      }
+      try {
+        // Try to publish to at least one relay
+        await Promise.any(this.pool.publish(this.relayUrls, event));
+        return;
+      } catch (error) {
+        console.error(
+          `failed to publish response event (attempt ${attempt + 1}/${MAX_PUBLISH_ATTEMPTS})`,
+          event.id,
+          error,
+        );
+      }
+    }
   }
 
   get connected() {
