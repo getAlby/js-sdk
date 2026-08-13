@@ -230,7 +230,7 @@ export class NWCWalletService {
             );
 
             // Try to publish to at least one relay, retrying with
-            // exponential backoff until the subscription is closed
+            // exponential backoff (up to MAX_PUBLISH_ATTEMPTS times)
             this._publishWithRetry(responseEvent, () => unsubscribed);
           } catch (e) {
             console.error("Failed to handle event", e);
@@ -258,7 +258,7 @@ export class NWCWalletService {
         const delay = INITIAL_PUBLISH_RETRY_DELAY_MS * 2 ** (attempt - 1);
         await new Promise((resolve) => setTimeout(resolve, delay));
       }
-      if (isStopped()) {
+      if (isStopped() || this.pool.closed) {
         return;
       }
       try {

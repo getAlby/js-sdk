@@ -185,4 +185,23 @@ describe("response publishing", () => {
     await new Promise((resolve) => setTimeout(resolve, 1200));
     expect(publishCalls).toBe(1);
   }, 10_000);
+
+  test("stops retrying after the service is closed", async () => {
+    const { service, subscribeParams, requestEvent } =
+      await setupSubscribedWalletService({
+        getInfo: async () => getInfoResponse,
+      });
+
+    let publishCalls = 0;
+    service.pool.publish = () => {
+      publishCalls++;
+      return [Promise.reject(new Error("publish failed"))];
+    };
+
+    await subscribeParams.onevent(requestEvent);
+    service.close();
+
+    await new Promise((resolve) => setTimeout(resolve, 1200));
+    expect(publishCalls).toBe(1);
+  }, 10_000);
 });

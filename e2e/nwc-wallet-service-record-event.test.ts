@@ -95,11 +95,7 @@ describe("NWCWalletService recordEvent", () => {
 
     try {
       // the wallet service should skip the request without responding,
-      // so the client's request should time out.
-      // NOTE: awaiting the timeout (rather than e.g. racing with a shorter
-      // one) also lets the client's subscription fully close - closing the
-      // client while a request is in flight leaves its reconnecting pool
-      // subscription running, which would keep the test process alive.
+      // so the client's request should time out
       await expect(client.getInfo()).rejects.toThrow("reply timeout");
       expect(recordedIds).toHaveLength(1);
       expect(getInfoCalls).toBe(0);

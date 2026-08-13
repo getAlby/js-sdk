@@ -37,6 +37,10 @@ export interface NWCWalletServiceRequestHandler {
    * e.g. if a relay re-delivers an event that was already processed.
    * Calls are serialized by the wallet service, so duplicates delivered in
    * quick succession will still be seen one at a time.
+   *
+   * Note this provides event-level deduplication, not payment idempotency:
+   * two events with different ids can still request payment of the same
+   * invoice, which must be handled at the wallet / application level.
    */
   recordEvent?(
     eventId: string,
