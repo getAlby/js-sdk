@@ -52,3 +52,5 @@ const unsub = await walletService.subscribe(keypair, {
   // ... handle other NIP-47 methods here
 });
 ```
+
+`subscribe()` accepts an optional third argument `{ since?, until? }` (unix seconds) that is passed through to the NIP-01 request filter. Use a persisted high-water mark as `since` to limit replay of retained history on resubscribe. Relays can ignore these bounds, so keep using `recordEvent` for idempotency. 

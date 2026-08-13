@@ -34,6 +34,18 @@ export type NewNWCWalletServiceOptions = {
   logger?: Logger;
 };
 
+/**
+ * Optional NIP-01 time bounds for the kind 23194 request subscription.
+ * Use a persisted high-water mark (e.g. last seen `created_at`) as `since`
+ * to limit replay of retained history on resubscribe. This is a best-effort
+ * bound for well-behaved relays; non-compliant relays can ignore `since` /
+ * `until`. Keep using `recordEvent` for idempotency.
+ */
+export type NWCWalletServiceSubscribeFilter = {
+  since?: number;
+  until?: number;
+};
+
 // First retry waits 1s; each subsequent attempt doubles (1s, 2s, 4s, 8s, 16s).
 const INITIAL_PUBLISH_RETRY_DELAY_MS = 1000;
 const MAX_PUBLISH_ATTEMPTS = 6;
@@ -99,6 +111,7 @@ export class NWCWalletService {
   async subscribe(
     keypair: NWCWalletServiceKeyPair,
     handler: NWCWalletServiceRequestHandler,
+    filter?: NWCWalletServiceSubscribeFilter,
   ): Promise<() => void> {
     this.logger.debug("checking connection to relays");
     await this._checkConnected();
@@ -118,6 +131,8 @@ export class NWCWalletService {
         kinds: [23194],
         authors: [keypair.clientPubkey],
         "#p": [keypair.walletPubkey],
+        ...(filter?.since !== undefined ? { since: filter.since } : {}),
+        ...(filter?.until !== undefined ? { until: filter.until } : {}),
       },
 
       {
