@@ -88,6 +88,14 @@ export class ReconnectingPool {
       throw err;
     }
 
+    // the pool may have been closed while the connection was in flight; a
+    // relay handed out now would have no owner to close it later
+    if (this.closed) {
+      relay.close();
+      this.relays.delete(url);
+      throw new Error("pool is closed");
+    }
+
     return relay;
   }
 
