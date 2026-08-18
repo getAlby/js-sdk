@@ -32,6 +32,16 @@ const nwcClient = new NWCClient({
 const response = await nwcClient.payInvoice({ invoice });
 ```
 
+### `subscribeNotifications(onNotification, notificationTypes?)`
+
+Subscribe to NIP-47 notifications published by the wallet service (for example `payment_received`). See [the subscribe example](../examples/nwc/client/subscribe.ts). Wallet services publish these events with `NWCWalletService.publishNotification()` — see [NWC wallet service documentation](./nwc-wallet-service.md).
+
+```js
+const unsub = await nwcClient.subscribeNotifications((notification) => {
+  console.log(notification.notification_type, notification.notification);
+});
+```
+
 ### `static fromAuthorizationUrl()`
 
 Initialized a new `NWCClient` instance but generates a new random secret. The pubkey of that secret then needs to be authorized by the user (this can be initiated by redirecting the user to the `getAuthorizationUrl()` URL or calling `fromAuthorizationUrl()` to open an authorization popup.

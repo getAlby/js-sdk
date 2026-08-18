@@ -10,30 +10,32 @@ The Alby JS SDK allows you to easily integrate Nostr Wallet Connect into any Jav
 
 ### Initialization Options
 
-- `relayUrl`: URL of the Nostr relay to be used (e.g. wss://relay.getalby.com/v1)
+- `relayUrls`: URLs of the Nostr relays to be used (e.g. `["wss://relay.getalby.com/v1"]`)
 
 ### NWCWalletService quick start example
 
 See [the full example](/examples/nwc/wallet-service/example.js)
 
 ```js
-import { NWCWalletService } from "@getalby/sdk/nwc";
+import { NWCWalletService, NWCWalletServiceKeyPair } from "@getalby/sdk/nwc";
 
 const walletService = new NWCWalletService({
-  relayUrl: "wss://relay.getalby.com/v1",
+  relayUrls: ["wss://relay.getalby.com/v1"],
 });
 
-// now for each client/app connection you can publish a NIP-47 info event and subscribe to requests
+// load from storage: one wallet secret for the service, a distinct client pubkey per connection
+const walletServiceSecretKey = "..."; // hex
+const clientPubkey = "..."; // hex
 
+// publish the NIP-47 info event once per wallet (not once per client)
 await walletService.publishWalletServiceInfoEvent(
   walletServiceSecretKey,
   ["get_info"], // NIP-47 methods supported by your wallet service
-  [],
+  ["payment_received", "payment_sent"], // NIP-47 notifications supported by your wallet service
 );
 
-// each client connection will have a unique keypair
-
-const keypair = new nwc.NWCWalletServiceKeyPair(
+// for each client, create a key pair and subscribe separately
+const keypair = new NWCWalletServiceKeyPair(
   walletServiceSecretKey,
   clientPubkey,
 );
@@ -53,4 +55,23 @@ const unsub = await walletService.subscribe(keypair, {
 });
 ```
 
-`subscribe()` accepts an optional third argument `{ since?, until? }` (unix seconds) that is passed through to the NIP-01 request filter. Use a persisted high-water mark as `since` to limit replay of retained history on resubscribe. Relays can ignore these bounds, so keep using `recordEvent` for idempotency. 
+`subscribe()` accepts an optional third argument `{ since?, until? }` (unix seconds) that is passed through to the NIP-01 request filter. Use a persisted high-water mark as `since` to limit replay of retained history on resubscribe. Relays can ignore these bounds, so keep using `recordEvent` for idempotency.
+
+### `publishNotification(keypair, notification, options?)`
+
+Publish a [NIP-47 notification](https://github.com/nostr-protocol/nips/blob/master/47.md) to a connected client. Clients receive these events via `NWCClient.subscribeNotifications()`.
+
+Advertise the same notification types in `publishWalletServiceInfoEvent()` so clients know they can subscribe.
+
+`NWCWalletService` advertises both `nip44_v2` and `nip04` on the info event. Pass both `encryptionTypes` so modern clients (kind `23197`) and legacy clients (kind `23196`) receive the notification:
+
+```js
+await walletService.publishNotification(
+  keypair,
+  {
+    notification_type: "payment_received", // or "payment_sent"
+    notification: transaction, // Nip47Transaction
+  },
+  { encryptionTypes: ["nip44_v2", "nip04"] },
+);
+```
