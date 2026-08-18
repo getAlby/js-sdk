@@ -6,7 +6,7 @@ import {
   NWCWalletServiceSubscribeFilter,
 } from "./NWCWalletService";
 import { NWCWalletServiceRequestHandler } from "./NWCWalletServiceRequestHandler";
-import { Nip47GetInfoResponse } from "./types";
+import { Nip47GetInfoResponse, Nip47Notification } from "./types";
 
 type SubscribeParams = {
   onevent: (event: Event) => Promise<void> | void;
@@ -260,4 +260,115 @@ describe("subscribe filter", () => {
     expect(subscribeFilter.since).toBe(since);
     expect(subscribeFilter).not.toHaveProperty("until");
   });
+});
+
+const paymentReceivedNotification: Nip47Notification = {
+  notification_type: "payment_received",
+  notification: {
+    type: "incoming",
+    state: "settled",
+    invoice: "lnbc1",
+    description: "",
+    description_hash: "",
+    preimage: "00",
+    payment_hash: "aa",
+    amount: 1000,
+    fees_paid: 0,
+    settled_at: 1,
+    created_at: 1,
+    expires_at: 2,
+  },
+};
+
+function setupWalletService() {
+  const walletSecret = bytesToHex(generateSecretKey());
+  const clientSecret = generateSecretKey();
+  const keypair = new NWCWalletServiceKeyPair(
+    walletSecret,
+    getPublicKey(clientSecret),
+  );
+
+  const service = new NWCWalletService({
+    relayUrls: ["wss://relay.getalby.com/v1"],
+  });
+
+  const publishedEvents: Event[] = [];
+  service.pool.publish = (_relayUrls, event) => {
+    publishedEvents.push(event);
+    return [Promise.resolve("")];
+  };
+  (
+    service as unknown as { _checkConnected: () => Promise<void> }
+  )._checkConnected = () => Promise.resolve();
+
+  return { service, keypair, publishedEvents };
+}
+
+describe("publishNotification", () => {
+  test("publishes a nip44_v2 notification (kind 23197) by default", async () => {
+    const { service, keypair, publishedEvents } = setupWalletService();
+
+    await service.publishNotification(keypair, paymentReceivedNotification);
+
+    expect(publishedEvents).toHaveLength(1);
+    const event = publishedEvents[0];
+    expect(event.kind).toBe(23197);
+    expect(event.pubkey).toBe(keypair.walletPubkey);
+    expect(event.tags).toEqual([["p", keypair.clientPubkey]]);
+    expect(
+      JSON.parse(await service.decrypt(keypair, event.content, "nip44_v2")),
+    ).toEqual(paymentReceivedNotification);
+  });
+
+  test("publishes both encryption kinds when requested", async () => {
+    const { service, keypair, publishedEvents } = setupWalletService();
+
+    await service.publishNotification(keypair, paymentReceivedNotification, {
+      encryptionTypes: ["nip44_v2", "nip04"],
+    });
+
+    expect(publishedEvents.map((event) => event.kind).sort()).toEqual([
+      23196, 23197,
+    ]);
+
+    const nip04Event = publishedEvents.find((event) => event.kind === 23196);
+    const nip44Event = publishedEvents.find((event) => event.kind === 23197);
+    if (!nip04Event || !nip44Event) {
+      throw new Error("expected both notification kinds");
+    }
+
+    expect(
+      JSON.parse(await service.decrypt(keypair, nip04Event.content, "nip04")),
+    ).toEqual(paymentReceivedNotification);
+    expect(
+      JSON.parse(
+        await service.decrypt(keypair, nip44Event.content, "nip44_v2"),
+      ),
+    ).toEqual(paymentReceivedNotification);
+  });
+
+  test("retries failed publishes with exponential backoff", async () => {
+    const { service, keypair } = setupWalletService();
+
+    let publishCalls = 0;
+    service.pool.publish = () => {
+      publishCalls++;
+      return [
+        publishCalls < 2
+          ? Promise.reject(new Error("publish failed"))
+          : Promise.resolve(""),
+      ];
+    };
+
+    const publishPromise = service.publishNotification(
+      keypair,
+      paymentReceivedNotification,
+    );
+
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    expect(publishCalls).toBe(1);
+
+    await publishPromise;
+    expect(publishCalls).toBe(2);
+  }, 10_000);
 });
