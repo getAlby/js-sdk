@@ -33,7 +33,7 @@ const walletService = new NWCWalletService({
 await walletService.publishWalletServiceInfoEvent(
   walletServiceSecretKey,
   ["get_info"],
-  ["payment_received", "payment_sent"],
+  [],
 );
 
 const keypair = new NWCWalletServiceKeyPair(

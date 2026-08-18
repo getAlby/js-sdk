@@ -14,7 +14,7 @@ The Alby JS SDK allows you to easily integrate Nostr Wallet Connect into any Jav
 
 ### NWCWalletService quick start example
 
-See [the full example](/examples/nwc/wallet-service/example.js)
+See [get_info](/examples/nwc/wallet-service/get-info.ts) and [notifications](/examples/nwc/wallet-service/notifications.ts) (fake `pay_invoice` + `payment_sent`).
 
 ```js
 import { NWCWalletService, NWCWalletServiceKeyPair } from "@getalby/sdk/nwc";
@@ -31,7 +31,7 @@ const clientPubkey = "..."; // hex
 await walletService.publishWalletServiceInfoEvent(
   walletServiceSecretKey,
   ["get_info"], // NIP-47 methods supported by your wallet service
-  ["payment_received", "payment_sent"], // NIP-47 notifications supported by your wallet service
+  [], // only advertise notifications your service actually publishes
 );
 
 // for each client, create a key pair and subscribe separately
@@ -63,15 +63,11 @@ Publish a [NIP-47 notification](https://github.com/nostr-protocol/nips/blob/mast
 
 Advertise the same notification types in `publishWalletServiceInfoEvent()` so clients know they can subscribe.
 
-`NWCWalletService` advertises both `nip44_v2` and `nip04` on the info event. Pass both `encryptionTypes` so modern clients (kind `23197`) and legacy clients (kind `23196`) receive the notification:
+By default this publishes both encryption kinds advertised on the info event: `nip44_v2` (kind `23197`) and `nip04` (kind `23196`). Pass `encryptionTypes` only if you need to restrict that.
 
 ```js
-await walletService.publishNotification(
-  keypair,
-  {
-    notification_type: "payment_received", // or "payment_sent"
-    notification: transaction, // Nip47Transaction
-  },
-  { encryptionTypes: ["nip44_v2", "nip04"] },
-);
+await walletService.publishNotification(keypair, {
+  notification_type: "payment_received", // or "payment_sent"
+  notification: transaction, // Nip47Transaction
+});
 ```

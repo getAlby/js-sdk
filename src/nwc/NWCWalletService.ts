@@ -13,6 +13,7 @@ import {
   Nip47MakeInvoiceRequest,
   Nip47Method,
   Nip47NetworkError,
+  Nip47PublishError,
   Nip47NotificationType,
   Nip47PayInvoiceRequest,
   Nip47PayKeysendRequest,
@@ -112,13 +113,14 @@ export class NWCWalletService {
   /**
    * Publish a NIP-47 notification to the connected client.
    * Kind 23197 is used for nip44_v2 and kind 23196 for nip04.
-   * Pass both encryption types when the wallet service advertises both.
+   * Defaults to both encryption types advertised on the info event
+   * (`nip44_v2` kind 23197 and `nip04` kind 23196).
    */
   async publishNotification(
     keypair: NWCWalletServiceKeyPair,
     notification: Nip47Notification,
     options?: {
-      /** default: ['nip44_v2'] — pass both for broader client interop */
+      /** default: ['nip44_v2', 'nip04'] — matches the info event encryption tag */
       encryptionTypes?: Nip47EncryptionType[];
     },
   ): Promise<void> {
@@ -127,7 +129,7 @@ export class NWCWalletService {
 
       const encryptionTypes = [
         ...new Set<Nip47EncryptionType>(
-          options?.encryptionTypes ?? ["nip44_v2"],
+          options?.encryptionTypes ?? ["nip44_v2", "nip04"],
         ),
       ];
       if (!encryptionTypes.length) {
@@ -150,14 +152,11 @@ export class NWCWalletService {
             keypair.walletSecret,
           );
 
-          const published = await this._publishWithRetry(
-            event,
-            () => this.pool.closed,
-          );
+          const published = await this._publishWithRetry(event);
           if (!published) {
-            throw new Nip47NetworkError(
+            throw new Nip47PublishError(
               "Failed to publish notification event",
-              "OTHER",
+              "INTERNAL",
             );
           }
         }),
@@ -329,7 +328,7 @@ export class NWCWalletService {
 
   private async _publishWithRetry(
     event: Event,
-    isStopped: () => boolean,
+    isStopped: () => boolean = () => false, // default to not stopping
   ): Promise<boolean> {
     for (let attempt = 0; attempt < MAX_PUBLISH_ATTEMPTS; attempt++) {
       if (attempt > 0) {

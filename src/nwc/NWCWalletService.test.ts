@@ -305,27 +305,10 @@ function setupWalletService() {
 }
 
 describe("publishNotification", () => {
-  test("publishes a nip44_v2 notification (kind 23197) by default", async () => {
+  test("publishes both encryption kinds by default", async () => {
     const { service, keypair, publishedEvents } = setupWalletService();
 
     await service.publishNotification(keypair, paymentReceivedNotification);
-
-    expect(publishedEvents).toHaveLength(1);
-    const event = publishedEvents[0];
-    expect(event.kind).toBe(23197);
-    expect(event.pubkey).toBe(keypair.walletPubkey);
-    expect(event.tags).toEqual([["p", keypair.clientPubkey]]);
-    expect(
-      JSON.parse(await service.decrypt(keypair, event.content, "nip44_v2")),
-    ).toEqual(paymentReceivedNotification);
-  });
-
-  test("publishes both encryption kinds when requested", async () => {
-    const { service, keypair, publishedEvents } = setupWalletService();
-
-    await service.publishNotification(keypair, paymentReceivedNotification, {
-      encryptionTypes: ["nip44_v2", "nip04"],
-    });
 
     expect(publishedEvents.map((event) => event.kind).sort()).toEqual([
       23196, 23197,
@@ -337,12 +320,30 @@ describe("publishNotification", () => {
       throw new Error("expected both notification kinds");
     }
 
+    expect(nip44Event.pubkey).toBe(keypair.walletPubkey);
+    expect(nip44Event.tags).toEqual([["p", keypair.clientPubkey]]);
     expect(
       JSON.parse(await service.decrypt(keypair, nip04Event.content, "nip04")),
     ).toEqual(paymentReceivedNotification);
     expect(
       JSON.parse(
         await service.decrypt(keypair, nip44Event.content, "nip44_v2"),
+      ),
+    ).toEqual(paymentReceivedNotification);
+  });
+
+  test("publishes a single encryption kind when requested", async () => {
+    const { service, keypair, publishedEvents } = setupWalletService();
+
+    await service.publishNotification(keypair, paymentReceivedNotification, {
+      encryptionTypes: ["nip44_v2"],
+    });
+
+    expect(publishedEvents).toHaveLength(1);
+    expect(publishedEvents[0].kind).toBe(23197);
+    expect(
+      JSON.parse(
+        await service.decrypt(keypair, publishedEvents[0].content, "nip44_v2"),
       ),
     ).toEqual(paymentReceivedNotification);
   });
@@ -363,6 +364,7 @@ describe("publishNotification", () => {
     const publishPromise = service.publishNotification(
       keypair,
       paymentReceivedNotification,
+      { encryptionTypes: ["nip44_v2"] },
     );
 
     await new Promise((resolve) => setTimeout(resolve, 100));
