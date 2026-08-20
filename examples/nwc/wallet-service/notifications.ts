@@ -17,12 +17,15 @@ const relayUrls = (
   (await rl.question(
     `Relay URLs, comma separated (${DEFAULT_RELAY_URLs}): `,
   )) || DEFAULT_RELAY_URLs
-).split(",");
+)
+  .split(",")
+  .map((relayUrl) => relayUrl.trim())
+  .filter(Boolean);
 rl.close();
 
 const searchParams = new URLSearchParams();
 for (const relayUrl of relayUrls) {
-  searchParams.append("relay", relayUrl.trim());
+  searchParams.append("relay", relayUrl);
 }
 searchParams.set("secret", clientSecretKey);
 const nwcUrl = `nostr+walletconnect://${walletServicePubkey}?${searchParams}`;
@@ -113,5 +116,5 @@ process.on("SIGINT", function () {
   unsub();
   walletService.close();
 
-  process.exit();
+  process.exitCode = 0;
 });

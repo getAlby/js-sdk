@@ -305,7 +305,7 @@ function setupWalletService() {
 }
 
 describe("publishNotification", () => {
-  test("publishes both encryption kinds by default", async () => {
+  test("publishes both encryption kinds", async () => {
     const { service, keypair, publishedEvents } = setupWalletService();
 
     await service.publishNotification(keypair, paymentReceivedNotification);
@@ -332,30 +332,15 @@ describe("publishNotification", () => {
     ).toEqual(paymentReceivedNotification);
   });
 
-  test("publishes a single encryption kind when requested", async () => {
-    const { service, keypair, publishedEvents } = setupWalletService();
-
-    await service.publishNotification(keypair, paymentReceivedNotification, {
-      encryptionTypes: ["nip44_v2"],
-    });
-
-    expect(publishedEvents).toHaveLength(1);
-    expect(publishedEvents[0].kind).toBe(23197);
-    expect(
-      JSON.parse(
-        await service.decrypt(keypair, publishedEvents[0].content, "nip44_v2"),
-      ),
-    ).toEqual(paymentReceivedNotification);
-  });
-
   test("retries failed publishes with exponential backoff", async () => {
     const { service, keypair } = setupWalletService();
 
     let publishCalls = 0;
     service.pool.publish = () => {
       publishCalls++;
+      // both encryption kinds publish concurrently; fail each first attempt
       return [
-        publishCalls < 2
+        publishCalls <= 2
           ? Promise.reject(new Error("publish failed"))
           : Promise.resolve(""),
       ];
@@ -364,13 +349,12 @@ describe("publishNotification", () => {
     const publishPromise = service.publishNotification(
       keypair,
       paymentReceivedNotification,
-      { encryptionTypes: ["nip44_v2"] },
     );
 
     await new Promise((resolve) => setTimeout(resolve, 100));
-    expect(publishCalls).toBe(1);
+    expect(publishCalls).toBe(2);
 
     await publishPromise;
-    expect(publishCalls).toBe(2);
+    expect(publishCalls).toBe(4);
   }, 10_000);
 });

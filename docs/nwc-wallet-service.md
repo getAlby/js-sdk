@@ -57,13 +57,13 @@ const unsub = await walletService.subscribe(keypair, {
 
 `subscribe()` accepts an optional third argument `{ since?, until? }` (unix seconds) that is passed through to the NIP-01 request filter. Use a persisted high-water mark as `since` to limit replay of retained history on resubscribe. Relays can ignore these bounds, so keep using `recordEvent` for idempotency.
 
-### `publishNotification(keypair, notification, options?)`
+### `publishNotification(keypair, notification)`
 
 Publish a [NIP-47 notification](https://github.com/nostr-protocol/nips/blob/master/47.md) to a connected client. Clients receive these events via `NWCClient.subscribeNotifications()`.
 
 Advertise the same notification types in `publishWalletServiceInfoEvent()` so clients know they can subscribe.
 
-By default this publishes both encryption kinds advertised on the info event: `nip44_v2` (kind `23197`) and `nip04` (kind `23196`). Pass `encryptionTypes` only if you need to restrict that.
+Always publishes both encryption kinds advertised on the info event: `nip44_v2` (kind `23197`) and `nip04` (kind `23196`).
 
 ```js
 await walletService.publishNotification(keypair, {

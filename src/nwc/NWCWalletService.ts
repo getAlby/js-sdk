@@ -112,30 +112,18 @@ export class NWCWalletService {
 
   /**
    * Publish a NIP-47 notification to the connected client.
-   * Kind 23197 is used for nip44_v2 and kind 23196 for nip04.
-   * Defaults to both encryption types advertised on the info event
-   * (`nip44_v2` kind 23197 and `nip04` kind 23196).
+   * Always publishes both encryption kinds advertised on the info event:
+   * nip44_v2 (kind 23197) and nip04 (kind 23196).
    */
   async publishNotification(
     keypair: NWCWalletServiceKeyPair,
     notification: Nip47Notification,
-    options?: {
-      /** default: ['nip44_v2', 'nip04'] — matches the info event encryption tag */
-      encryptionTypes?: Nip47EncryptionType[];
-    },
   ): Promise<void> {
     try {
       await this._checkConnected();
 
-      const encryptionTypes = [
-        ...new Set<Nip47EncryptionType>(
-          options?.encryptionTypes ?? ["nip44_v2", "nip04"],
-        ),
-      ];
-      if (!encryptionTypes.length) {
-        throw new Error("encryptionTypes must not be empty");
-      }
-
+      // Match publishWalletServiceInfoEvent's hardcoded encryption tag.
+      const encryptionTypes: Nip47EncryptionType[] = ["nip44_v2", "nip04"];
       const payload = JSON.stringify(notification);
 
       await Promise.all(
