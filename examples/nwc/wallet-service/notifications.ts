@@ -20,11 +20,16 @@ const relayUrls = (
 ).split(",");
 rl.close();
 
-const nwcUrl = `nostr+walletconnect://${walletServicePubkey}?relay=${relayUrls.join("&relay=")}&secret=${clientSecretKey}`;
+const searchParams = new URLSearchParams();
+for (const relayUrl of relayUrls) {
+  searchParams.append("relay", relayUrl.trim());
+}
+searchParams.set("secret", clientSecretKey);
+const nwcUrl = `nostr+walletconnect://${walletServicePubkey}?${searchParams}`;
 
-console.info("enter this NWC URL in a client: ", nwcUrl);
-console.info(
-  "This example does not send real payments. pay_invoice returns a dummy preimage/fee and publishes a payment_sent notification.",
+output.write(`enter this NWC URL in a client: ${nwcUrl}\n`);
+output.write(
+  "This example does not send real payments. pay_invoice returns a dummy preimage/fee and publishes a payment_sent notification.\n",
 );
 
 import {
@@ -85,10 +90,14 @@ const unsub = await walletService.subscribe(keypair, {
       expires_at: now,
     };
 
-    await walletService.publishNotification(keypair, {
-      notification_type: "payment_sent",
-      notification: transaction,
-    });
+    void walletService
+      .publishNotification(keypair, {
+        notification_type: "payment_sent",
+        notification: transaction,
+      })
+      .catch((error) => {
+        console.error("failed to publish payment_sent notification", error);
+      });
 
     return {
       result: { preimage, fees_paid: feesPaid },
@@ -97,9 +106,9 @@ const unsub = await walletService.subscribe(keypair, {
   },
 });
 
-console.info("Waiting for events...");
+output.write("Waiting for events...\n");
 process.on("SIGINT", function () {
-  console.info("Caught interrupt signal");
+  output.write("Caught interrupt signal\n");
 
   unsub();
   walletService.close();
