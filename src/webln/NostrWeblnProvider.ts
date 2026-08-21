@@ -69,6 +69,8 @@ const nip47ToWeblnRequestMap: Record<
     | "make_hold_invoice"
     | "settle_hold_invoice"
     | "cancel_hold_invoice"
+    | "pay"
+    | "receive"
   >,
   WebLNMethod
 > = {
