@@ -1,5 +1,5 @@
 import { generateSecretKey, getPublicKey } from "nostr-tools";
-import { bytesToHex, hexToBytes } from "@noble/hashes/utils";
+import { bytesToHex, hexToBytes } from "@noble/hashes/utils.js";
 import * as readline from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
 
@@ -32,7 +32,7 @@ const nwcUrl = `nostr+walletconnect://${walletServicePubkey}?${searchParams}`;
 
 output.write(`enter this NWC URL in a client: ${nwcUrl}\n`);
 output.write(
-  "This example does not send real payments. pay_invoice returns a dummy preimage/fee and publishes a payment_sent notification.\n",
+  "This example does not send real payments. pay_invoice returns a dummy preimage/fee and publishes a payment_sent notification.\nRecommended setup: Run nwc/client/pay-invoice and nwc/client/subscribe examples with this NWC URL and paste any valid lightning invoice to test the full flow.\n",
 );
 
 import {
@@ -93,14 +93,15 @@ const unsub = await walletService.subscribe(keypair, {
       expires_at: now,
     };
 
-    void walletService
-      .publishNotification(keypair, {
+    try {
+      await walletService.publishNotification(keypair, {
         notification_type: "payment_sent",
         notification: transaction,
-      })
-      .catch((error) => {
-        console.error("failed to publish payment_sent notification", error);
       });
+      console.info("published payment_sent notification");
+    } catch (error) {
+      console.error("failed to publish payment_sent notification", error);
+    }
 
     return {
       result: { preimage, fees_paid: feesPaid },
