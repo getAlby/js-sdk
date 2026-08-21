@@ -26,5 +26,13 @@
   },
   "globals": {
     "window": true
-  }
+  },
+  "overrides": [
+    {
+      "files": ["examples/**"],
+      "rules": {
+        "no-console": "off"
+      }
+    }
+  ]
 }

@@ -1,5 +1,5 @@
 import { generateSecretKey, getPublicKey } from "nostr-tools";
-import { bytesToHex, hexToBytes } from "@noble/hashes/utils";
+import { bytesToHex, hexToBytes } from "@noble/hashes/utils.js";
 import * as readline from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
 
@@ -43,6 +43,7 @@ const keypair = new NWCWalletServiceKeyPair(
 
 const unsub = await walletService.subscribe(keypair, {
   getInfo: () => {
+    console.info("get_info requested");
     return Promise.resolve({
       result: {
         methods: ["get_info"],

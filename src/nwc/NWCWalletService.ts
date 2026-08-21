@@ -13,6 +13,7 @@ import {
   Nip47MakeInvoiceRequest,
   Nip47Method,
   Nip47NetworkError,
+  Nip47PublishError,
   Nip47NotificationType,
   Nip47PayInvoiceRequest,
   Nip47PayKeysendRequest,
@@ -21,6 +22,7 @@ import {
   Nip47SignMessageRequest,
   Nip47SingleMethod,
   Nip47EncryptionType,
+  Nip47Notification,
 } from "./types";
 import {
   NWCWalletServiceRequestHandler,
@@ -104,6 +106,51 @@ export class NWCWalletService {
       await Promise.any(this.pool.publish(this.relayUrls, event));
     } catch (error) {
       console.error("failed to publish wallet service info event", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Publish a NIP-47 notification to the connected client.
+   * Always publishes both encryption kinds advertised on the info event:
+   * nip44_v2 (kind 23197) and nip04 (kind 23196).
+   */
+  async publishNotification(
+    keypair: NWCWalletServiceKeyPair,
+    notification: Nip47Notification,
+  ): Promise<void> {
+    try {
+      await this._checkConnected();
+
+      // Match publishWalletServiceInfoEvent's hardcoded encryption tag.
+      const encryptionTypes: Nip47EncryptionType[] = ["nip44_v2", "nip04"];
+      const payload = JSON.stringify(notification);
+
+      await Promise.all(
+        encryptionTypes.map(async (encryptionType) => {
+          const eventTemplate: EventTemplate = {
+            kind: encryptionType === "nip04" ? 23196 : 23197,
+            created_at: Math.floor(Date.now() / 1000),
+            tags: [["p", keypair.clientPubkey]],
+            content: await this.encrypt(keypair, payload, encryptionType),
+          };
+
+          const event = await this.signEvent(
+            eventTemplate,
+            keypair.walletSecret,
+          );
+
+          const published = await this._publishWithRetry(event);
+          if (!published) {
+            throw new Nip47PublishError(
+              "Failed to publish notification event",
+              "INTERNAL",
+            );
+          }
+        }),
+      );
+    } catch (error) {
+      console.error("failed to publish notification event", error);
       throw error;
     }
   }
@@ -267,27 +314,31 @@ export class NWCWalletService {
     };
   }
 
-  private async _publishWithRetry(event: Event, isStopped: () => boolean) {
+  private async _publishWithRetry(
+    event: Event,
+    isStopped: () => boolean = () => false, // default to not stopping
+  ): Promise<boolean> {
     for (let attempt = 0; attempt < MAX_PUBLISH_ATTEMPTS; attempt++) {
       if (attempt > 0) {
         const delay = INITIAL_PUBLISH_RETRY_DELAY_MS * 2 ** (attempt - 1);
         await new Promise((resolve) => setTimeout(resolve, delay));
       }
       if (isStopped() || this.pool.closed) {
-        return;
+        return false;
       }
       try {
         // Try to publish to at least one relay
         await Promise.any(this.pool.publish(this.relayUrls, event));
-        return;
+        return true;
       } catch (error) {
         console.error(
-          `failed to publish response event (attempt ${attempt + 1}/${MAX_PUBLISH_ATTEMPTS})`,
+          `failed to publish event (attempt ${attempt + 1}/${MAX_PUBLISH_ATTEMPTS})`,
           event.id,
           error,
         );
       }
     }
+    return false;
   }
 
   get connected() {
