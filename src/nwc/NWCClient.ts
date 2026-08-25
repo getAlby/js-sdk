@@ -56,6 +56,7 @@ import {
   Nip47NetworkError,
 } from "./types";
 import { ReconnectingPool } from "./ReconnectingPool";
+import { assertPositiveIntegerAmount } from "../utils";
 
 const NWC_HEX64 = /^[0-9a-f]{64}$/;
 
@@ -512,6 +513,10 @@ export class NWCClient {
 
   async payInvoice(request: Nip47PayInvoiceRequest): Promise<Nip47PayResponse> {
     try {
+      if (request.amount !== undefined) {
+        assertPositiveIntegerAmount(request.amount);
+      }
+
       const result = await this.executeNip47Request<Nip47PayResponse>(
         "pay_invoice",
         request,
@@ -526,6 +531,7 @@ export class NWCClient {
 
   async payKeysend(request: Nip47PayKeysendRequest): Promise<Nip47PayResponse> {
     try {
+      assertPositiveIntegerAmount(request.amount);
       const result = await this.executeNip47Request<Nip47PayResponse>(
         "pay_keysend",
         request,
@@ -578,6 +584,12 @@ export class NWCClient {
     request: Nip47MultiPayInvoiceRequest,
   ): Promise<Nip47MultiPayInvoiceResponse> {
     try {
+      for (const invoiceRequest of request.invoices) {
+        if (invoiceRequest.amount !== undefined) {
+          assertPositiveIntegerAmount(invoiceRequest.amount);
+        }
+      }
+
       const results = await this.executeMultiNip47Request<
         { invoice: Nip47PayInvoiceRequest } & Nip47PayResponse
       >(
@@ -602,6 +614,10 @@ export class NWCClient {
     request: Nip47MultiPayKeysendRequest,
   ): Promise<Nip47MultiPayKeysendResponse> {
     try {
+      for (const keysendRequest of request.keysends) {
+        assertPositiveIntegerAmount(keysendRequest.amount);
+      }
+
       const results = await this.executeMultiNip47Request<
         { keysend: Nip47PayKeysendRequest } & Nip47PayResponse
       >(
@@ -626,9 +642,7 @@ export class NWCClient {
     request: Nip47MakeInvoiceRequest,
   ): Promise<Nip47Transaction> {
     try {
-      if (!request.amount) {
-        throw new Error("No amount specified");
-      }
+      assertPositiveIntegerAmount(request.amount);
 
       const result = await this.executeNip47Request<Nip47Transaction>(
         "make_invoice",
@@ -647,9 +661,7 @@ export class NWCClient {
     request: Nip47MakeHoldInvoiceRequest,
   ): Promise<Nip47Transaction> {
     try {
-      if (!request.amount) {
-        throw new Error("No amount specified");
-      }
+      assertPositiveIntegerAmount(request.amount);
       if (!request.payment_hash) {
         throw new Error("No payment hash specified");
       }
