@@ -15,4 +15,42 @@ async function generatePreimageAndPaymentHash(): Promise<{
   return { preimage, paymentHash };
 }
 
-export { toHexString, generatePreimageAndPaymentHash };
+function assertPositiveIntegerAmount(
+  amount: unknown,
+  label = "amount",
+): number {
+  if (amount === undefined || amount === null) {
+    throw new Error(`No ${label} specified`);
+  }
+  if (typeof amount !== "number" || !Number.isFinite(amount)) {
+    throw new Error(`Invalid ${label}: must be a finite number`);
+  }
+  if (!Number.isInteger(amount)) {
+    throw new Error(`Invalid ${label}: must be an integer`);
+  }
+  if (amount < 1) {
+    throw new Error(`Invalid ${label}: must be at least 1`);
+  }
+  if (amount > Number.MAX_SAFE_INTEGER) {
+    throw new Error(`Invalid ${label}: exceeds maximum allowed value`);
+  }
+  return amount;
+}
+
+function satoshiToMillisat(satoshi: number): number {
+  const validSatoshi = assertPositiveIntegerAmount(satoshi, "amount");
+  const millisat = validSatoshi * 1000;
+  if (!Number.isSafeInteger(millisat)) {
+    throw new Error(
+      "Amount exceeds maximum allowed value after conversion to millisats",
+    );
+  }
+  return millisat;
+}
+
+export {
+  toHexString,
+  generatePreimageAndPaymentHash,
+  assertPositiveIntegerAmount,
+  satoshiToMillisat,
+};
