@@ -1,19 +1,19 @@
 import { Event, UnsignedEvent } from "nostr-tools";
-import {
+import type {
   GetBalanceResponse,
+  GetInfoResponse,
   KeysendArgs,
+  LookupInvoiceArgs,
+  LookupInvoiceResponse,
+  MakeInvoiceResponse,
   RequestInvoiceArgs,
   SendPaymentResponse,
   SignMessageResponse,
+  WebLNMethod,
   WebLNNode,
   WebLNProvider,
   WebLNRequestMethod,
-  LookupInvoiceArgs,
-  LookupInvoiceResponse,
-  WebLNMethod,
-  MakeInvoiceResponse,
 } from "@webbtc/webln-types";
-import { GetInfoResponse } from "@webbtc/webln-types";
 import { NWCClient, NWCOptions, NewNWCClientOptions } from "../nwc/NWCClient";
 import {
   Nip47Method,
