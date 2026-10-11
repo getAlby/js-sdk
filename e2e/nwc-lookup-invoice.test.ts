@@ -44,4 +44,31 @@ describe("NWC lookup_invoice", () => {
       senderClient.close();
     }
   }, 60_000);
+  test(
+    "finds paid invoice by payment_hash only",
+    async () => {
+      const receiverClient = new NWCClient({ nostrWalletConnectUrl: receiver.nwcUrl });
+      const senderClient = new NWCClient({ nostrWalletConnectUrl: sender.nwcUrl });
+
+      try {
+        const invoiceResult = await receiverClient.makeInvoice({
+          amount: AMOUNT_MSATS,
+          description: "E2E lookup by payment_hash",
+        });
+        expect(invoiceResult.payment_hash).toBeDefined();
+
+        await senderClient.payInvoice({ invoice: invoiceResult.invoice });
+
+        const byHash = await receiverClient.lookupInvoice({
+          payment_hash: invoiceResult.payment_hash,
+        });
+        expect(byHash.payment_hash).toBe(invoiceResult.payment_hash);
+        expect(byHash.invoice).toBe(invoiceResult.invoice);
+      } finally {
+        receiverClient.close();
+        senderClient.close();
+      }
+    },
+    60_000,
+  );
 });
