@@ -71,7 +71,7 @@
     "prepare": "husky"
   },
   "dependencies": {
-    "@getalby/lightning-tools": "^8.1.1",
+    "@getalby/lightning-tools": "^9.0.2",
     "nostr-tools": "^2.23.3"
   },
   "devDependencies": {
