@@ -180,10 +180,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@getalby/lightning-tools@npm:^8.1.1":
-  version: 8.1.1
-  resolution: "@getalby/lightning-tools@npm:8.1.1"
-  checksum: 10c0/3ca96e250a1fe657e48621bc3867a27fc17b7cc4da16e385227f41aeff25102b3e91948b9c79e24006b8bf8dc09134203076076b75188e75c6039fa22c1d9834
+"@getalby/lightning-tools@npm:^9.0.2":
+  version: 9.0.2
+  resolution: "@getalby/lightning-tools@npm:9.0.2"
+  checksum: 10c0/f839c3e76ec6fd2a8cbf5aab26df34461ebe325c4a11a0d3a445d3ef61189a1d2aed2dab9c93c43b53e754121f67814bdabf95380208f536c9d861c19395e5fc
   languageName: node
   linkType: hard
 
@@ -191,7 +191,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@getalby/sdk@portal:../::locator=alby-sdk-examples%40workspace%3A."
   dependencies:
-    "@getalby/lightning-tools": "npm:^8.1.1"
+    "@getalby/lightning-tools": "npm:^9.0.2"
     nostr-tools: "npm:^2.23.3"
   languageName: node
   linkType: soft

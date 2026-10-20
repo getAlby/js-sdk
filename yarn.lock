@@ -750,10 +750,10 @@
   resolved "https://registry.npmjs.org/@eslint/js/-/js-8.57.0.tgz"
   integrity sha512-Ys+3g2TaW7gADOJzPt83SJtCDhMjndcDMFVQ/Tj9iA1BfJzFKD9mAUXT3OenpuPHbI6P/myECxRJrofUsDx/5g==
 
-"@getalby/lightning-tools@^8.1.1":
-  version "8.1.1"
-  resolved "https://registry.yarnpkg.com/@getalby/lightning-tools/-/lightning-tools-8.1.1.tgz#4bf8be9f30dd76f7dd082262e862e63c16591fae"
-  integrity sha512-gB+3fvTGz9bbl31JNgKMWqG4dZWgCxSB51fYn+F4tZ3x2h5oI/yHjvb6W9GBo2Zscr5gMP64gs0LlzKYoETlvQ==
+"@getalby/lightning-tools@^9.0.2":
+  version "9.0.2"
+  resolved "https://registry.yarnpkg.com/@getalby/lightning-tools/-/lightning-tools-9.0.2.tgz#6d5bf6575c6149354f73f3089157ce640efbab91"
+  integrity sha512-h58Bw8oQg9MXdGud5agfRnjGVY24Hzj8hCljdIEZyijXjfkVdSXet2Mpjc3lz/BpIdZz51uM8CXuwnXi0BOqFg==
 
 "@humanwhocodes/config-array@^0.11.14":
   version "0.11.14"
