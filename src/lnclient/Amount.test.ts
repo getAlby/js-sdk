@@ -5,11 +5,13 @@ describe("Amount", () => {
     const amount = SATS(10);
     expect(amount.satoshi).toBe(10);
   });
+
   test("resolveAmount", async () => {
     const resolved = await resolveAmount({ satoshi: 10 });
     expect(resolved.satoshi).toBe(10);
     expect(resolved.millisat).toBe(10_000);
   });
+
   test("resolveAmount async", async () => {
     const resolved = await resolveAmount({
       satoshi: new Promise((resolve) => setTimeout(() => resolve(10), 300)),
@@ -17,4 +19,13 @@ describe("Amount", () => {
     expect(resolved.satoshi).toBe(10);
     expect(resolved.millisat).toBe(10_000);
   });
+
+  test.each([0, 1.5])(
+    "resolveAmount rejects invalid amount %s",
+    async (amount) => {
+      await expect(resolveAmount({ satoshi: amount })).rejects.toThrow(
+        /Invalid amount/,
+      );
+    },
+  );
 });
