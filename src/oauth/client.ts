@@ -1,4 +1,4 @@
-import { SignMessageResponse } from "@webbtc/webln-types";
+import type { SignMessageResponse } from "@webbtc/webln-types";
 import { OAuth2Bearer } from "./auth";
 import { keysendParamsFromBoostagram } from "./helpers";
 import { RequestOptions, rest } from "./request";
