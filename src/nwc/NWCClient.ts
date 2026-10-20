@@ -56,7 +56,7 @@ import {
   Nip47NetworkError,
 } from "./types";
 import { ReconnectingPool } from "./ReconnectingPool";
-import { assertPositiveIntegerAmount } from "../utils";
+import { assertValidAmount } from "./amount";
 
 const NWC_HEX64 = /^[0-9a-f]{64}$/;
 
@@ -514,7 +514,7 @@ export class NWCClient {
   async payInvoice(request: Nip47PayInvoiceRequest): Promise<Nip47PayResponse> {
     try {
       if (request.amount !== undefined) {
-        assertPositiveIntegerAmount(request.amount);
+        assertValidAmount(request.amount);
       }
 
       const result = await this.executeNip47Request<Nip47PayResponse>(
@@ -531,7 +531,7 @@ export class NWCClient {
 
   async payKeysend(request: Nip47PayKeysendRequest): Promise<Nip47PayResponse> {
     try {
-      assertPositiveIntegerAmount(request.amount);
+      assertValidAmount(request.amount);
       const result = await this.executeNip47Request<Nip47PayResponse>(
         "pay_keysend",
         request,
@@ -586,7 +586,7 @@ export class NWCClient {
     try {
       for (const invoiceRequest of request.invoices) {
         if (invoiceRequest.amount !== undefined) {
-          assertPositiveIntegerAmount(invoiceRequest.amount);
+          assertValidAmount(invoiceRequest.amount);
         }
       }
 
@@ -615,7 +615,7 @@ export class NWCClient {
   ): Promise<Nip47MultiPayKeysendResponse> {
     try {
       for (const keysendRequest of request.keysends) {
-        assertPositiveIntegerAmount(keysendRequest.amount);
+        assertValidAmount(keysendRequest.amount);
       }
 
       const results = await this.executeMultiNip47Request<
@@ -642,7 +642,7 @@ export class NWCClient {
     request: Nip47MakeInvoiceRequest,
   ): Promise<Nip47Transaction> {
     try {
-      assertPositiveIntegerAmount(request.amount);
+      assertValidAmount(request.amount);
 
       const result = await this.executeNip47Request<Nip47Transaction>(
         "make_invoice",
@@ -661,7 +661,7 @@ export class NWCClient {
     request: Nip47MakeHoldInvoiceRequest,
   ): Promise<Nip47Transaction> {
     try {
-      assertPositiveIntegerAmount(request.amount);
+      assertValidAmount(request.amount);
       if (!request.payment_hash) {
         throw new Error("No payment hash specified");
       }

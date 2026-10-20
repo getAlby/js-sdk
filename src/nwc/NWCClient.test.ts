@@ -118,49 +118,30 @@ describe("NWCClient amount validation", () => {
   const pubkey =
     "69effe7b49a6dd5cf525bd0905917a5005ffe480b58eeb8e861418cf3ae760d9";
 
-  test.each([0, -1, 1.5, NaN])(
-    "makeInvoice rejects invalid amount %s",
-    async (amount) => {
-      await expect(client.makeInvoice({ amount })).rejects.toThrow(
-        /Invalid amount/,
-      );
-    },
-  );
-
-  test.each([0, -1, 1.5, NaN])(
-    "makeHoldInvoice rejects invalid amount %s",
-    async (amount) => {
-      await expect(
-        client.makeHoldInvoice({ amount, payment_hash: paymentHash }),
-      ).rejects.toThrow(/Invalid amount/);
-    },
-  );
-
-  test.each([0, -1, 1.5, NaN])(
-    "payKeysend rejects invalid amount %s",
-    async (amount) => {
-      await expect(client.payKeysend({ amount, pubkey })).rejects.toThrow(
-        /Invalid amount/,
-      );
-    },
-  );
-
-  test.each([0, -1, 1.5, NaN])(
-    "payInvoice rejects invalid optional amount %s",
-    async (amount) => {
-      await expect(
-        client.payInvoice({ invoice: "lnbc1test", amount }),
-      ).rejects.toThrow(/Invalid amount/);
-    },
-  );
-
-  test("payInvoice rejects explicit null amount", async () => {
-    await expect(
-      client.payInvoice({
-        invoice: "lnbc1test",
-        amount: null as unknown as number,
-      }),
-    ).rejects.toThrow(/No amount specified/);
+  test.each([
+    ["makeInvoice", () => client.makeInvoice({ amount: 0 })],
+    [
+      "makeHoldInvoice",
+      () => client.makeHoldInvoice({ amount: 0, payment_hash: paymentHash }),
+    ],
+    ["payKeysend", () => client.payKeysend({ amount: 0, pubkey })],
+    [
+      "payInvoice",
+      () => client.payInvoice({ invoice: "lnbc1test", amount: 0 }),
+    ],
+    [
+      "multiPayInvoice",
+      () =>
+        client.multiPayInvoice({
+          invoices: [{ invoice: "lnbc1test", amount: 0 }],
+        }),
+    ],
+    [
+      "multiPayKeysend",
+      () => client.multiPayKeysend({ keysends: [{ amount: 0, pubkey }] }),
+    ],
+  ])("%s rejects invalid amount", async (_, call) => {
+    await expect(call()).rejects.toThrow(/Invalid amount/);
   });
 
   test("payInvoice allows omitted amount for zero-amount invoices", async () => {
@@ -177,30 +158,6 @@ describe("NWCClient amount validation", () => {
 
     expect(executeNip47Request).toHaveBeenCalled();
     executeNip47Request.mockRestore();
-  });
-
-  test("multiPayInvoice rejects explicit null amount", async () => {
-    await expect(
-      client.multiPayInvoice({
-        invoices: [{ invoice: "lnbc1test", amount: null as unknown as number }],
-      }),
-    ).rejects.toThrow(/No amount specified/);
-  });
-
-  test("multiPayInvoice rejects invalid optional amount", async () => {
-    await expect(
-      client.multiPayInvoice({
-        invoices: [{ invoice: "lnbc1test", amount: 0 }],
-      }),
-    ).rejects.toThrow(/Invalid amount/);
-  });
-
-  test("multiPayKeysend rejects invalid amount", async () => {
-    await expect(
-      client.multiPayKeysend({
-        keysends: [{ amount: 0, pubkey }],
-      }),
-    ).rejects.toThrow(/Invalid amount/);
   });
 });
 

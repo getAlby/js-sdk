@@ -1,4 +1,4 @@
-import { assertPositiveIntegerAmount, satoshiToMillisat } from "../utils";
+import { assertValidAmount } from "../nwc/amount";
 
 // TODO: move to lightning tools
 /**
@@ -7,18 +7,16 @@ import { assertPositiveIntegerAmount, satoshiToMillisat } from "../utils";
 export type Amount = { satoshi: number } | { satoshi: Promise<number> };
 
 export const SATS: (amount: number) => Amount = (amount) => ({
-  satoshi: assertPositiveIntegerAmount(amount),
+  satoshi: amount,
 });
 
 export async function resolveAmount(
   amount: Amount,
 ): Promise<{ satoshi: number; millisat: number }> {
-  const satoshi = assertPositiveIntegerAmount(
-    await Promise.resolve(amount.satoshi),
-  );
+  const satoshi = assertValidAmount(await amount.satoshi);
 
   return {
     satoshi,
-    millisat: satoshiToMillisat(satoshi),
+    millisat: satoshi * 1000,
   };
 }
