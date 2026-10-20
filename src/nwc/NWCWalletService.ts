@@ -322,8 +322,13 @@ export class NWCWalletService {
       if (attempt > 0) {
         const delay = INITIAL_PUBLISH_RETRY_DELAY_MS * 2 ** (attempt - 1);
         await new Promise((resolve) => setTimeout(resolve, delay));
+        // Unsubscribing stops the retries, but the first attempt always runs
+        // so a handler that finishes after that still answers its request
+        if (isStopped()) {
+          return false;
+        }
       }
-      if (isStopped() || this.pool.closed) {
+      if (this.pool.closed) {
         return false;
       }
       try {
