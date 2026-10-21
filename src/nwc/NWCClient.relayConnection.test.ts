@@ -227,11 +227,15 @@ async function startRecoveringRelay(targetUrl: string) {
   const target = new URL(targetUrl);
   let recovered = false;
   const sockets = new Set<net.Socket>();
+  const stuckSockets = new Set<net.Socket>();
   const server = net.createServer((socket) => {
     sockets.add(socket);
     socket.on("close", () => sockets.delete(socket));
     socket.on("error", () => {});
-    if (!recovered) return;
+    if (!recovered) {
+      stuckSockets.add(socket);
+      return;
+    }
     const upstream = net.connect(Number(target.port), target.hostname);
     sockets.add(upstream);
     upstream.on("close", () => sockets.delete(upstream));
@@ -244,6 +248,11 @@ async function startRecoveringRelay(targetUrl: string) {
     url: `ws://127.0.0.1:${port}`,
     recover: () => {
       recovered = true;
+    },
+    // closes the connections still held from before the recovery
+    dropStuckConnections: () => {
+      stuckSockets.forEach((s) => s.destroy());
+      stuckSockets.clear();
     },
     close: () =>
       new Promise<void>((r) => {
@@ -382,4 +391,32 @@ describe("NWCClient relay connection", () => {
       await working.close();
     }
   }, 20000);
+
+  test("a stale connection closing late does not remove the reconnected relay from the pool", async () => {
+    const working = await startWorkingRelayWithWallet();
+    const recovering = await startRecoveringRelay(working.url);
+    const client = createClient([recovering.url]);
+    try {
+      await expect(
+        client.pool.ensureRelay(recovering.url, { connectionTimeout: 200 }),
+      ).rejects.toBe("connection timed out");
+
+      recovering.recover();
+      const relay = await client.pool.ensureRelay(recovering.url);
+      expect(relay.connected).toBe(true);
+
+      // the socket of the timed out attempt only fails now, after the retry
+      recovering.dropStuckConnections();
+      await new Promise((r) => setTimeout(r, 200));
+
+      expect(relay.connected).toBe(true);
+      expect([...client.pool.listConnectionStatus().values()]).toEqual([true]);
+      // the same relay instance is reused instead of opening a new one
+      expect(await client.pool.ensureRelay(recovering.url)).toBe(relay);
+    } finally {
+      client.close();
+      await recovering.close();
+      await working.close();
+    }
+  }, 15000);
 });
