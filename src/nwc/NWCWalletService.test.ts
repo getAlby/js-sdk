@@ -200,6 +200,78 @@ describe("response publishing", () => {
     expect(publishCalls).toBe(1);
   }, 10_000);
 
+  test("publishes the response when the handler finishes after unsubscribing", async () => {
+    const handlerContext: { unsubscribe?: () => void } = {};
+    const { service, subscribeParams, requestEvent, unsubscribe } =
+      await setupSubscribedWalletService({
+        getInfo: async () => {
+          // e.g. the connection was removed while the request was in flight
+          handlerContext.unsubscribe?.();
+          return getInfoResponse;
+        },
+      });
+    handlerContext.unsubscribe = unsubscribe;
+
+    const published: Event[] = [];
+    service.pool.publish = (_relayUrls, event) => {
+      published.push(event);
+      return [Promise.resolve("")];
+    };
+
+    await subscribeParams.onevent(requestEvent);
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    expect(published).toHaveLength(1);
+    expect(published[0].kind).toBe(23195);
+  });
+
+  test("tries a failed response only once when the handler unsubscribed", async () => {
+    const handlerContext: { unsubscribe?: () => void } = {};
+    const { service, subscribeParams, requestEvent, unsubscribe } =
+      await setupSubscribedWalletService({
+        getInfo: async () => {
+          handlerContext.unsubscribe?.();
+          return getInfoResponse;
+        },
+      });
+    handlerContext.unsubscribe = unsubscribe;
+
+    let publishCalls = 0;
+    service.pool.publish = () => {
+      publishCalls++;
+      return [Promise.reject(new Error("publish failed"))];
+    };
+
+    await subscribeParams.onevent(requestEvent);
+
+    // the first attempt always runs, the retries stop
+    await new Promise((resolve) => setTimeout(resolve, 1200));
+    expect(publishCalls).toBe(1);
+  }, 10_000);
+
+  test("does not publish the response when the service was closed meanwhile", async () => {
+    const handlerContext: { service?: NWCWalletService } = {};
+    const { service, subscribeParams, requestEvent } =
+      await setupSubscribedWalletService({
+        getInfo: async () => {
+          handlerContext.service?.close();
+          return getInfoResponse;
+        },
+      });
+    handlerContext.service = service;
+
+    let publishCalls = 0;
+    service.pool.publish = () => {
+      publishCalls++;
+      return [Promise.resolve("")];
+    };
+
+    await subscribeParams.onevent(requestEvent);
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    expect(publishCalls).toBe(0);
+  });
+
   test("stops retrying after the service is closed", async () => {
     const { service, subscribeParams, requestEvent } =
       await setupSubscribedWalletService({
