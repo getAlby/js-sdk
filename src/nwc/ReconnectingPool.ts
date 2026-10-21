@@ -83,8 +83,11 @@ export class ReconnectingPool {
     }
 
     try {
+      // always pass a timeout: without one, nostr-tools waits forever on a
+      // relay that accepts the TCP connection but never completes the
+      // handshake, and later connect() calls join that same pending attempt
       await relay.connect({
-        timeout: params?.connectionTimeout,
+        timeout: params?.connectionTimeout ?? this.maxWaitForConnection,
         abort: params?.abort,
       });
     } catch (err) {
