@@ -220,6 +220,39 @@ async function startWorkingRelayWithWallet() {
   };
 }
 
+// a stuck proxy in front of a working relay: until recover() is called it
+// holds new connections without answering; afterwards new connections are
+// forwarded to the relay, while the ones it already holds stay stuck
+async function startRecoveringRelay(targetUrl: string) {
+  const target = new URL(targetUrl);
+  let recovered = false;
+  const sockets = new Set<net.Socket>();
+  const server = net.createServer((socket) => {
+    sockets.add(socket);
+    socket.on("close", () => sockets.delete(socket));
+    socket.on("error", () => {});
+    if (!recovered) return;
+    const upstream = net.connect(Number(target.port), target.hostname);
+    sockets.add(upstream);
+    upstream.on("close", () => sockets.delete(upstream));
+    upstream.on("error", () => {});
+    socket.pipe(upstream).pipe(socket);
+  });
+  await new Promise<void>((r) => server.listen(0, "127.0.0.1", r));
+  const { port } = server.address() as net.AddressInfo;
+  return {
+    url: `ws://127.0.0.1:${port}`,
+    recover: () => {
+      recovered = true;
+    },
+    close: () =>
+      new Promise<void>((r) => {
+        sockets.forEach((s) => s.destroy());
+        server.close(() => r());
+      }),
+  };
+}
+
 function createClient(relayUrls: string[]) {
   return new NWCClient({
     nostrWalletConnectUrl: `nostr+walletconnect://${walletPubkey}?${relayUrls
@@ -325,4 +358,28 @@ describe("NWCClient relay connection", () => {
       await halfOpen.close();
     }
   }, 15000);
+
+  test("requests work again once the only relay recovers from being half-open", async () => {
+    const working = await startWorkingRelayWithWallet();
+    const recovering = await startRecoveringRelay(working.url);
+    const client = createClient([recovering.url]);
+    try {
+      const started = Date.now();
+      const recoverTimer = setTimeout(() => recovering.recover(), 5000);
+
+      // the request made while the relay is half-open fails
+      const first = await settleWithin(client.getInfo(), 4000);
+      expect(first.status).toBe("rejected");
+
+      // after the relay recovered, a new request goes through
+      await waitFor(() => Date.now() - started > 5000, 6000);
+      const second = await settleWithin(client.getInfo(), 4000);
+      clearTimeout(recoverTimer);
+      expect(second.status).toBe("resolved");
+    } finally {
+      client.close();
+      await recovering.close();
+      await working.close();
+    }
+  }, 20000);
 });
