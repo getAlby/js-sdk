@@ -76,19 +76,21 @@ export class ReconnectingPool {
         enablePing: this.enablePing,
         enableReconnect: false,
       });
-      relay.onclose = () => {
-        this.relays.delete(url);
-      };
+      const created = relay;
+      relay.onclose = () => this.removeRelay(url, created);
       this.relays.set(url, relay);
     }
 
     try {
+      // always pass a timeout: without one, nostr-tools waits forever on a
+      // relay that accepts the TCP connection but never completes the
+      // handshake, and later connect() calls join that same pending attempt
       await relay.connect({
-        timeout: params?.connectionTimeout,
+        timeout: params?.connectionTimeout ?? this.maxWaitForConnection,
         abort: params?.abort,
       });
     } catch (err) {
-      this.relays.delete(url);
+      this.removeRelay(url, relay);
       throw err;
     }
 
@@ -96,11 +98,19 @@ export class ReconnectingPool {
     // relay handed out now would have no owner to close it later
     if (this._closed) {
       relay.close();
-      this.relays.delete(url);
+      this.removeRelay(url, relay);
       throw new Error("pool is closed");
     }
 
     return relay;
+  }
+
+  // a timed out connection attempt leaves its WebSocket open, and it may fire
+  // onclose much later, when a retry already stored a new Relay for the url
+  private removeRelay(url: string, relay: Relay) {
+    if (this.relays.get(url) === relay) {
+      this.relays.delete(url);
+    }
   }
 
   close(relays: string[]) {
