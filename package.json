@@ -17,7 +17,7 @@
   "module": "./dist/esm/index.js",
   "main": "./dist/cjs/index.cjs",
   "types": "./dist/types/index.d.ts",
-  "unpkg": "./dist/types/lightning-sdk.umd.js",
+  "unpkg": "./dist/alby-sdk.umd.js",
   "exports": {
     ".": {
       "import": "./dist/esm/index.js",
