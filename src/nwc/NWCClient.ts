@@ -935,7 +935,7 @@ export class NWCClient {
         }
         const publishTimeoutCheck = setTimeout(
           publishTimeout,
-          timeoutValues?.publishTimeout || 5000,
+          this.pool.publishTimeout,
         );
 
         const relayErrors: Nip47RelayPublishError[] = [];
@@ -1114,7 +1114,7 @@ export class NWCClient {
         }
         const publishTimeoutCheck = setTimeout(
           publishTimeout,
-          timeoutValues?.publishTimeout || 5000,
+          this.pool.publishTimeout,
         );
 
         try {

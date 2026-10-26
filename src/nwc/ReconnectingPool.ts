@@ -38,6 +38,16 @@ const MAX_RECONNECT_DELAY_MS = 5 * 60 * 1000;
 // across reconnects, small enough that long-lived subscriptions don't leak.
 const MAX_KNOWN_IDS = 1000;
 
+/**
+ * Each relay waits this much longer than the pool's publishTimeout for an OK
+ * before rejecting the publish with "publish timed out". This makes the
+ * caller's own publish timeout fire first, so that a missing OK surfaces as
+ * Nip47PublishTimeoutError (the relay may have received the request), while
+ * only connection failures and OK false refusals surface as
+ * Nip47PublishError (the request failed).
+ */
+const RELAY_PUBLISH_TIMEOUT_MARGIN = 1000;
+
 export class ReconnectingPool {
   protected relays: Map<string, Relay> = new Map();
   // set by close()/destroy(); a closed pool is not usable anymore
@@ -49,10 +59,14 @@ export class ReconnectingPool {
 
   public enablePing: boolean | undefined;
   public maxWaitForConnection: number;
+  // how long callers wait for at least one relay to accept a published event;
+  // applies to relays connected after it is set
+  public publishTimeout: number;
 
   constructor() {
     this.enablePing = false;
     this.maxWaitForConnection = 3000;
+    this.publishTimeout = 5000;
   }
 
   async ensureRelay(
@@ -76,6 +90,7 @@ export class ReconnectingPool {
         enablePing: this.enablePing,
         enableReconnect: false,
       });
+      relay.publishTimeout = this.publishTimeout + RELAY_PUBLISH_TIMEOUT_MARGIN;
       const created = relay;
       relay.onclose = () => this.removeRelay(url, created);
       this.relays.set(url, relay);

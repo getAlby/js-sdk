@@ -286,5 +286,4 @@ export type Nip47SignMessageResponse = {
 
 export type Nip47TimeoutValues = {
   replyTimeout?: number;
-  publishTimeout?: number;
 };

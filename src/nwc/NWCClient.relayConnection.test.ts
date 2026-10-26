@@ -11,7 +11,7 @@ import {
 } from "nostr-tools";
 import { bytesToHex } from "@noble/hashes/utils.js";
 import { NWCClient } from "./NWCClient";
-import { Nip47NetworkError } from "./types";
+import { Nip47NetworkError, Nip47PublishTimeoutError } from "./types";
 
 const walletSecretKey = generateSecretKey();
 const walletPubkey = getPublicKey(walletSecretKey);
@@ -86,8 +86,11 @@ function sendText(socket: net.Socket, text: string) {
 }
 
 // minimal nostr relay over a hand-rolled WebSocket server, with a built-in
-// NWC wallet service that publishes its info event and answers get_info
-async function startWorkingRelayWithWallet() {
+// NWC wallet service that publishes its info event and answers get_info.
+// With ignoreRequests, the relay never replies OK to NWC requests
+async function startWorkingRelayWithWallet(
+  options: { ignoreRequests?: boolean } = {},
+) {
   const events: Event[] = [
     finalizeEvent(
       {
@@ -148,6 +151,7 @@ async function startWorkingRelayWithWallet() {
       socketSubs.delete(message[1] as string);
     } else if (message[0] === "EVENT") {
       const event = message[1] as Event;
+      if (options.ignoreRequests && event.kind === 23194) return;
       sendText(socket, JSON.stringify(["OK", event.id, true, ""]));
       events.push(event);
       broadcast(event);
@@ -416,6 +420,24 @@ describe("NWCClient relay connection", () => {
     } finally {
       client.close();
       await recovering.close();
+      await working.close();
+    }
+  }, 15000);
+});
+
+describe("NWCClient publish timeout", () => {
+  test("request rejects with a publish timeout when the relay never replies OK", async () => {
+    const working = await startWorkingRelayWithWallet({ ignoreRequests: true });
+    const client = createClient([working.url]);
+    try {
+      const outcome = await settleWithin(client.getInfo(), 8000);
+      expect(outcome.status).toBe("rejected");
+      if (outcome.status === "rejected") {
+        // not Nip47PublishError: the relay may have received the request
+        expect(outcome.error).toBeInstanceOf(Nip47PublishTimeoutError);
+      }
+    } finally {
+      client.close();
       await working.close();
     }
   }, 15000);
