@@ -39,6 +39,7 @@ import {
   Nip47CreateConnectionResponse,
   Nip47SignMessageResponse,
   Nip47PublishError,
+  Nip47RelayPublishError,
   Nip47PublishTimeoutError,
   Nip47ReplyTimeoutError,
   Nip47ResponseDecodingError,
@@ -937,13 +938,30 @@ export class NWCClient {
           timeoutValues?.publishTimeout || 5000,
         );
 
+        const relayErrors: Nip47RelayPublishError[] = [];
         try {
-          await Promise.any(this.pool.publish(this.relayUrls, event));
+          await Promise.any(
+            this.pool.publish(this.relayUrls, event).map((publishPromise, i) =>
+              publishPromise.catch((error) => {
+                relayErrors.push({
+                  url: this.relayUrls[i],
+                  reason:
+                    error instanceof Error ? error.message : String(error),
+                });
+                throw error;
+              }),
+            ),
+          );
           clearTimeout(publishTimeoutCheck);
         } catch (error) {
           clearTimeout(publishTimeoutCheck);
           reject(
-            new Nip47PublishError(`failed to publish: ${error}`, "INTERNAL"),
+            new Nip47PublishError(
+              "failed to publish: " +
+                relayErrors.map((e) => `${e.url}: ${e.reason}`).join("; "),
+              "INTERNAL",
+              relayErrors,
+            ),
           );
         }
       })();
