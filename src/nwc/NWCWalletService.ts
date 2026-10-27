@@ -20,7 +20,6 @@ import {
   Nip47LookupInvoiceRequest,
   Nip47ListTransactionsRequest,
   Nip47SignMessageRequest,
-  Nip47SingleMethod,
   Nip47EncryptionType,
   Nip47Notification,
 } from "./types";
@@ -86,7 +85,7 @@ export class NWCWalletService {
 
   async publishWalletServiceInfoEvent(
     walletSecret: string,
-    supportedMethods: Nip47SingleMethod[],
+    supportedMethods: Nip47Method[],
     supportedNotifications: Nip47NotificationType[],
   ) {
     try {

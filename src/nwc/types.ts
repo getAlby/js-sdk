@@ -55,15 +55,7 @@ export class Nip47ResponseValidationError extends Nip47Error {}
 export class Nip47UnexpectedResponseError extends Nip47Error {}
 export class Nip47UnsupportedEncryptionError extends Nip47Error {}
 
-export type WithDTag = {
-  dTag: string;
-};
-
-export type WithOptionalId = {
-  id?: string;
-};
-
-export type Nip47SingleMethod =
+export type Nip47Method =
   | "get_info"
   | "get_balance"
   | "get_budget"
@@ -78,9 +70,6 @@ export type Nip47SingleMethod =
   | "settle_hold_invoice"
   | "cancel_hold_invoice";
 
-export type Nip47MultiMethod = "multi_pay_invoice" | "multi_pay_keysend";
-
-export type Nip47Method = Nip47SingleMethod | Nip47MultiMethod;
 export type Nip47Capability = Nip47Method | "notifications";
 export type BudgetRenewalPeriod =
   | "daily"
@@ -119,25 +108,6 @@ export type Nip47GetBalanceResponse = {
 export type Nip47PayResponse = {
   preimage: string;
   fees_paid: number;
-};
-
-export type Nip47MultiPayInvoiceRequest = {
-  invoices: (Nip47PayInvoiceRequest & WithOptionalId)[];
-};
-
-export type Nip47MultiPayKeysendRequest = {
-  keysends: (Nip47PayKeysendRequest & WithOptionalId)[];
-};
-
-export type Nip47MultiPayInvoiceResponse = {
-  invoices: ({ invoice: Nip47PayInvoiceRequest } & Nip47PayResponse &
-    WithDTag)[];
-  errors: []; // TODO: add error handling
-};
-export type Nip47MultiPayKeysendResponse = {
-  keysends: ({ keysend: Nip47PayKeysendRequest } & Nip47PayResponse &
-    WithDTag)[];
-  errors: []; // TODO: add error handling
 };
 
 export interface Nip47ListTransactionsRequest {

@@ -42,18 +42,6 @@ export type ListTransactionsArgs = {
   type?: "incoming" | "outgoing";
 };
 
-// TODO: consider moving to webln-types package
-export type SendMultiPaymentResponse = {
-  payments: ({ paymentRequest: string } & SendPaymentResponse)[];
-  errors: { paymentRequest: string; message: string }[];
-};
-
-// TODO: consider moving to webln-types package
-export type MultiKeysendResponse = {
-  keysends: ({ keysend: KeysendArgs } & SendPaymentResponse)[];
-  errors: { keysend: KeysendArgs; message: string }[];
-};
-
 type NostrWebLNOptions = NWCOptions;
 
 export type Nip07Provider = {
@@ -79,8 +67,6 @@ const nip47ToWeblnRequestMap: Record<
   pay_keysend: "payKeysend",
   lookup_invoice: "lookupInvoice",
   list_transactions: "listTransactions",
-  multi_pay_invoice: "sendMultiPayment",
-  multi_pay_keysend: "multiKeysend",
   sign_message: "signMessage",
 };
 
@@ -307,69 +293,6 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
 
     this.notify("listTransactions", result);
 
-    return result;
-  }
-
-  // NOTE: this method may change - it has not been proposed to be added to the WebLN spec yet.
-  async sendMultiPayment(
-    paymentRequests: string[],
-  ): Promise<SendMultiPaymentResponse> {
-    await this.checkEnabled();
-
-    const nip47Result = await this.client.multiPayInvoice({
-      invoices: paymentRequests.map((paymentRequest, index) => ({
-        invoice: paymentRequest,
-        id: index.toString(),
-      })),
-    });
-
-    const result = {
-      payments: nip47Result.invoices.map((invoice) => {
-        const paymentRequest = paymentRequests[parseInt(invoice.dTag)];
-        if (!paymentRequest) {
-          throw new Error(
-            "Could not find paymentRequest matching response d tag",
-          );
-        }
-        return {
-          paymentRequest,
-          preimage: invoice.preimage,
-        };
-      }),
-      // TODO: error handling
-      errors: [],
-    };
-    this.notify("sendMultiPayment", result);
-    return result;
-  }
-
-  // NOTE: this method may change - it has not been proposed to be added to the WebLN spec yet.
-  async multiKeysend(keysends: KeysendArgs[]): Promise<MultiKeysendResponse> {
-    await this.checkEnabled();
-
-    const nip47Result = await this.client.multiPayKeysend({
-      keysends: keysends.map((keysend, index) => ({
-        ...mapKeysendToNip47Keysend(keysend),
-        id: index.toString(),
-      })),
-    });
-
-    const result: MultiKeysendResponse = {
-      keysends: nip47Result.keysends.map((result) => {
-        const keysend = keysends[parseInt(result.dTag)];
-        if (!keysend) {
-          throw new Error("Could not find keysend matching response d tag");
-        }
-        return {
-          keysend,
-          preimage: result.preimage,
-        };
-      }),
-      // TODO: error handling
-      errors: [],
-    };
-
-    this.notify("multiKeysend", result);
     return result;
   }
 
