@@ -12,7 +12,11 @@ import {
 } from "nostr-tools";
 import { bytesToHex } from "@noble/hashes/utils.js";
 import { NWCClient } from "./NWCClient";
-import { Nip47NetworkError, Nip47ResponseDecodingError } from "./types";
+import {
+  Nip47NetworkError,
+  Nip47PublishTimeoutError,
+  Nip47ResponseDecodingError,
+} from "./types";
 
 const walletSecretKey = generateSecretKey();
 const walletPubkey = getPublicKey(walletSecretKey);
@@ -88,9 +92,13 @@ function sendText(socket: net.Socket, text: string) {
 
 // minimal nostr relay over a hand-rolled WebSocket server, with a built-in
 // NWC wallet service that publishes its info event and answers get_info.
+// With ignoreRequests, the relay never replies OK to NWC requests.
 // encryptReply replaces the wallet's nip44 encryption of its replies
 async function startWorkingRelayWithWallet(
-  encryptReply?: (content: string, request: Event) => string,
+  options: {
+    ignoreRequests?: boolean;
+    encryptReply?: (content: string, request: Event) => string;
+  } = {},
 ) {
   const events: Event[] = [
     finalizeEvent(
@@ -131,8 +139,8 @@ async function startWorkingRelayWithWallet(
           ["p", request.pubkey],
           ["e", request.id],
         ],
-        content: encryptReply
-          ? encryptReply(content, request)
+        content: options.encryptReply
+          ? options.encryptReply(content, request)
           : nip44.encrypt(content, key),
       },
       walletSecretKey,
@@ -155,6 +163,7 @@ async function startWorkingRelayWithWallet(
       socketSubs.delete(message[1] as string);
     } else if (message[0] === "EVENT") {
       const event = message[1] as Event;
+      if (options.ignoreRequests && event.kind === 23194) return;
       sendText(socket, JSON.stringify(["OK", event.id, true, ""]));
       events.push(event);
       broadcast(event);
@@ -428,12 +437,31 @@ describe("NWCClient relay connection", () => {
   }, 15000);
 });
 
+describe("NWCClient publish timeout", () => {
+  test("request rejects with a publish timeout when the relay never replies OK", async () => {
+    const working = await startWorkingRelayWithWallet({ ignoreRequests: true });
+    const client = createClient([working.url]);
+    try {
+      const outcome = await settleWithin(client.getInfo(), 8000);
+      expect(outcome.status).toBe("rejected");
+      if (outcome.status === "rejected") {
+        // not Nip47PublishError: the relay may have received the request
+        expect(outcome.error).toBeInstanceOf(Nip47PublishTimeoutError);
+      }
+    } finally {
+      client.close();
+      await working.close();
+    }
+  }, 15000);
+});
+
 describe("NWCClient replies", () => {
   test("request rejects when the reply cannot be decrypted", async () => {
     // the wallet advertises nip44_v2, but replies with nip04 content
-    const working = await startWorkingRelayWithWallet((content, request) =>
-      nip04.encrypt(walletSecretKey, request.pubkey, content),
-    );
+    const working = await startWorkingRelayWithWallet({
+      encryptReply: (content, request) =>
+        nip04.encrypt(walletSecretKey, request.pubkey, content),
+    });
     const client = createClient([working.url]);
     try {
       const outcome = await settleWithin(client.getInfo(), 4000);

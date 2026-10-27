@@ -1,5 +1,6 @@
 import { jest } from "@jest/globals";
 import { NWCClient } from "./NWCClient";
+import { Nip47PublishError } from "./types";
 
 // this has no funds on it, I think ;-)
 const exampleNwcUrl =
@@ -158,6 +159,50 @@ describe("NWCClient amount validation", () => {
 
     expect(executeNip47Request).toHaveBeenCalled();
     executeNip47Request.mockRestore();
+  });
+});
+
+describe("NWCClient publish errors", () => {
+  test("keeps the reason each relay failed", async () => {
+    const client = new NWCClient({ nostrWalletConnectUrl: exampleNwcUrl });
+    const internals = client as unknown as {
+      _checkConnected: () => Promise<void>;
+      _encryptionType: string;
+    };
+    jest.spyOn(internals, "_checkConnected").mockResolvedValue();
+    internals._encryptionType = "nip44_v2";
+    jest
+      .spyOn(client.pool, "subscribe")
+      .mockReturnValue({ close: () => {} } as ReturnType<
+        typeof client.pool.subscribe
+      >);
+    jest
+      .spyOn(client.pool, "publish")
+      .mockReturnValue([
+        Promise.reject(new Error("connection failure: connection timed out")),
+        Promise.reject("duplicate url"),
+      ]);
+
+    const error = await client.getInfo().catch((e) => e);
+
+    expect(error).toBeInstanceOf(Nip47PublishError);
+    expect(error.relayErrors).toEqual(
+      expect.arrayContaining([
+        {
+          url: "wss://relay.getalby.com/v1",
+          reason: "connection failure: connection timed out",
+        },
+        { url: "wss://relay2.getalby.com/v1", reason: "duplicate url" },
+      ]),
+    );
+    expect(error.relayErrors).toHaveLength(2);
+    expect(error.message).toContain(
+      "wss://relay.getalby.com/v1: connection failure: connection timed out",
+    );
+    expect(error.message).toContain(
+      "wss://relay2.getalby.com/v1: duplicate url",
+    );
+    client.close();
   });
 });
 

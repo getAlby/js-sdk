@@ -28,10 +28,28 @@ export class Nip47NetworkError extends Nip47Error {}
  */
 export class Nip47WalletError extends Nip47Error {}
 
+/**
+ * Why a relay did not accept a published event
+ */
+export type Nip47RelayPublishError = {
+  url: string;
+  reason: string;
+};
+
 export class Nip47TimeoutError extends Nip47Error {}
 export class Nip47PublishTimeoutError extends Nip47TimeoutError {}
 export class Nip47ReplyTimeoutError extends Nip47TimeoutError {}
-export class Nip47PublishError extends Nip47Error {}
+export class Nip47PublishError extends Nip47Error {
+  relayErrors: Nip47RelayPublishError[];
+  constructor(
+    message: string,
+    code: string,
+    relayErrors: Nip47RelayPublishError[] = [],
+  ) {
+    super(message, code);
+    this.relayErrors = relayErrors;
+  }
+}
 export class Nip47ResponseDecodingError extends Nip47Error {}
 export class Nip47ResponseValidationError extends Nip47Error {}
 export class Nip47UnexpectedResponseError extends Nip47Error {}
@@ -268,5 +286,4 @@ export type Nip47SignMessageResponse = {
 
 export type Nip47TimeoutValues = {
   replyTimeout?: number;
-  publishTimeout?: number;
 };
