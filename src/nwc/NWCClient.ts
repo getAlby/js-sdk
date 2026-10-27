@@ -858,17 +858,15 @@ export class NWCClient {
               // console.log(`Received reply event: `, event);
               clearTimeout(replyTimeoutCheck);
               sub.close();
-              const decryptedContent = await this.decrypt(
-                this.walletPubkey,
-                event.content,
-              );
-              // console.log(`Decrypted content: `, decryptedContent);
               let response;
               try {
+                const decryptedContent = await this.decrypt(
+                  this.walletPubkey,
+                  event.content,
+                );
+                // console.log(`Decrypted content: `, decryptedContent);
                 response = JSON.parse(decryptedContent);
               } catch (e) {
-                clearTimeout(replyTimeoutCheck);
-                sub.close();
                 reject(
                   new Nip47ResponseDecodingError(
                     "failed to deserialize response",
@@ -881,8 +879,6 @@ export class NWCClient {
                 if (resultValidator(response.result)) {
                   resolve(response.result);
                 } else {
-                  clearTimeout(replyTimeoutCheck);
-                  sub.close();
                   reject(
                     new Nip47ResponseValidationError(
                       "response from NWC failed validation: " +
@@ -892,8 +888,6 @@ export class NWCClient {
                   );
                 }
               } else {
-                clearTimeout(replyTimeoutCheck);
-                sub.close();
                 // console.error("Wallet error", response.error);
                 reject(
                   new Nip47WalletError(

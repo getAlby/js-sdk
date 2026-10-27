@@ -7,11 +7,12 @@ import {
   finalizeEvent,
   generateSecretKey,
   getPublicKey,
+  nip04,
   nip44,
 } from "nostr-tools";
 import { bytesToHex } from "@noble/hashes/utils.js";
 import { NWCClient } from "./NWCClient";
-import { Nip47NetworkError } from "./types";
+import { Nip47NetworkError, Nip47ResponseDecodingError } from "./types";
 
 const walletSecretKey = generateSecretKey();
 const walletPubkey = getPublicKey(walletSecretKey);
@@ -86,8 +87,11 @@ function sendText(socket: net.Socket, text: string) {
 }
 
 // minimal nostr relay over a hand-rolled WebSocket server, with a built-in
-// NWC wallet service that publishes its info event and answers get_info
-async function startWorkingRelayWithWallet() {
+// NWC wallet service that publishes its info event and answers get_info.
+// encryptReply replaces the wallet's nip44 encryption of its replies
+async function startWorkingRelayWithWallet(
+  encryptReply?: (content: string, request: Event) => string,
+) {
   const events: Event[] = [
     finalizeEvent(
       {
@@ -115,6 +119,10 @@ async function startWorkingRelayWithWallet() {
   const handleWalletRequest = (request: Event) => {
     const key = nip44.getConversationKey(walletSecretKey, request.pubkey);
     const { method } = JSON.parse(nip44.decrypt(request.content, key));
+    const content = JSON.stringify({
+      result_type: method,
+      result: GET_INFO_RESULT,
+    });
     const response = finalizeEvent(
       {
         kind: 23195,
@@ -123,10 +131,9 @@ async function startWorkingRelayWithWallet() {
           ["p", request.pubkey],
           ["e", request.id],
         ],
-        content: nip44.encrypt(
-          JSON.stringify({ result_type: method, result: GET_INFO_RESULT }),
-          key,
-        ),
+        content: encryptReply
+          ? encryptReply(content, request)
+          : nip44.encrypt(content, key),
       },
       walletSecretKey,
     );
@@ -416,6 +423,26 @@ describe("NWCClient relay connection", () => {
     } finally {
       client.close();
       await recovering.close();
+      await working.close();
+    }
+  }, 15000);
+});
+
+describe("NWCClient replies", () => {
+  test("request rejects when the reply cannot be decrypted", async () => {
+    // the wallet advertises nip44_v2, but replies with nip04 content
+    const working = await startWorkingRelayWithWallet((content, request) =>
+      nip04.encrypt(walletSecretKey, request.pubkey, content),
+    );
+    const client = createClient([working.url]);
+    try {
+      const outcome = await settleWithin(client.getInfo(), 4000);
+      expect(outcome.status).toBe("rejected");
+      if (outcome.status === "rejected") {
+        expect(outcome.error).toBeInstanceOf(Nip47ResponseDecodingError);
+      }
+    } finally {
+      client.close();
       await working.close();
     }
   }, 15000);
