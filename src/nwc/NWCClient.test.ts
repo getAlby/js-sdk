@@ -130,17 +130,6 @@ describe("NWCClient amount validation", () => {
       "payInvoice",
       () => client.payInvoice({ invoice: "lnbc1test", amount: 0 }),
     ],
-    [
-      "multiPayInvoice",
-      () =>
-        client.multiPayInvoice({
-          invoices: [{ invoice: "lnbc1test", amount: 0 }],
-        }),
-    ],
-    [
-      "multiPayKeysend",
-      () => client.multiPayKeysend({ keysends: [{ amount: 0, pubkey }] }),
-    ],
   ])("%s rejects invalid amount", async (_, call) => {
     await expect(call()).rejects.toThrow(/Invalid amount/);
   });

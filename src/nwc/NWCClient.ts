@@ -21,10 +21,6 @@ import {
   Nip47GetBalanceResponse,
   Nip47PayResponse,
   Nip47TimeoutValues,
-  Nip47MultiPayInvoiceRequest,
-  Nip47MultiPayKeysendRequest,
-  Nip47MultiPayInvoiceResponse,
-  Nip47MultiPayKeysendResponse,
   Nip47ListTransactionsRequest,
   Nip47ListTransactionsResponse,
   Nip47Transaction,
@@ -44,10 +40,8 @@ import {
   Nip47ReplyTimeoutError,
   Nip47ResponseDecodingError,
   Nip47ResponseValidationError,
-  Nip47UnexpectedResponseError,
   Nip47UnsupportedEncryptionError,
   Nip47WalletError,
-  Nip47MultiMethod,
   NWCAuthorizationUrlOptions,
   Nip47MakeHoldInvoiceRequest,
   Nip47SettleHoldInvoiceRequest,
@@ -581,64 +575,6 @@ export class NWCClient {
     }
   }
 
-  async multiPayInvoice(
-    request: Nip47MultiPayInvoiceRequest,
-  ): Promise<Nip47MultiPayInvoiceResponse> {
-    try {
-      for (const invoiceRequest of request.invoices) {
-        if (invoiceRequest.amount !== undefined) {
-          assertValidAmount(invoiceRequest.amount);
-        }
-      }
-
-      const results = await this.executeMultiNip47Request<
-        { invoice: Nip47PayInvoiceRequest } & Nip47PayResponse
-      >(
-        "multi_pay_invoice",
-        request,
-        request.invoices.length,
-        (result) => !!result.preimage,
-      );
-
-      return {
-        invoices: results,
-        // TODO: error handling
-        errors: [],
-      };
-    } catch (error) {
-      console.error("Failed to request multi_pay_invoice", error);
-      throw error;
-    }
-  }
-
-  async multiPayKeysend(
-    request: Nip47MultiPayKeysendRequest,
-  ): Promise<Nip47MultiPayKeysendResponse> {
-    try {
-      for (const keysendRequest of request.keysends) {
-        assertValidAmount(keysendRequest.amount);
-      }
-
-      const results = await this.executeMultiNip47Request<
-        { keysend: Nip47PayKeysendRequest } & Nip47PayResponse
-      >(
-        "multi_pay_keysend",
-        request,
-        request.keysends.length,
-        (result) => !!result.preimage,
-      );
-
-      return {
-        keysends: results,
-        // TODO: error handling
-        errors: [],
-      };
-    } catch (error) {
-      console.error("Failed to request multi_pay_keysend", error);
-      throw error;
-    }
-  }
-
   async makeInvoice(
     request: Nip47MakeInvoiceRequest,
   ): Promise<Nip47Transaction> {
@@ -956,168 +892,6 @@ export class NWCClient {
               "INTERNAL",
               relayErrors,
             ),
-          );
-        }
-      })();
-    });
-  }
-
-  /**
-   * @deprecated
-   * multi- methods were removed from NIP-47.
-   */
-  private async executeMultiNip47Request<T>(
-    nip47Method: Nip47MultiMethod,
-    params: unknown,
-    numPayments: number,
-    resultValidator: (result: T) => boolean,
-    timeoutValues?: Nip47TimeoutValues,
-  ): Promise<(T & { dTag: string })[]> {
-    await this._checkConnected();
-    await this._selectEncryptionType();
-    const results: (T & { dTag: string })[] = [];
-    return new Promise<(T & { dTag: string })[]>((resolve, reject) => {
-      (async () => {
-        const command = {
-          method: nip47Method,
-          params,
-        };
-        const encryptedCommand = await this.encrypt(
-          this.walletPubkey,
-          JSON.stringify(command),
-        );
-        const eventTemplate: EventTemplate = {
-          kind: 23194,
-          created_at: Math.floor(Date.now() / 1000),
-          tags: [
-            ["p", this.walletPubkey],
-            // TODO: Remove version tag after 01-06-2025
-            ["v", this.encryptionType === "nip44_v2" ? "1.0" : "0.0"],
-            ["encryption", this.encryptionType],
-          ],
-          content: encryptedCommand,
-        };
-
-        const event = await this.signEvent(eventTemplate);
-        // subscribe to NIP_47_SUCCESS_RESPONSE_KIND and NIP_47_ERROR_RESPONSE_KIND
-        // that reference the request event (NIP_47_REQUEST_KIND)
-        const sub = this.pool.subscribe(
-          this.relayUrls,
-          {
-            kinds: [23195],
-            authors: [this.walletPubkey],
-            "#e": [event.id],
-          },
-          {
-            onevent: async (event) => {
-              // console.log(`Received reply event: `, event);
-
-              const decryptedContent = await this.decrypt(
-                this.walletPubkey,
-                event.content,
-              );
-              // console.log(`Decrypted content: `, decryptedContent);
-              let response;
-              try {
-                response = JSON.parse(decryptedContent);
-              } catch (e) {
-                // console.error(e);
-                clearTimeout(replyTimeoutCheck);
-                sub.close();
-                reject(
-                  new Nip47ResponseDecodingError(
-                    "failed to deserialize response",
-                    "INTERNAL",
-                  ),
-                );
-              }
-              if (response.result) {
-                if (!resultValidator(response.result)) {
-                  clearTimeout(replyTimeoutCheck);
-                  sub.close();
-                  reject(
-                    new Nip47ResponseValidationError(
-                      "Response from NWC failed validation: " +
-                        JSON.stringify(response.result),
-                      "INTERNAL",
-                    ),
-                  );
-                  return;
-                }
-                const dTag = event.tags.find((tag) => tag[0] === "d")?.[1];
-                if (dTag === undefined) {
-                  clearTimeout(replyTimeoutCheck);
-                  sub.close();
-                  reject(
-                    new Nip47ResponseValidationError(
-                      "No d tag found in response event",
-                      "INTERNAL",
-                    ),
-                  );
-                  return;
-                }
-                results.push({
-                  ...response.result,
-                  dTag,
-                });
-                if (results.length === numPayments) {
-                  clearTimeout(replyTimeoutCheck);
-                  sub.close();
-                  //console.log("Received results", results);
-                  resolve(results);
-                }
-              } else {
-                clearTimeout(replyTimeoutCheck);
-                sub.close();
-                reject(
-                  new Nip47UnexpectedResponseError(
-                    response.error?.message,
-                    response.error?.code,
-                  ),
-                );
-              }
-            },
-          },
-        );
-
-        function replyTimeout() {
-          sub.close();
-          //console.error(`Reply timeout: event ${event.id} `);
-          reject(
-            new Nip47ReplyTimeoutError(
-              `reply timeout: event ${event.id}`,
-              "INTERNAL",
-            ),
-          );
-        }
-
-        const replyTimeoutCheck = setTimeout(
-          replyTimeout,
-          timeoutValues?.replyTimeout || 60000,
-        );
-
-        function publishTimeout() {
-          sub.close();
-          //console.error(`Publish timeout: event ${event.id}`);
-          reject(
-            new Nip47PublishTimeoutError(
-              `Publish timeout: ${event.id}`,
-              "INTERNAL",
-            ),
-          );
-        }
-        const publishTimeoutCheck = setTimeout(
-          publishTimeout,
-          this.pool.publishTimeout,
-        );
-
-        try {
-          await Promise.any(this.pool.publish(this.relayUrls, event));
-          clearTimeout(publishTimeoutCheck);
-        } catch (error) {
-          clearTimeout(publishTimeoutCheck);
-          reject(
-            new Nip47PublishError(`Failed to publish: ${error}`, "INTERNAL"),
           );
         }
       })();
