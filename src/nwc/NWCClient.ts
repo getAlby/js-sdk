@@ -13,7 +13,6 @@ import { hexToBytes, bytesToHex } from "@noble/hashes/utils.js";
 import { Logger, noopLogger } from "../logger";
 import {
   Nip47EncryptionType,
-  Nip47SingleMethod,
   Nip47Method,
   Nip47Capability,
   Nip47GetInfoResponse,
@@ -750,7 +749,7 @@ export class NWCClient {
   }
 
   private async executeNip47Request<T>(
-    nip47Method: Nip47SingleMethod,
+    nip47Method: Nip47Method,
     params: unknown,
     resultValidator: (result: T) => boolean,
     timeoutValues?: Nip47TimeoutValues,

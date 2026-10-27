@@ -55,7 +55,7 @@ export class Nip47ResponseValidationError extends Nip47Error {}
 export class Nip47UnexpectedResponseError extends Nip47Error {}
 export class Nip47UnsupportedEncryptionError extends Nip47Error {}
 
-export type Nip47SingleMethod =
+export type Nip47Method =
   | "get_info"
   | "get_balance"
   | "get_budget"
@@ -70,7 +70,6 @@ export type Nip47SingleMethod =
   | "settle_hold_invoice"
   | "cancel_hold_invoice";
 
-export type Nip47Method = Nip47SingleMethod;
 export type Nip47Capability = Nip47Method | "notifications";
 export type BudgetRenewalPeriod =
   | "daily"
