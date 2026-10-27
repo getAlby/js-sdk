@@ -59,14 +59,12 @@ export class ReconnectingPool {
 
   public enablePing: boolean | undefined;
   public maxWaitForConnection: number;
-  // how long callers wait for at least one relay to accept a published event;
-  // applies to relays connected after it is set
-  public publishTimeout: number;
+  // how long callers wait for at least one relay to accept a published event
+  public readonly publishTimeout = 5000;
 
   constructor() {
     this.enablePing = false;
     this.maxWaitForConnection = 3000;
-    this.publishTimeout = 5000;
   }
 
   async ensureRelay(
