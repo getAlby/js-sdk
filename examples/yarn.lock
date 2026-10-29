@@ -192,6 +192,7 @@ __metadata:
   resolution: "@getalby/sdk@portal:../::locator=alby-sdk-examples%40workspace%3A."
   dependencies:
     "@getalby/lightning-tools": "npm:^9.0.2"
+    "@webbtc/webln-types": "npm:^3.0.0"
     nostr-tools: "npm:^2.23.3"
   languageName: node
   linkType: soft
@@ -396,6 +397,13 @@ __metadata:
     "@types/node": "npm:*"
     "@types/send": "npm:*"
   checksum: 10c0/8ad86a25b87da5276cb1008c43c74667ff7583904d46d5fcaf0355887869d859d453d7dc4f890788ae04705c23720e9b6b6f3215e2d1d2a4278bbd090a9268dd
+  languageName: node
+  linkType: hard
+
+"@webbtc/webln-types@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "@webbtc/webln-types@npm:3.0.0"
+  checksum: 10c0/cc2c8b9eb49a107c96df410831101a843f7dbf5c19c47fd431126fd87400d7d5259feab2f7cf8ee224e904c1fdf8d24f3af74199b1cf5e3f68edd8f180a4c2a0
   languageName: node
   linkType: hard
 
