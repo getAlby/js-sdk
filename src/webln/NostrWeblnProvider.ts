@@ -141,10 +141,14 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
       const nip47Result = await this.client.getInfo();
 
       const result = {
-        methods: nip47Result.methods.map(
-          (key) =>
-            nip47ToWeblnRequestMap[key as keyof typeof nip47ToWeblnRequestMap],
-        ),
+        methods: nip47Result.methods
+          .map(
+            (key) =>
+              nip47ToWeblnRequestMap[
+                key as keyof typeof nip47ToWeblnRequestMap
+              ],
+          )
+          .filter(Boolean),
         node: {
           alias: nip47Result.alias,
           pubkey: nip47Result.pubkey,
