@@ -51,6 +51,14 @@ export type NWCWalletServiceSubscribeFilter = {
 const INITIAL_PUBLISH_RETRY_DELAY_MS = 1000;
 const MAX_PUBLISH_ATTEMPTS = 6;
 
+const SUPPORTED_ENCRYPTION_TYPES = ["nip44_v2", "nip04"];
+
+function isSupportedEncryptionType(
+  encryptionType: string,
+): encryptionType is Nip47EncryptionType {
+  return SUPPORTED_ENCRYPTION_TYPES.includes(encryptionType);
+}
+
 export class NWCWalletServiceKeyPair {
   walletSecret: string;
   walletPubkey: string;
@@ -185,9 +193,17 @@ export class NWCWalletService {
         onevent: async (event) => {
           try {
             // console.info("Got event", event);
-            const encryptionType = (event.tags.find(
-              (t) => t[0] === "encryption",
-            )?.[1] || "nip04") as Nip47EncryptionType;
+            const encryptionType =
+              event.tags.find((t) => t[0] === "encryption")?.[1] || "nip04";
+
+            if (!isSupportedEncryptionType(encryptionType)) {
+              await this._publishUnsupportedEncryptionResponse(
+                keypair,
+                event.id,
+                () => unsubscribed,
+              );
+              return;
+            }
 
             const decryptedContent = await this.decrypt(
               keypair,
@@ -311,6 +327,36 @@ export class NWCWalletService {
       unsubscribed = true;
       sub?.close();
     };
+  }
+
+  // NIP-47 doesn't say which scheme this reply uses; nip44_v2 is preferred
+  private async _publishUnsupportedEncryptionResponse(
+    keypair: NWCWalletServiceKeyPair,
+    requestEventId: string,
+    isStopped: () => boolean,
+  ) {
+    const responseEvent = await this.signEvent(
+      {
+        kind: 23195,
+        created_at: Math.floor(Date.now() / 1000),
+        tags: [
+          ["e", requestEventId],
+          ["p", keypair.clientPubkey],
+        ],
+        content: await this.encrypt(
+          keypair,
+          JSON.stringify({
+            error: {
+              code: "UNSUPPORTED_ENCRYPTION",
+              message: `Unsupported encryption. Supported: ${SUPPORTED_ENCRYPTION_TYPES.join(", ")}`,
+            },
+          }),
+          "nip44_v2",
+        ),
+      },
+      keypair.walletSecret,
+    );
+    this._publishWithRetry(responseEvent, isStopped);
   }
 
   private async _publishWithRetry(

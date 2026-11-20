@@ -6,7 +6,11 @@ import {
   NWCWalletServiceSubscribeFilter,
 } from "./NWCWalletService";
 import { NWCWalletServiceRequestHandler } from "./NWCWalletServiceRequestHandler";
-import { Nip47GetInfoResponse, Nip47Notification } from "./types";
+import {
+  Nip47EncryptionType,
+  Nip47GetInfoResponse,
+  Nip47Notification,
+} from "./types";
 
 type SubscribeParams = {
   onevent: (event: Event) => Promise<void> | void;
@@ -70,6 +74,7 @@ async function setupSubscribedWalletService(
     requestEvent,
     unsubscribe,
     keypair,
+    clientSecret,
   };
 }
 
@@ -290,6 +295,100 @@ describe("response publishing", () => {
     await new Promise((resolve) => setTimeout(resolve, 1200));
     expect(publishCalls).toBe(1);
   }, 10_000);
+});
+
+describe("request encryption", () => {
+  async function setup(handler: NWCWalletServiceRequestHandler) {
+    const ctx = await setupSubscribedWalletService(handler);
+    const { service, keypair, clientSecret } = ctx;
+    const clientKeypair = new NWCWalletServiceKeyPair(
+      bytesToHex(clientSecret),
+      keypair.walletPubkey,
+    );
+    const published: Event[] = [];
+    service.pool.publish = (_relayUrls, event) => {
+      published.push(event);
+      return [Promise.resolve("")];
+    };
+
+    // a get_info request with the given tag, its content encrypted with `scheme`
+    const send = async (
+      tag: string | undefined,
+      scheme: Nip47EncryptionType,
+    ) => {
+      const event = await service.signEvent(
+        {
+          kind: 23194,
+          created_at: Math.floor(Date.now() / 1000),
+          tags: [
+            ["p", keypair.walletPubkey],
+            ...(tag ? [["encryption", tag]] : []),
+          ],
+          content: await service.encrypt(
+            clientKeypair,
+            JSON.stringify({ method: "get_info", params: {} }),
+            scheme,
+          ),
+        },
+        bytesToHex(clientSecret),
+      );
+      await ctx.subscribeParams.onevent(event);
+      await new Promise((resolve) => setTimeout(resolve, 20));
+      return event;
+    };
+    const readReply = async (scheme: Nip47EncryptionType) =>
+      JSON.parse(
+        await service.decrypt(clientKeypair, published[0].content, scheme),
+      );
+    return { send, readReply, published };
+  }
+
+  test("answers an unsupported scheme with UNSUPPORTED_ENCRYPTION", async () => {
+    let getInfoCalls = 0;
+    const { send, readReply, published } = await setup({
+      getInfo: async () => {
+        getInfoCalls++;
+        return getInfoResponse;
+      },
+    });
+
+    const event = await send("nip99", "nip44_v2");
+
+    expect(getInfoCalls).toBe(0);
+    expect(published).toHaveLength(1);
+    expect(published[0].tags).toContainEqual(["e", event.id]);
+    expect((await readReply("nip44_v2")).error.code).toBe(
+      "UNSUPPORTED_ENCRYPTION",
+    );
+  });
+
+  test("does not record an unsupported request", async () => {
+    const recorded: string[] = [];
+    const { send } = await setup({
+      recordEvent: (id) => {
+        recorded.push(id);
+        return undefined;
+      },
+    });
+
+    await send("nip99", "nip44_v2");
+
+    expect(recorded).toEqual([]);
+  });
+
+  test.each([
+    ["nip44_v2", "nip44_v2"],
+    ["nip04", "nip04"],
+    [undefined, "nip04"],
+  ] as const)("answers a request tagged %s", async (tag, scheme) => {
+    const { send, readReply } = await setup({
+      getInfo: async () => getInfoResponse,
+    });
+
+    await send(tag, scheme);
+
+    expect((await readReply(scheme)).result_type).toBe("get_info");
+  });
 });
 
 describe("subscribe filter", () => {
