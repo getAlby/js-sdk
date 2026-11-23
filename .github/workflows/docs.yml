@@ -21,7 +21,7 @@ jobs:
           cache: "yarn"
       - run: yarn install --frozen-lockfile
       # Generate your TypeDoc documentation
-      - run: npx typedoc src/index.ts --out docs/generated
+      - run: npx typedoc@0.28.17 src/index.ts --out docs/generated
       # https://github.com/actions/upload-pages-artifact
       - uses: actions/upload-pages-artifact@v3
         with:
